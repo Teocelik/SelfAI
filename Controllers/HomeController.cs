@@ -1,6 +1,8 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 using SelfAI.Models;
+using SelfAI.ViewModels;
 
 namespace SelfAI.Controllers
 {
@@ -13,10 +15,32 @@ namespace SelfAI.Controllers
             _logger = logger;
         }
 
+        #region Home sayfasý iþlemleri
+        //Home sayfasýný açar!
         public IActionResult Index()
         {
             return View();
         }
+
+        //Home sayfasýndaki formu gönderir!
+        [HttpPost]
+        public IActionResult Index(UserEmailViewModel model)
+        {
+            if(!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            /*
+             * Burada, modele girilen e - posta adresini ilk olarak Cloudflare API üzerinden bot olup olmadýðýný kontrol edeceðiz.
+
+             * Eðer bot deðilse, e-posta adresini FireBase Auth API'yi üzerinden, kayýtlý deðilse
+             * kardedeceðiz veya kayýtlý ise oturumu açacaðýz.(FiraBase Auth bunu otomatik yapar)
+             */
+
+            return View();
+        }
+        #endregion
 
         public IActionResult Privacy()
         {
