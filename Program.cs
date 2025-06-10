@@ -1,16 +1,18 @@
 using SelfAI.Models;
-using SelfAI.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
-//API için gerekli configürasyonlar...
-builder.Services.Configure<FireBaseAuth>(builder.Configuration.GetSection("FireBaseAuth"));
-
-//FireBase Auth servisi için http hizmeti(istek göndermek için)
-builder.Services.AddHttpClient<FirebaseAuthService>();
+//Add Seasons
+builder.Services.AddSession(options=>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(3); // Oturumun 30 dakika sonra zaman aþýmýna uðramasýný saðlar
+    options.Cookie.HttpOnly = true; // Çerezlerin JavaScript tarafýndan eriþilmemesini saðlar
+    options.Cookie.IsEssential = true; // Oturum çerezinin gerekli olduðunu belirtir
+});
 
 var app = builder.Build();
 
@@ -22,6 +24,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseSession(); // Oturum yönetimini etkinleþtirir
 app.UseHttpsRedirection();
 app.UseRouting();
 
