@@ -1,4 +1,6 @@
 using SelfAI.Models;
+using SelfAI.Services.Concretes;
+using SelfAI.Services.Interfaces;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -6,10 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
+builder.Services.Configure<RenderNetSettings>(builder.Configuration.GetSection("RenderNetApiConnection"));
+
+builder.Services.AddScoped<IRenderNetService, RenderNetService>();
+
 //Add Seasons
 builder.Services.AddSession(options=>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(3); // Oturumun 30 dakika sonra zaman aþýmýna uðramasýný saðlar
+    options.IdleTimeout = TimeSpan.FromMinutes(5); // Oturumun 5 dakika sonra zaman aþýmýna uðramasýný saðlar
     options.Cookie.HttpOnly = true; // Çerezlerin JavaScript tarafýndan eriþilmemesini saðlar
     options.Cookie.IsEssential = true; // Oturum çerezinin gerekli olduðunu belirtir
 });
