@@ -3,30 +3,106 @@
 }
 
 <!DOCTYPE html>
-<html>
+<html lang="tr">
 <head>
     <meta charset="utf-8" />
-    <title>Firebase Login</title>
+    <title>@ViewData["Title"]</title>
 
-   
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
+          crossorigin="anonymous" />
+
+    <style>
+        /* CSS kodların aynı şekilde kaldı */
+    </style>
 </head>
+<body class="d-flex flex-column min-vh-100">
 
-<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <div class="container">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <button class="btn gradient-btn"
+                            data-bs-toggle="modal"
+                            data-bs-target="#signupModal">
+                        Kaydol / Giriş Yap
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-    <form id="emailLoginForm">
-        <input type="email" id="userEmail" placeholder="E-posta adresiniz" required />
-        <button type="submit">Giriş Bağlantısı Gönder</button>
-        <button id="googleLoginBtn">Google ile Giriş Yap</button>
-    </form>
+    <!-- İçerik -->
+    <div class="flex-grow-1"></div>
+
+    <!-- Signup Modal -->
+    <div class="modal fade"
+         id="signupModal"
+         tabindex="-1"
+         aria-labelledby="signupModalLabel"
+         aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content bg-dark text-white p-4">
+                <div class="modal-header border-0 pb-0">
+                    <h5 class="modal-title" id="signupModalLabel">Kaydol veya Giriş Yap</h5>
+                    <button type="button"
+                            class="btn-close btn-close-white"
+                            data-bs-dismiss="modal"
+                            aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="emailLoginForm" class="mb-3">
+                        <div class="mb-3">
+                            <label for="userEmail" class="form-label small">E-posta adresiniz</label>
+                            <input type="email"
+                                   id="userEmail"
+                                   class="form-control form-control-lg"
+                                   placeholder="E-postanızı girin…"
+                                   required />
+                        </div>
+                        <button type="submit"
+                                class="btn gradient-btn btn-lg w-100 mb-2">
+                            E-posta ile Bağlantı Gönder
+                        </button>
+
+                        <div class="text-center text-muted small mb-2">
+                            📧 İlk kez kaydoluyorsanız, size bir giriş bağlantısı göndereceğiz!
+                        </div>
+
+                        <div class="separator text-muted small">veya</div>
+
+                       
+
+                        <button type="button"
+                                class="btn btn-light btn-lg w-100"
+                                id="googleLoginBtn">
+                            <img src="https://developers.google.com/identity/images/g-logo.png"
+                                 width="20"
+                                 class="me-2" />
+                            Google ile Giriş Yap
+                        </button>
+
+
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
+            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
+            crossorigin="anonymous"></script>
 
     @section Scripts {
-
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
         <script src="js/firebase-init.js"></script>
         <script src="js/firebase-auth-link.js"></script>
         <script src="js/firebase-auth-google.js"></script>
     }
-
 </body>
 </html>

@@ -8,10 +8,11 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+builder.Services.AddHttpClient<IRenderNetService, RenderNetService>();
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<RenderNetSettings>(builder.Configuration.GetSection("RenderNetApiConnection"));
 
-builder.Services.AddScoped<IRenderNetService, RenderNetService>();
+
 
 //Add Seasons
 builder.Services.AddSession(options=>

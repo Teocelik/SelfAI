@@ -27,5 +27,6 @@ namespace SelfAI.Services.Concretes
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
+
     }
 }
