@@ -1,6 +1,4 @@
-﻿<h1>kodlar düzeltildi</h1>
-
-@{
+﻿@* @{
     ViewData["Title"] = "Home Page";
 }
 
@@ -17,7 +15,69 @@
           crossorigin="anonymous" />
 
     <style>
-        /* CSS kodların aynı şekilde kaldı */
+        /* Küçük özelleştirmeler */
+        .modal-content {
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+
+        .gradient-btn {
+            background: linear-gradient(90deg, #794fff, #2cb0ff);
+            color: white;
+        }
+
+            .gradient-btn:hover {
+                opacity: .9;
+            }
+
+        .separator {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            margin: 1rem 0;
+        }
+
+            .separator::before,
+            .separator::after {
+                content: "";
+                flex: 1;
+                border-bottom: 1px solid #ccc;
+            }
+
+            .separator::before {
+                margin-right: .5em;
+            }
+
+            .separator::after {
+                margin-left: .5em;
+            }
+
+        .navbar-nav .nav-link {
+            margin-left: 1rem;
+        }
+
+        .modal-content.bg-dark .text-muted {
+            color: #d1d1d1 !important;
+        }
+
+        .modal-content.bg-dark .form-label {
+            color: #ffffff !important;
+        }
+
+        .modal-content.bg-dark .form-control {
+            background-color: #333;
+            color: #ffffff;
+            border-color: #555;
+        }
+
+            .modal-content.bg-dark .form-control::placeholder {
+                color: #aaaaaa;
+            }
+
+        .modal-content.bg-dark .btn-light {
+            background-color: #ffffff;
+            color: #333;
+        }
     </style>
 </head>
 <body class="d-flex flex-column min-vh-100">
@@ -76,8 +136,6 @@
 
                         <div class="separator text-muted small">veya</div>
 
-                       
-
                         <button type="button"
                                 class="btn btn-light btn-lg w-100"
                                 id="googleLoginBtn">
@@ -86,8 +144,6 @@
                                  class="me-2" />
                             Google ile Giriş Yap
                         </button>
-
-
                     </form>
                 </div>
             </div>
@@ -102,9 +158,10 @@
     @section Scripts {
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
         <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-        <script src="js/firebase-init.js"></script>
-        <script src="js/firebase-auth-link.js"></script>
-        <script src="js/firebase-auth-google.js"></script>
+        <script src="~/js/firebase-init.js"></script>
+        <script src="~/js/firebase-auth-link.js"></script>
+        <script src="~/js/firebase-auth-google.js"></script>
     }
 </body>
 </html>
+ *@
