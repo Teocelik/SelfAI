@@ -12,6 +12,7 @@ namespace SelfAI.Controllers
         {
             _renderNetService = renderNetService;
         }
+
         public IActionResult Index()
         {
             return View();

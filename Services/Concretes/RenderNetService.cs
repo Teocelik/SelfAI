@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
+using SelfAI.DTOs.RenderNet;
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
 
@@ -8,6 +9,7 @@ namespace SelfAI.Services.Concretes
     {
         private readonly HttpClient _httpClient;
         private readonly RenderNetSettings _settings;
+
         public RenderNetService(HttpClient httpClient, IOptions<RenderNetSettings> options)
         {
             _httpClient = httpClient;
@@ -18,7 +20,7 @@ namespace SelfAI.Services.Concretes
             _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _settings.ApiKey);
         }
 
-        // Bu metot, RenderNet API'sine bir varlık yükler ve yanıt olarak dönen veriyi string olarak döner.
+        // Bu metot, RenderNet API'sine bir varlık yükler.
         public async Task<string> UploadAssetAsync(object payload)
         {
             // Path yazalım
@@ -28,5 +30,10 @@ namespace SelfAI.Services.Concretes
             return await response.Content.ReadAsStringAsync();
         }
 
+        // Bu metot, RenderNet API'sinden bir varlığı alır.
+        public Task<string> GetAssetAsync(UploadAssetResponse asset)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
