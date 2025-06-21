@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using SelfAI.Models;
+using SelfAI.Services.Interfaces;
 using SelfAI.ViewModels;
 
 namespace SelfAI.Controllers
@@ -10,16 +11,22 @@ namespace SelfAI.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        //TEST FÝELD
+        private readonly IRenderNetService _renderNetService;
+
+        public HomeController(ILogger<HomeController> logger, IRenderNetService renderNetService)
         {
             _logger = logger;
+            _renderNetService = renderNetService;
         }
 
         #region Home sayfasý iþlemleri
         //Home sayfasýný açar!
         public IActionResult Index()
         {
+            //_renderNetService.GetUploadUrlAsync();
             return View();
+            
         }
 
         //Home sayfasýndaki formu gönderir!

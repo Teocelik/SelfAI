@@ -18,9 +18,10 @@ namespace SelfAI.Controllers
             return View();
         }
 
-        public async Task<IActionResult> UploadAsset(Asset image)
+        // RenderNet API'sine varlık yükleme işlemi için gerekli metot
+        public async Task<IActionResult> UploadAsset(IFormFile imageFile)
         {
-            if (image == null || image.File == null || image.File.Length == 0)
+            if (imageFile == null || imageFile.Length == 0)
             {
                 ModelState.AddModelError("File", "Lütfen bir dosya seçin.");
                 return View("Index");
@@ -28,7 +29,7 @@ namespace SelfAI.Controllers
             try
             {
                 // RenderNet API'sine varlık yükleme işlemi
-                var result = await _renderNetService.UploadAssetAsync(image);
+                var result = await _renderNetService.UploadAssetAsync(imageFile);
                 ViewBag.Result = result;
             }
             catch (Exception ex)
