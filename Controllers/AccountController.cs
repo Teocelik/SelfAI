@@ -6,9 +6,9 @@ namespace SelfAI.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IRenderNetService _renderNetService;
+        private readonly IRenderNetAssetService _renderNetService;
 
-        public AccountController(IRenderNetService renderNetService)
+        public AccountController(IRenderNetAssetService renderNetService)
         {
             _renderNetService = renderNetService;
         }

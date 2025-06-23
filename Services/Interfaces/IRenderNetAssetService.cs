@@ -4,7 +4,7 @@ using SelfAI.Models;
 
 namespace SelfAI.Services.Interfaces
 {
-    public interface IRenderNetService
+    public interface IRenderNetAssetService
     {
         // RenderNet API'sine varlık yükleme işlemi için gerekli metot
         Task<string> UploadAssetAsync(object payload);

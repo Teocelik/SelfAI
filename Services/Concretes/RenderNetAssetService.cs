@@ -8,12 +8,12 @@ using System.Text.Json;
 
 namespace SelfAI.Services.Concretes
 {
-    public class RenderNetService : IRenderNetService
+    public class RenderNetAssetService : IRenderNetAssetService
     {
         private readonly HttpClient _httpClient;
         private readonly RenderNetSettings _settings;
 
-        public RenderNetService(HttpClient httpClient, IOptions<RenderNetSettings> options)
+        public RenderNetAssetService(HttpClient httpClient, IOptions<RenderNetSettings> options)
         {
             _httpClient = httpClient;
             _settings = options.Value;

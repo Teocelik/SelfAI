@@ -12,9 +12,9 @@ namespace SelfAI.Controllers
         private readonly ILogger<HomeController> _logger;
 
         //TEST FÝELD
-        private readonly IRenderNetService _renderNetService;
+        private readonly IRenderNetAssetService _renderNetService;
 
-        public HomeController(ILogger<HomeController> logger, IRenderNetService renderNetService)
+        public HomeController(ILogger<HomeController> logger, IRenderNetAssetService renderNetService)
         {
             _logger = logger;
             _renderNetService = renderNetService;
@@ -24,7 +24,7 @@ namespace SelfAI.Controllers
         //Home sayfasýný açar!
         public IActionResult Index()
         {
-            //_renderNetService.GetUploadUrlAsync();
+            _renderNetService.GetUploadUrlAsync();
             return View();
             
         }
