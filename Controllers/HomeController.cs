@@ -24,9 +24,14 @@ namespace SelfAI.Controllers
         //Home sayfasýný açar!
         public IActionResult Index()
         {
-            _renderNetService.GetUploadUrlAsync();
+            
             return View();
             
+        }
+
+        public IActionResult UploadImageAsync()
+        {
+            return View();
         }
 
         //Home sayfasýndaki formu gönderir!

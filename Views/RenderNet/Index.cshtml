@@ -1,0 +1,13 @@
+﻿@{
+    ViewData["Title"] = "Görsel Yükleme";
+}
+
+<h2>Görsel Yükle</h2>
+
+<form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post">
+    <div class="mb-3">
+        <label for="formFile" class="form-label">Bir görsel seçin:</label>
+        <input class="form-control" type="file" name="formFile" id="formFile" accept="image/*" />
+    </div>
+    <button type="submit" class="btn btn-primary">Yükle</button>
+</form>

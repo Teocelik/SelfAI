@@ -4,6 +4,7 @@ using SelfAI.DTOs.RenderNet;
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
 using System.Drawing;
+using System.Net.Http.Headers;
 using System.Text.Json;
 
 namespace SelfAI.Services.Concretes
@@ -21,22 +22,6 @@ namespace SelfAI.Services.Concretes
             //Headerlari ayarlayalım
             _httpClient.BaseAddress = new Uri(_settings.BaseUrl);
             _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _settings.ApiKey);
-        }
-
-        // Bu metot, RenderNet API'sine bir varlık yükler.
-        public async Task<string> UploadAssetAsync(object payload)
-        {
-            // Path yazalım
-            var response = await _httpClient.PostAsJsonAsync($"{_httpClient.BaseAddress}/assets/upload", payload);
-
-            response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
-        }
-
-        // Bu metot, RenderNet API'sinden bir varlığı alır.
-        public Task<string> GetAssetAsync(UploadAssetResponse asset)
-        {
-            throw new NotImplementedException();
         }
 
         // Bu metot, RenderNet API'sinden bir yükleme URL'si alır.
@@ -79,6 +64,38 @@ namespace SelfAI.Services.Concretes
             }
 
             return serilizedResponse;
+        }
+
+        // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
+        public async Task<UploadAssetResponse> UploadAssetAsync(IFormFile assetFile)
+        {
+            if (assetFile == null || assetFile.Length == 0)
+            {
+                throw new ArgumentException("Dosya boş olamaz.");
+            }
+
+            // Upload URL almak için GetUploadUrlAsync metodunu çağırıyoruz
+            var uploadResponse = await GetUploadUrlAsync();
+
+            if (uploadResponse == null)
+            {
+                throw new InvalidOperationException("Upload URL alınamadı.");
+            }
+            // OpenReadStream ile dosyanın içeriğini okuyoruz
+            using var stream = assetFile.OpenReadStream();
+            // StreamContent oluşturuyoruz ve içeriği ayarlıyoruz
+            using var content = new StreamContent(stream);
+            // Dosyanın tipini bildiriyoruz (image/png, image/jpeg vs.)
+            content.Headers.ContentType = new MediaTypeHeaderValue(assetFile.ContentType);
+            // Put isteği ile dosyayı yüklüyoruz
+            var response = await _httpClient.PutAsync(uploadResponse.Data.UploadUrl, content);
+            // Eğer istek başarılı değilse, bir hata fırlatıyoruz
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Dosya yükleme başarısız. Hata kodu: {response.StatusCode}");
+            }
+            // Yükleme başarılı ise, UploadAssetResponse nesnesini döndürüyoruz
+            return uploadResponse;
         }
     }
 }

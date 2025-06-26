@@ -9,6 +9,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
+builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
+builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
+
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<RenderNetSettings>(builder.Configuration.GetSection("RenderNetApiConnection"));
 
@@ -40,7 +43,10 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 
-app.MapDefaultControllerRoute();
+//app.MapDefaultControllerRoute();
+app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
 
 
 app.Run();
