@@ -2,5 +2,6 @@
 {
     public interface IRenderNetGenerationService
     {
+        Task<string> GenerateMediaAsync(string assetId);
     }
 }
