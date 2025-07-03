@@ -10,44 +10,11 @@
     <title>@ViewData["Title"]</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
-    <div class="container">
-        <h2 class="text-center my-4">Görsel Yükle</h2>
-
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post" id="uploadForm">
-                    <div class="mb-3">
-                        <label for="formFile" class="form-label">Bir görsel seçin:</label>
-                        <input class="form-control" type="file" name="formFile" id="formFile" accept="image/*" />
-                    </div>
-                    <button type="submit" class="btn btn-primary w-100">Yükle</button>
-                </form>
-            </div>
-        </div>
-
-        <div id="imageContainer" class="mt-4" style="position: relative; width: 512px; height: 512px; margin: 0 auto; overflow: hidden; display: none; text-align: center;">
-            <img id="uploadedImage" src="" alt="Yüklenen Fotoğraf" style="max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;" />
-            <div id="frame" style="position: absolute; width: 256px; height: 256px; border: 3px dashed #007bff; background: rgba(0, 123, 255, 0.1); cursor: move; box-shadow: 0 4px 8px rgba(0,0,0,0.2);"></div>
-        </div>
-
-        <div class="text-center mt-3 mb-3">
-            <button id="confirmButton" class="btn btn-success" style="display: none;">Tamam</button>
-        </div>
-
-        <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Yükleniyor...</span>
-            </div>
-        </div>
-    </div>
-
     <style>
         #imageContainer {
             position: relative;
-            width: 512px;
-            height: 512px;
+            width: 384px;
+            height: 384px;
             margin: 0 auto;
             overflow: hidden;
             display: none;
@@ -63,41 +30,97 @@
 
         #frame {
             position: absolute;
-            width: 256px;
-            height: 256px;
+            width: 192px;
+            height: 192px;
             border: 3px dashed #007bff;
             background: rgba(0, 123, 255, 0.1);
             cursor: move;
             box-shadow: 0 4px 8px rgba(0,0,0,0.2);
             transition: all 0.3s ease;
+            display: none;
         }
 
-        #frame:hover {
-            border-color: #0056b3;
-            background: rgba(0, 86, 179, 0.2);
+            #frame:hover {
+                border-color: #0056b3;
+                background: rgba(0, 86, 179, 0.2);
+            }
+
+        .file-select {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
         }
 
-        .mb-3 {
-            margin-bottom: 3rem !important; /* 3 cm boşluk için */
+            .file-select input[type=file] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                cursor: pointer;
+                width: 100%;
+                height: 100%;
+            }
+
+        #confirmButton {
+            margin-bottom: 3cm; /* Tamam butonunun altına 3 cm boşluk */
+        }
+
+        .mb-4 {
+            margin-bottom: 3rem !important;
         }
     </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="text-center my-4">Görsel Yükle</h2>
+
+        <div class="row justify-content-center">
+            <div class="col-md-8 text-center">
+                <form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post" id="uploadForm">
+                    <div class="mb-4">
+                        <label class="btn btn-secondary file-select">
+                            Görsel Seç
+                            <input type="file" name="formFile" id="formFile" accept="image/*" />
+                        </label>
+                    </div>
+                    <button type="submit" class="btn btn-primary w-50">Yükle</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="imageContainer" class="mt-4">
+            <img id="uploadedImage" src="" alt="Yüklenen Fotoğraf" />
+            <div id="frame"></div>
+        </div>
+
+        <div class="text-center mt-3 mb-3">
+            <button id="confirmButton" class="btn btn-success" style="display: none;">Tamam</button>
+        </div>
+
+        <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Yükleniyor...</span>
+            </div>
+        </div>
+    </div>
 
     <script>
-        // Dosya seçildiğinde önizleme göster
-        document.getElementById('formFile').addEventListener('change', function(event) {
+        const fileInput = document.getElementById('formFile');
+        const imageContainer = document.getElementById('imageContainer');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const frame = document.getElementById('frame');
+        const confirmButton = document.getElementById('confirmButton');
+        const loading = document.getElementById('loading');
+
+        fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
             if (file && file.type.startsWith('image/')) {
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    const imageContainer = document.getElementById('imageContainer');
-                    const uploadedImage = document.getElementById('uploadedImage');
-                    const frame = document.getElementById('frame');
-                    const confirmButton = document.getElementById('confirmButton');
-
                     uploadedImage.src = e.target.result;
                     imageContainer.style.display = 'block';
                     frame.style.display = 'block';
-                    confirmButton.style.display = 'block';
+                    confirmButton.style.display = 'inline-block';
                     frame.style.left = '0px';
                     frame.style.top = '0px';
                 };
@@ -105,11 +128,9 @@
             }
         });
 
-        // Form gönderildiğinde yükleme işlemi
         document.getElementById('uploadForm').addEventListener('submit', function(event) {
             event.preventDefault();
             const formData = new FormData(this);
-            const loading = document.getElementById('loading');
             loading.style.display = 'block';
 
             fetch(this.action, {
@@ -124,10 +145,7 @@
             });
         });
 
-        // Çerçeveyi sürükleme işlevi
-        let isDragging = false;
-        let startX, startY;
-        const frame = document.getElementById('frame');
+        let isDragging = false, startX, startY;
 
         frame.addEventListener('mousedown', function(e) {
             isDragging = true;
@@ -140,13 +158,13 @@
                 let newLeft = e.clientX - startX;
                 let newTop = e.clientY - startY;
 
-                const imageRect = document.getElementById('imageContainer').getBoundingClientRect();
+                const containerRect = imageContainer.getBoundingClientRect();
                 const frameRect = frame.getBoundingClientRect();
 
                 if (newLeft < 0) newLeft = 0;
                 if (newTop < 0) newTop = 0;
-                if (newLeft + frameRect.width > imageRect.width) newLeft = imageRect.width - frameRect.width;
-                if (newTop + frameRect.height > imageRect.height) newTop = imageRect.height - frameRect.height;
+                if (newLeft + frameRect.width > containerRect.width) newLeft = containerRect.width - frameRect.width;
+                if (newTop + frameRect.height > containerRect.height) newTop = containerRect.height - frameRect.height;
 
                 frame.style.left = newLeft + 'px';
                 frame.style.top = newTop + 'px';
@@ -157,52 +175,36 @@
             isDragging = false;
         });
 
-        // Tamam butonuna tıklama ve görseli kırpma
-        document.getElementById('confirmButton').addEventListener('click', function() {
-            const frame = document.getElementById('frame');
-            const uploadedImage = document.getElementById('uploadedImage');
-            const confirmButton = document.getElementById('confirmButton');
-
-            // Çerçeve koordinatlarını al
+        confirmButton.addEventListener('click', function() {
             const left = parseFloat(frame.style.left);
             const top = parseFloat(frame.style.top);
             const frameWidth = frame.offsetWidth;
             const frameHeight = frame.offsetHeight;
 
-            // Canvas oluştur
             const canvas = document.createElement('canvas');
-            canvas.width = frameWidth;
-            canvas.height = frameHeight;
+            canvas.width = 512;
+            canvas.height = 512;
             const ctx = canvas.getContext('2d');
 
-            // Görselin doğal boyutlarını al
             const img = new Image();
             img.src = uploadedImage.src;
             img.onload = function() {
-                // Görselin container içindeki ölçeklenmiş boyutlarını al
-                const containerRect = document.getElementById('imageContainer').getBoundingClientRect();
                 const imgRect = uploadedImage.getBoundingClientRect();
-
-                // Ölçekleme oranını hesapla
                 const scaleX = img.naturalWidth / imgRect.width;
                 const scaleY = img.naturalHeight / imgRect.height;
 
-                // Çerçevenin doğal görseldeki koordinatlarını hesapla
                 const srcX = left * scaleX;
                 const srcY = top * scaleY;
                 const srcWidth = frameWidth * scaleX;
                 const srcHeight = frameHeight * scaleY;
 
-                // Canvas üzerine kırpılmış alanı çiz
-                ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, frameWidth, frameHeight);
+                ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, 512, 512);
 
-                // Orijinal Görseli kırpılmış görselle değiştir
                 uploadedImage.src = canvas.toDataURL('image/png');
-                frame.style.display = 'none'; // Çerçeveyi gizle
-                confirmButton.style.display = 'none'; // Tamam butonunu gizle
+                frame.style.display = 'none';
+                confirmButton.style.display = 'none';
 
-                // Koordinatları bildir
-                alert(`Seçilen alan: left=${left}px, top=${top}px, width=${frameWidth}px, height=${frameHeight}px`);
+                alert(`Kırpma tamamlandı: 512x512 oluşturuldu!`);
             };
         });
     </script>
