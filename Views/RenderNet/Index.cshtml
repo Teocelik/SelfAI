@@ -13,25 +13,25 @@
     <style>
         #imageContainer {
             position: relative;
-            width: 384px;
-            height: 384px;
             margin: 0 auto;
             overflow: hidden;
             display: none;
             text-align: center;
+            max-width: 800px; /* Maximum display width */
+            max-height: 800px; /* Maximum display height */
         }
 
         #uploadedImage {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            width: 100%;
+            height: auto;
+            object-fit: contain; /* Scale image to fit within container */
             border-radius: 8px;
         }
 
         #frame {
             position: absolute;
-            width: 192px;
-            height: 192px;
+            width: 512px; /* Size in original image coordinates */
+            height: 512px;
             border: 3px dashed #007bff;
             background: rgba(0, 123, 255, 0.1);
             cursor: move;
@@ -62,7 +62,7 @@
             }
 
         #confirmButton {
-            margin-bottom: 3cm; /* Tamam butonunun altına 3 cm boşluk */
+            margin-bottom: 3cm;
         }
 
         .mb-4 {
@@ -111,6 +111,7 @@
         const frame = document.getElementById('frame');
         const confirmButton = document.getElementById('confirmButton');
         const loading = document.getElementById('loading');
+        let scaleFactor = 1;
 
         fileInput.addEventListener('change', function(event) {
             const file = event.target.files[0];
@@ -118,11 +119,26 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     uploadedImage.src = e.target.result;
-                    imageContainer.style.display = 'block';
-                    frame.style.display = 'block';
-                    confirmButton.style.display = 'inline-block';
-                    frame.style.left = '0px';
-                    frame.style.top = '0px';
+                    uploadedImage.onload = function() {
+                        const maxDisplayWidth = 800; // Maximum display width
+                        const naturalWidth = uploadedImage.naturalWidth;
+                        const naturalHeight = uploadedImage.naturalHeight;
+
+                        // Calculate scaling factor
+                        scaleFactor = Math.min(maxDisplayWidth / naturalWidth, 1);
+                        imageContainer.style.width = (naturalWidth * scaleFactor) + 'px';
+                        imageContainer.style.height = (naturalHeight * scaleFactor) + 'px';
+
+                        // Scale the frame to match the display
+                        frame.style.width = (512 * scaleFactor) + 'px';
+                        frame.style.height = (512 * scaleFactor) + 'px';
+
+                        imageContainer.style.display = 'block';
+                        frame.style.display = 'block';
+                        confirmButton.style.display = 'inline-block';
+                        frame.style.left = '0px';
+                        frame.style.top = '0px';
+                    };
                 };
                 reader.readAsDataURL(file);
             }
@@ -149,8 +165,8 @@
 
         frame.addEventListener('mousedown', function(e) {
             isDragging = true;
-            startX = e.clientX - frame.offsetLeft;
-            startY = e.clientY - frame.offsetTop;
+            startX = e.clientX - parseFloat(frame.style.left || 0);
+            startY = e.clientY - parseFloat(frame.style.top || 0);
         });
 
         document.addEventListener('mousemove', function(e) {
@@ -161,10 +177,15 @@
                 const containerRect = imageContainer.getBoundingClientRect();
                 const frameRect = frame.getBoundingClientRect();
 
+                // Bounds checking in scaled coordinates
                 if (newLeft < 0) newLeft = 0;
                 if (newTop < 0) newTop = 0;
-                if (newLeft + frameRect.width > containerRect.width) newLeft = containerRect.width - frameRect.width;
-                if (newTop + frameRect.height > containerRect.height) newTop = containerRect.height - frameRect.height;
+                if (newLeft + frameRect.width > containerRect.width) {
+                    newLeft = containerRect.width - frameRect.width;
+                }
+                if (newTop + frameRect.height > containerRect.height) {
+                    newTop = containerRect.height - frameRect.height;
+                }
 
                 frame.style.left = newLeft + 'px';
                 frame.style.top = newTop + 'px';
@@ -176,10 +197,10 @@
         });
 
         confirmButton.addEventListener('click', function() {
-            const left = parseFloat(frame.style.left);
-            const top = parseFloat(frame.style.top);
-            const frameWidth = frame.offsetWidth;
-            const frameHeight = frame.offsetHeight;
+            const left = parseFloat(frame.style.left || 0) / scaleFactor; // Convert to original image coordinates
+            const top = parseFloat(frame.style.top || 0) / scaleFactor;
+            const frameWidth = 512; // Size in original image coordinates
+            const frameHeight = 512;
 
             const canvas = document.createElement('canvas');
             canvas.width = 512;
@@ -189,18 +210,12 @@
             const img = new Image();
             img.src = uploadedImage.src;
             img.onload = function() {
-                const imgRect = uploadedImage.getBoundingClientRect();
-                const scaleX = img.naturalWidth / imgRect.width;
-                const scaleY = img.naturalHeight / imgRect.height;
-
-                const srcX = left * scaleX;
-                const srcY = top * scaleY;
-                const srcWidth = frameWidth * scaleX;
-                const srcHeight = frameHeight * scaleY;
-
-                ctx.drawImage(img, srcX, srcY, srcWidth, srcHeight, 0, 0, 512, 512);
+                // Crop from original image resolution
+                ctx.drawImage(img, left, top, frameWidth, frameHeight, 0, 0, 512, 512);
 
                 uploadedImage.src = canvas.toDataURL('image/png');
+                imageContainer.style.width = '512px';
+                imageContainer.style.height = '512px';
                 frame.style.display = 'none';
                 confirmButton.style.display = 'none';
 
