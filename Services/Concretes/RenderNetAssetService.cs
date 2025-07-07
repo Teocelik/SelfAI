@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
+using SelfAI.Configurations;
 using SelfAI.DTOs.RenderNet;
-using SelfAI.Models;
 using SelfAI.Services.Interfaces;
 using System.Drawing;
 using System.Net.Http.Headers;
@@ -12,9 +12,9 @@ namespace SelfAI.Services.Concretes
     public class RenderNetAssetService : IRenderNetAssetService
     {
         private readonly HttpClient _httpClient;
-        private readonly RenderNetSettings _settings;
+        private readonly RenderNetOptions _settings;
 
-        public RenderNetAssetService(HttpClient httpClient, IOptions<RenderNetSettings> options)
+        public RenderNetAssetService(HttpClient httpClient, IOptions<RenderNetOptions> options)
         {
             _httpClient = httpClient;
             _settings = options.Value;

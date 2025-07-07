@@ -1,4 +1,4 @@
-using SelfAI.Models;
+using SelfAI.Configurations;
 using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
 
@@ -11,9 +11,11 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
+builder.Services.AddHttpClient<IPaymentService, IyzicoCheckoutService>();
 
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
-builder.Services.Configure<RenderNetSettings>(builder.Configuration.GetSection("RenderNetApiConnection"));
+builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
+builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoPaymentOptions"));
 
 
 

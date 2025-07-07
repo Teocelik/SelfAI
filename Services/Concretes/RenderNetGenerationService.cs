@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.Options;
-using SelfAI.Models;
+using SelfAI.Configurations;
 using SelfAI.Services.Interfaces;
 
 namespace SelfAI.Services.Concretes
@@ -7,9 +7,9 @@ namespace SelfAI.Services.Concretes
     public class RenderNetGenerationService : IRenderNetGenerationService
     {
         private readonly HttpClient _httpClient;
-        private readonly RenderNetSettings _settings;
+        private readonly RenderNetOptions _settings;
 
-        public RenderNetGenerationService(HttpClient httpClient, IOptions<RenderNetSettings> options)
+        public RenderNetGenerationService(HttpClient httpClient, IOptions<RenderNetOptions> options)
         {
             _httpClient = httpClient;
             _settings = options.Value;

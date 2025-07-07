@@ -1,6 +1,6 @@
-﻿namespace SelfAI.Models
+﻿namespace SelfAI.Configurations
 {
-    public class RenderNetSettings
+    public class RenderNetOptions
     {
         public string ApiKey { get; set; }
         public string BaseUrl { get; set; }
