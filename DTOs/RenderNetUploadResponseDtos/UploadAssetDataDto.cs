@@ -2,9 +2,9 @@
 
 namespace SelfAI.DTOs.RenderNet
 {
-    public class UploadAssetData
+    public class UploadAssetDataDto
     {
-        public UploadedAsset Asset { get; set; }
+        public UploadedAssetDto Asset { get; set; }
 
         [JsonPropertyName("upload_url")]
         public string UploadUrl { get; set; }

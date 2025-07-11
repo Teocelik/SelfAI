@@ -2,7 +2,7 @@
 
 namespace SelfAI.DTOs.RenderNetCharacterResponseDtos
 {
-    public class CharacterData
+    public class CharacterDataDto
     {
         [JsonPropertyName("character_type")]
         public string CharacterType { get; set; }

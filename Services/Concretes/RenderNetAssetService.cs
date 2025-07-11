@@ -25,7 +25,7 @@ namespace SelfAI.Services.Concretes
         }
 
         // Bu metot, RenderNet API'sinden bir yükleme URL'si alır.
-        public async Task<UploadAssetResponse> GetUploadUrlAsync()
+        public async Task<UploadAssetResponseDto> GetUploadUrlAsync()
         {
             // Yükleme URL'si almak için gerekli payload'u oluşturalım
             
@@ -55,7 +55,7 @@ namespace SelfAI.Services.Concretes
                 PropertyNameCaseInsensitive = true
             };
 
-            var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponse>(content, options);
+            var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
 
             // Eğer serilizezResponse null ise, bir hata fırlatalım
             if (serilizedResponse == null)
@@ -67,7 +67,7 @@ namespace SelfAI.Services.Concretes
         }
 
         // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
-        public async Task<UploadAssetResponse> UploadAssetAsync(IFormFile assetFile)
+        public async Task<UploadAssetResponseDto> UploadAssetAsync(IFormFile assetFile)
         {
             if (assetFile == null || assetFile.Length == 0)
             {

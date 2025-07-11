@@ -1,6 +1,11 @@
-﻿namespace SelfAI.Services.Interfaces
+﻿using Iyzipay.Model;
+using Iyzipay.Request;
+using SelfAI.DTOs.IyzicoPaymentDtos;
+
+namespace SelfAI.Services.Interfaces
 {
     public interface IPaymentService
     {
+        Task<CheckoutFormInitialize> GetCheckoutFormInitializeAsync();
     }
 }

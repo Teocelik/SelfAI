@@ -7,9 +7,9 @@ namespace SelfAI.Services.Interfaces
     public interface IRenderNetAssetService
     {
         // Upload url almak için gerekli metot imzası
-        Task<UploadAssetResponse> GetUploadUrlAsync();
+        Task<UploadAssetResponseDto> GetUploadUrlAsync();
 
         // Varlık yükleme işlemi için gerekli metot imzası
-        Task<UploadAssetResponse> UploadAssetAsync(IFormFile imageFile);
+        Task<UploadAssetResponseDto> UploadAssetAsync(IFormFile imageFile);
     }
 }

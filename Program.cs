@@ -11,11 +11,12 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
-builder.Services.AddHttpClient<IPaymentService, IyzicoCheckoutService>();
+//builder.Services.AddHttpClient<IPaymentService, PaymentService>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
-builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoPaymentOptions"));
+builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoOptions"));
 
 
 
@@ -48,7 +49,7 @@ app.MapStaticAssets();
 //app.MapDefaultControllerRoute();
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+        pattern: "{controller=Payment}/{action=Pay}/{id?}");
 
 
 app.Run();

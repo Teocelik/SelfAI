@@ -1,8 +1,8 @@
 ﻿namespace SelfAI.DTOs.RenderNet
 {
-    public class UploadedAssetDetail
+    public class UploadedAssetDetailDto
     {
         public string Url { get; set; }
-        public AssetSize Size { get; set; }
+        public AssetSizeDto Size { get; set; }
     }
 }
