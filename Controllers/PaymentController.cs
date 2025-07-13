@@ -18,22 +18,31 @@ namespace SelfAI.Controllers
             _paymentService = paymentService;
         }
 
-        public async Task<IActionResult> Pay()
+        public async Task<IActionResult> InitializeIyzicoCheckOutForm()
         {
             // Ödeme işlemini başlatıyoruz
             // Bu işlem, Iyzico API'sine ödeme isteği gönderir ve bir ödeme nesnesi döner
             // Bu ödeme nesnesi, ödeme formunu oluşturmak için kullanılacaktır
-            var result = await _paymentService.MakePayment();
+            var result = await _paymentService.CheckoutFormInitializeAsync();
 
 
-            return View("Redirect", result.CheckoutFormContent); // HTML formu basıyoruz
+            return View("IyzicoCheckOutForm", result.CheckoutFormContent); // HTML formu basıyoruz
         }
 
         // iyzico'dan gelen formu otomatik göndereceğimiz sayfa
-        public IActionResult Redirect()
+        public IActionResult IyzicoCheckOutForm()
         {
             return View(); // Redirect.cshtml içinde @Html.Raw(model)
         }
 
+        // Ödeme butununa tıklandığında çağrılacak olan action
+        [HttpPost]
+        public async Task<IActionResult> PayCallBack([FromForm] IyzicoCallBackDataDto request)
+        {
+            // Ödeme sonucunu işliyoruz
+            var result = await _paymentService.CallBackResultAsync(request);
+
+            return Ok();
+        }
     }
 }

@@ -6,6 +6,7 @@ namespace SelfAI.Services.Interfaces
 {
     public interface IPaymentService
     {
-        Task<CheckoutFormInitialize> GetCheckoutFormInitializeAsync();
+        Task<CheckoutFormInitialize> CheckoutFormInitializeAsync();
+        Task<CheckoutForm> CallBackResultAsync(IyzicoCallBackDataDto callBackResul);
     }
 }

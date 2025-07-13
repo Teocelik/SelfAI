@@ -49,7 +49,7 @@ app.MapStaticAssets();
 //app.MapDefaultControllerRoute();
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Payment}/{action=Pay}/{id?}");
+        pattern: "{controller=Payment}/{action=InitializeIyzicoCheckOutForm}/{id?}");
 
 
 app.Run();

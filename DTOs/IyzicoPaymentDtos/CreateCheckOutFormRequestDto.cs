@@ -2,7 +2,7 @@
 
 namespace SelfAI.DTOs.IyzicoPaymentDtos
 {
-    public class CreatePaymentRequestDto
+    public class CreateCheckOutFormRequestDto
     {
         public string ConversationId { get; set; }
         public decimal Price { get; set; }

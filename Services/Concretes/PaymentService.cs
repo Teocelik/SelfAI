@@ -8,6 +8,9 @@ using System.Text;
 using System.Security.Cryptography;
 using Iyzipay.Request;
 using Iyzipay;
+using SelfAI.Models.Payment;
+using Iyzipay.Model.V2.Subscription;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace SelfAI.Services.Concretes
 {
@@ -22,14 +25,14 @@ namespace SelfAI.Services.Concretes
         }
 
         //Ödeme yapmak için Iyzico'nun checkOut Formunu döndürür.
-        public async Task<CheckoutFormInitialize> GetCheckoutFormInitializeAsync()
+        public async Task<CheckoutFormInitialize> CheckoutFormInitializeAsync()
         {
 
             Iyzipay.Options iyziOptions = new Iyzipay.Options
             {
                 ApiKey = _options.ApiKey,
                 SecretKey = _options.SecretKey,
-                BaseUrl = _options.BaseUrl
+                BaseUrl = _options.BaseUrl,
             };
 
 
@@ -42,8 +45,8 @@ namespace SelfAI.Services.Concretes
                 Currency = Currency.TRY.ToString(),
                 BasketId = "B67832",
                 PaymentGroup = PaymentGroup.PRODUCT.ToString(),
-                CallbackUrl = "_options.CallbackUrl",
-                
+                CallbackUrl = "https://localhost:44305/Payment/PayCallBack", // Ödeme sonrası geri dönüş URL'si
+
             };
 
             request.Buyer = new Buyer
@@ -86,6 +89,37 @@ namespace SelfAI.Services.Concretes
 
             return await CheckoutFormInitialize.Create(request, iyziOptions);
         }
-        
+
+        //
+        public async Task<CheckoutForm> CallBackResultAsync(IyzicoCallBackDataDto callBackResul)
+        {
+            Iyzipay.Options iyziOptions = new Iyzipay.Options
+            {
+                ApiKey = _options.ApiKey,
+                SecretKey = _options.SecretKey,
+                BaseUrl = _options.BaseUrl
+            };
+
+            var request = new RetrieveCheckoutFormRequest
+            {
+                Locale = Locale.TR.ToString(),
+                ConversationId = callBackResul.ConversationId,
+                Token = callBackResul.Token
+            };
+
+            // Iyzico'dan gelen token ile ödeme formunu alıyoruz
+            var checkoutForm = await CheckoutForm.Retrieve(request, iyziOptions);
+
+            //// Ödeme formunun durumunu kontrol ediyoruz
+            //if (checkoutForm.Status == "success")
+            //{
+            //    // Ödeme başarılı ise, gerekli işlemleri yapabiliriz
+            //    // Örneğin, veritabanına kaydetme, kullanıcıya bildirim gönderme vb.
+                
+            //   return Ok();
+            //}
+           return checkoutForm; // Ödeme formunu döndürüyoruz
+        }
+
     }
 }
