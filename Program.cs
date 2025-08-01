@@ -47,9 +47,13 @@ app.UseAuthorization();
 app.MapStaticAssets();
 
 //app.MapDefaultControllerRoute();
+//app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Payment}/{action=InitializeIyzicoCheckOutForm}/{id?}");
+
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Payment}/{action=InitializeIyzicoCheckOutForm}/{id?}");
+        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
 
 
 app.Run();

@@ -67,6 +67,7 @@ namespace SelfAI.Services.Concretes
             {
                 throw new Exception("An error occurred while generating media.", ex);
             }
+
         }
     }
 }

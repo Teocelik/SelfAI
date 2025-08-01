@@ -110,16 +110,13 @@ namespace SelfAI.Services.Concretes
             // Iyzico'dan gelen token ile ödeme formunu alıyoruz
             var checkoutForm = await CheckoutForm.Retrieve(request, iyziOptions);
 
-            //// Ödeme formunun durumunu kontrol ediyoruz
-            //if (checkoutForm.Status == "success")
-            //{
-            //    // Ödeme başarılı ise, gerekli işlemleri yapabiliriz
-            //    // Örneğin, veritabanına kaydetme, kullanıcıya bildirim gönderme vb.
-                
-            //   return Ok();
-            //}
-           return checkoutForm; // Ödeme formunu döndürüyoruz
-        }
+            // Ödeme formunun durumunu kontrol ediyoruz
+            if(checkoutForm.Status != "success")
+            {
+                throw new Exception("Ödeme alınamadı: " + checkoutForm.ErrorMessage);
+            }
 
+            return checkoutForm; // Ödeme formunu döndürüyoruz
+        }
     }
 }
