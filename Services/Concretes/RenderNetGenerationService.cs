@@ -33,10 +33,10 @@ namespace SelfAI.Services.Concretes
                 {
                     new
                     {
-                        aspect_ratio = "1:1",
+                        aspect_ratio = "4:5",
                         batch_size = 1,
                         cfg_scale = 7,
-                        model = "JuggernautXL",
+                        model = "flux",
                         style = "Realistic",
                         steps = 25,
                         seed = 42,
@@ -67,7 +67,6 @@ namespace SelfAI.Services.Concretes
             {
                 throw new Exception("An error occurred while generating media.", ex);
             }
-
         }
     }
 }

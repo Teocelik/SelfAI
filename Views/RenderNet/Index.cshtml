@@ -1,4 +1,4 @@
-﻿@{
+﻿@* @{
     ViewData["Title"] = "Görsel Yükleme";
 }
 
@@ -213,5 +213,344 @@
             };
         });
     </script>
+</body>
+</html> *@
+
+
+
+
+
+
+@{
+    ViewData["Title"] = "Görsel Yükleme";
+}
+
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        #imageContainer {
+            position: relative;
+            margin: 0 auto;
+            overflow: hidden;
+            display: none;
+            text-align: center;
+            max-width: 800px;
+            max-height: 800px;
+        }
+
+        #uploadedImage {
+            width: 100%;
+            height: auto;
+            object-fit: contain;
+            border-radius: 0.5rem;
+            border: 2px solid #00f7ff; /* Neon cyan border */
+            box-shadow: 0 0 15px rgba(0, 247, 255, 0.5);
+        }
+
+        #frame {
+            position: absolute;
+            width: 512px;
+            height: 512px;
+            border: 3px dashed #ff00ff; /* Neon pink dashed border */
+            background: rgba(255, 0, 255, 0.1);
+            cursor: move;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.4);
+            transition: all 0.3s ease;
+            display: none;
+        }
+
+            #frame:hover {
+                border-color: #00f7ff; /* Neon cyan on hover */
+                background: rgba(0, 247, 255, 0.2);
+                box-shadow: 0 0 25px rgba(0, 247, 255, 0.6);
+            }
+
+        .file-select {
+            position: relative;
+            display: inline-block;
+            overflow: hidden;
+        }
+
+            .file-select input[type=file] {
+                position: absolute;
+                left: 0;
+                top: 0;
+                opacity: 0;
+                cursor: pointer;
+                width: 100%;
+                height: 100%;
+            }
+
+        /* Prompt area styles (Affogato-like look) */
+        .prompt-card {
+            background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+            border: 1px solid rgba(255,255,255,0.04);
+            padding: 14px;
+            border-radius: 12px;
+            box-shadow: 0 6px 20px rgba(2,6,23,0.6);
+            margin-top: 22px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .prompt-textarea {
+            width: 100%;
+            min-height: 88px;
+            background: rgba(17,24,39,0.7);
+            border: 1px solid rgba(99,102,241,0.06);
+            color: #e6eef8;
+            padding: 12px 14px;
+            border-radius: 10px;
+            resize: vertical;
+            outline: none;
+        }
+
+            .prompt-textarea:focus {
+                box-shadow: 0 0 0 4px rgba(236,72,153,0.08);
+                border-color: rgba(236,72,153,0.6);
+            }
+
+        .prompt-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            align-items: center;
+        }
+
+        .btn-generate {
+            background: linear-gradient(90deg,#ec4899,#7c3aed);
+            color: white;
+            padding: 10px 16px;
+            border-radius: 10px;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(124,58,237,0.18);
+        }
+
+        .btn-clear {
+            background: transparent;
+            color: #cbd5e1;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255,255,255,0.04);
+            cursor: pointer;
+        }
+
+        .prompt-hint {
+            color: #9ca3af;
+            font-size: 13px;
+            margin-left: auto;
+        }
+    </style>
+</head>
+<body class="bg-black font-sans text-gray-100">
+    <div class="container mx-auto px-4 py-8 pb-12 max-w-5xl">
+        <!-- Added pb-12 for 3cm bottom padding -->
+        <h2 class="text-4xl font-extrabold text-center text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-cyan-500 mb-8">Görsel Yükle</h2>
+
+        <div class="flex justify-center">
+            <div class="w-full max-w-lg">
+                <form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post" id="uploadForm" class="bg-gray-900 p-6 rounded-lg shadow-lg shadow-cyan-500/30">
+                    <div class="mb-6">
+                        <label class="file-select">
+                            <span class="inline-block bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium py-2 px-4 rounded-lg hover:from-pink-500 hover:to-purple-500 transition duration-200 shadow-md shadow-pink-500/50">Görsel Seç</span>
+                            <input type="file" name="formFile" id="formFile" accept="image/*" />
+                        </label>
+                    </div>
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition duration-200 shadow-md shadow-cyan-500/50">Yükle</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="imageContainer" class="mt-8">
+            <img id="uploadedImage" src="" alt="Yüklenen Fotoğraf" />
+            <div id="frame"></div>
+        </div>
+
+        <!-- PROMPT: eklendi - mevcut teknik yapı korunmuştur -->
+        <div class="prompt-card" role="region" aria-label="Prompt girişi">
+            <label for="promptInput" class="block text-sm font-medium text-gray-300 mb-2">Prompt (Açıklama)</label>
+            <textarea id="promptInput" class="prompt-textarea" placeholder="Örn: Gece vakti neon ışıklı bir sokakta yürüyen robot — cinematic, 4k, dramatic lighting..."></textarea>
+
+            <div class="prompt-actions">
+                <button id="randomPromptButton" class="btn-generate" type="button" style="margin-right:10px;">Rastgele Prompt</button>
+                <button id="generateButton" class="btn-generate" type="button">Görsel Oluştur</button>
+                <button id="clearPromptButton" class="btn-clear" type="button">Temizle</button>
+                <div class="prompt-hint">İpucu: kısa anahtar kelimeler + stil/aydınlatma ekleyin.</div>
+            </div>
+        </div>
+        <!-- /PROMPT -->
+
+        <div class="text-center mt-6">
+            <button id="confirmButton" class="bg-gradient-to-r from-green-400 to-lime-500 text-white font-semibold py-3 px-6 rounded-lg hover:from-green-300 hover:to-lime-400 transition duration-200 shadow-md shadow-green-500/50" style="display: none;">Tamam</button>
+        </div>
+
+        <div id="loading" style="display: none; text-align: center; margin-top: 20px;">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-cyan-500"></div>
+            <span class="ml-2 text-gray-300">Yükleniyor...</span>
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('formFile');
+        const imageContainer = document.getElementById('imageContainer');
+        const uploadedImage = document.getElementById('uploadedImage');
+        const frame = document.getElementById('frame');
+        const confirmButton = document.getElementById('confirmButton');
+        const loading = document.getElementById('loading');
+        let scaleFactor = 1;
+
+        fileInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImage.src = e.target.result;
+                    uploadedImage.onload = function() {
+                        const maxDisplayWidth = 800;
+                        const naturalWidth = uploadedImage.naturalWidth;
+                        const naturalHeight = uploadedImage.naturalHeight;
+
+                        scaleFactor = Math.min(maxDisplayWidth / naturalWidth, 1);
+                        imageContainer.style.width = (naturalWidth * scaleFactor) + 'px';
+                        imageContainer.style.height = (naturalHeight * scaleFactor) + 'px';
+
+                        frame.style.width = (512 * scaleFactor) + 'px';
+                        frame.style.height = (512 * scaleFactor) + 'px';
+
+                        imageContainer.style.display = 'block';
+                        frame.style.display = 'block';
+                        confirmButton.style.display = 'inline-block';
+                        frame.style.left = '0px';
+                        frame.style.top = '0px';
+                    };
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            loading.style.display = 'flex';
+
+            fetch(this.action, {
+                method: 'POST',
+                body: formData
+            }).then(response => response.json()).then(data => {
+                loading.style.display = 'none';
+                alert('Görsel başarıyla yüklendi!');
+            }).catch(error => {
+                loading.style.display = 'none';
+                alert('Yükleme sırasında bir hata oluştu.');
+            });
+        });
+
+        let isDragging = false, startX, startY;
+
+        frame.addEventListener('mousedown', function(e) {
+            isDragging = true;
+            startX = e.clientX - parseFloat(frame.style.left || 0);
+            startY = e.clientY - parseFloat(frame.style.top || 0);
+        });
+
+        document.addEventListener('mousemove', function(e) {
+            if (isDragging) {
+                let newLeft = e.clientX - startX;
+                let newTop = e.clientY - startY;
+
+                const containerRect = imageContainer.getBoundingClientRect();
+                const frameRect = frame.getBoundingClientRect();
+
+                if (newLeft < 0) newLeft = 0;
+                if (newTop < 0) newTop = 0;
+                if (newLeft + frameRect.width > containerRect.width) {
+                    newLeft = containerRect.width - frameRect.width;
+                }
+                if (newTop + frameRect.height > containerRect.height) {
+                    newTop = containerRect.height - frameRect.height;
+                }
+
+                frame.style.left = newLeft + 'px';
+                frame.style.top = newTop + 'px';
+            }
+        });
+
+        document.addEventListener('mouseup', function() {
+            isDragging = false;
+        });
+
+        confirmButton.addEventListener('click', function() {
+            const left = parseFloat(frame.style.left || 0) / scaleFactor;
+            const top = parseFloat(frame.style.top || 0) / scaleFactor;
+            const frameWidth = 512;
+            const frameHeight = 512;
+
+            const canvas = document.createElement('canvas');
+            canvas.width = 512;
+            canvas.height = 512;
+            const ctx = canvas.getContext('2d');
+
+            const img = new Image();
+            img.src = uploadedImage.src;
+            img.onload = function() {
+                ctx.drawImage(img, left, top, frameWidth, frameHeight, 0, 0, 512, 512);
+
+                uploadedImage.src = canvas.toDataURL('image/png');
+                imageContainer.style.width = '512px';
+                imageContainer.style.height = '512px';
+                frame.style.display = 'none';
+                confirmButton.style.display = 'none';
+
+                alert(`Kırpma tamamlandı: 512x512 oluşturuldu!`);
+            };
+        });
+
+        // --- Prompt area JS (non-invasive) ---
+        const promptInput = document.getElementById('promptInput');
+        const generateButton = document.getElementById('generateButton');
+        const clearPromptButton = document.getElementById('clearPromptButton');
+
+        generateButton.addEventListener('click', () => {
+            const promptValue = (promptInput && promptInput.value) ? promptInput.value.trim() : '';
+            // Şu an sadece UI tarafında işliyoruz; backend'e gönderme istersen buraya ekleyebilirim.
+            if (!promptValue) {
+                alert('Lütfen bir prompt girin.');
+                return;
+            }
+
+            // Örnek: prompt ve yüklü görsel src'si konsola yazılıyor (veya AJAX ile gönderilebilir)
+            console.log('Prompt:', promptValue);
+            console.log('Uploaded image src (if any):', uploadedImage.src || null);
+
+            // Küçük kullanıcı bildirimi:
+            const prev = generateButton.innerText;
+            generateButton.innerText = 'İşleniyor...';
+            generateButton.disabled = true;
+
+            setTimeout(() => {
+                generateButton.innerText = prev;
+                generateButton.disabled = false;
+                alert('Prompt alındı — backend entegrasyonu ekleyebilirim.');
+            }, 700); // demo için kısa gecikme
+        });
+
+        clearPromptButton.addEventListener('click', () => {
+            if (promptInput) promptInput.value = '';
+            promptInput.focus();
+        });
+    </script>
+
+    <script>
+        var prompts = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(SelfAI.Services.Concretes.PromptService.Prompts));
+    </script>
+    <script src="/js/prompt-handler.js"></script>
 </body>
 </html>
