@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Options;
 using SelfAI.Configurations;
 using SelfAI.DTOs.RenderNet;
+using SelfAI.DTOs.RenderNetGenerationRequestDtos;
 using SelfAI.Services.Interfaces;
 using System.Drawing;
 using System.Net.Http.Headers;
@@ -69,9 +70,9 @@ namespace SelfAI.Services.Concretes
 
 
         // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
-        public async Task<UploadAssetResponseDto> UploadAssetAsync(IFormFile assetFile)
+        public async Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto dto)
         {
-            if (assetFile == null || assetFile.Length == 0)
+            if (dto.AssetFile == null || dto.AssetFile.Length == 0)
             {
                 throw new ArgumentException("Dosya boş olamaz.");
             }
@@ -84,11 +85,11 @@ namespace SelfAI.Services.Concretes
                 throw new InvalidOperationException("Upload URL alınamadı.");
             }
             // OpenReadStream ile dosyanın içeriğini okuyoruz
-            using var stream = assetFile.OpenReadStream();
+            using var stream = dto.AssetFile.OpenReadStream();
             // StreamContent oluşturuyoruz ve içeriği ayarlıyoruz
             using var content = new StreamContent(stream);
             // Dosyanın tipini bildiriyoruz (image/png, image/jpeg vs.)
-            content.Headers.ContentType = new MediaTypeHeaderValue(assetFile.ContentType);
+            content.Headers.ContentType = new MediaTypeHeaderValue(dto.AssetFile.ContentType);
             // Put isteği ile dosyayı yüklüyoruz
             var response = await _httpClient.PutAsync(uploadResponse.Data.UploadUrl, content);
             // Eğer istek başarılı değilse, bir hata fırlatıyoruz

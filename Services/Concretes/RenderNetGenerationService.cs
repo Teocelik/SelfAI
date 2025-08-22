@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using SelfAI.Configurations;
+using SelfAI.DTOs.RenderNetGenerationRequestDtos;
 using SelfAI.Services.Interfaces;
 
 namespace SelfAI.Services.Concretes
@@ -20,7 +21,7 @@ namespace SelfAI.Services.Concretes
         }
 
         // asset_id + prompt = AI görsel
-        public Task<string> GenerateMediaAsync(string assetId)
+        public Task<string> GenerateMediaAsync(string assetId, MediaGenerationRequestDto dto)
         {
             if(string.IsNullOrEmpty(assetId))
             {
@@ -48,7 +49,8 @@ namespace SelfAI.Services.Concretes
 
                         prompt = new
                         {
-                            positive = "A beautiful landscape with mountains and a river",
+                            //Kullanıcının promptu veya hazır promptlardan biri
+                            positive =dto.PositivePrompt,
                             negative = "nsfw, deformed, extra limbs, bad anatomy, deformed pupils, text, worst quality, jpeg artifacts, ugly, duplicate, morbid, mutilated"
                         },
                         quality = "Standard",

@@ -1,7 +1,9 @@
-﻿namespace SelfAI.Services.Interfaces
+﻿using SelfAI.DTOs.RenderNetGenerationRequestDtos;
+
+namespace SelfAI.Services.Interfaces
 {
     public interface IRenderNetGenerationService
     {
-        Task<string> GenerateMediaAsync(string assetId);
+        Task<string> GenerateMediaAsync(string assetId, MediaGenerationRequestDto dto);
     }
 }

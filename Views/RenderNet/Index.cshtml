@@ -221,9 +221,9 @@
 
 
 
-@{
+@* @{
     ViewData["Title"] = "Görsel Yükleme";
-}
+} *@
 
 <!DOCTYPE html>
 <html lang="tr">
@@ -357,7 +357,7 @@
 
         <div class="flex justify-center">
             <div class="w-full max-w-lg">
-                <form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post" id="uploadForm" class="bg-gray-900 p-6 rounded-lg shadow-lg shadow-cyan-500/30">
+                @* <form asp-controller="RenderNet" asp-action="UploadImage" enctype="multipart/form-data" method="post" id="uploadForm" class="bg-gray-900 p-6 rounded-lg shadow-lg shadow-cyan-500/30">
                     <div class="mb-6">
                         <label class="file-select">
                             <span class="inline-block bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium py-2 px-4 rounded-lg hover:from-pink-500 hover:to-purple-500 transition duration-200 shadow-md shadow-pink-500/50">Görsel Seç</span>
@@ -365,7 +365,44 @@
                         </label>
                     </div>
                     <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition duration-200 shadow-md shadow-cyan-500/50">Yükle</button>
+                </form> *@
+
+                <form asp-controller="RenderNet" asp-action="GenerateImage" enctype="multipart/form-data" method="post" id="uploadForm" class="bg-gray-900 p-6 rounded-lg shadow-lg shadow-cyan-500/30">
+                    <div class="mb-6">
+                        <label class="file-select">
+                            <span class="inline-block bg-gradient-to-r from-pink-600 to-purple-600 text-white font-medium py-2 px-4 rounded-lg hover:from-pink-500 hover:to-purple-500 transition duration-200 shadow-md shadow-pink-500/50">Görsel Seç</span>
+                            <input type="file" name="AssetFile" id="formFile" accept="image/*" />
+                        </label>
+                    </div>
+
+                    <!-- Prompt -->
+                    <textarea name="Prompt" id="promptInput" class="prompt-textarea" placeholder="Örn: Gece vakti neon ışıklı bir sokakta yürüyen robot — cinematic, 4k, dramatic lighting..."></textarea>
+
+                   @*  <!-- Negative prompt -->
+                    <textarea name="NegativePrompt" placeholder="Negatif prompt..."></textarea> *@
+
+                   @*  <!-- Model -->
+                    <select name="Model">
+                        <option value="flux">Flux</option>
+                        <option value="another">Another Model</option>
+                    </select> *@
+
+                   @*  <!-- Aspect ratio -->
+                    <select name="AspectRatio">
+                        <option value="4:5">4:5</option>
+                        <option value="1:1">1:1</option>
+                    </select> *@
+
+                   @*  <!-- CFG Scale -->
+                    <input type="number" name="CfgScale" value="7" />
+
+                    <!-- Steps -->
+                    <input type="number" name="Steps" value="25" /> *@
+
+                    <button type="submit" class="w-full bg-gradient-to-r from-cyan-500 to-blue-500 text-white font-semibold py-3 rounded-lg hover:from-cyan-400 hover:to-blue-400 transition duration-200 shadow-md shadow-cyan-500/50">Yükle</button>
                 </form>
+
+
             </div>
         </div>
 

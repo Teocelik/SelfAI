@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SelfAI.DTOs.RenderNet;
+using SelfAI.DTOs.RenderNetGenerationRequestDtos;
 using SelfAI.Models;
 
 namespace SelfAI.Services.Interfaces
@@ -10,6 +11,6 @@ namespace SelfAI.Services.Interfaces
         Task<UploadAssetResponseDto> GetUploadUrlAsync();
 
         // Varlık yükleme işlemi için gerekli metot imzası
-        Task<UploadAssetResponseDto> UploadAssetAsync(IFormFile imageFile);
+        Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto imageFile);
     }
 }
