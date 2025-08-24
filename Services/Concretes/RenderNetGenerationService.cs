@@ -34,10 +34,10 @@ namespace SelfAI.Services.Concretes
                 {
                     new
                     {
-                        aspect_ratio = "4:5",
-                        batch_size = 1,
+                        aspect_ratio = dto.AspectRatio,
+                        batch_size = dto.BatchSize, //Oluşturulacak görsel sayısı
                         cfg_scale = 7,
-                        model = "flux",
+                        model = dto.Model,
                         style = "Realistic",
                         steps = 25,
                         seed = 42,
