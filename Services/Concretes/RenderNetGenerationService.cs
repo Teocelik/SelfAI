@@ -27,11 +27,10 @@ namespace SelfAI.Services.Concretes
             {
                 throw new ArgumentException("Asset ID cannot be null or empty.", nameof(assetId));
             }
-            try
+
+            //Payload oluştur(UploadUrl'den asset_id'yi al)
+            var testPayload = new[]
             {
-                //Payload oluştur(UploadUrl'den asset_id'yi al)
-                var testPayload = new[]
-                {
                     new
                     {
                         aspect_ratio = dto.AspectRatio,
@@ -56,19 +55,14 @@ namespace SelfAI.Services.Concretes
                         quality = "Standard",
                         sampler = "DPM++ 2M Karras",
                     }
+            };
 
-                };
-                //Httpclient'a request gönder ve response al
-                var payloadResponse = _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/generations", testPayload);
-                //Response içeriğini oku ve serilize et
-                var payloadContent = payloadResponse.Result.Content.ReadAsStringAsync();
+            //Httpclient'a request gönder ve response al
+            var payloadResponse = _httpClient.PostAsJsonAsync($"{_settings.BaseUrl}/generations", testPayload);
+            //Response içeriğini oku ve serilize et
+            var payloadContent = payloadResponse.Result.Content.ReadAsStringAsync();
 
-                return Task.FromResult(payloadContent.Result);
-            }
-            catch(Exception ex)
-            {
-                throw new Exception("An error occurred while generating media.", ex);
-            }
+            return Task.FromResult(payloadContent.Result);
         }
     }
 }

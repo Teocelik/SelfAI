@@ -58,7 +58,7 @@ namespace SelfAI.Services.Concretes
 
             var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
 
-            // Eğer serilizezResponse null ise, bir hata fırlatalım
+            // Eğer serilizeResponse null ise, bir hata fırlatalım
             if (serilizedResponse == null)
             {
                 throw new Exception("Yükleme URL'si alınamadı.");

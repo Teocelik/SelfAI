@@ -30,6 +30,7 @@ builder.Services.AddSession(options=>
 
 var app = builder.Build();
 
+//Global hata yakalama middleware'i
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -54,6 +55,10 @@ app.MapStaticAssets();
 app.MapControllerRoute(
         name: "default",
         pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+
+//app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Home}/{action=Index}/{id?}");
 
 
 app.Run();

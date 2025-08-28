@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using SelfAI.Models;
@@ -59,10 +60,26 @@ namespace SelfAI.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+        // Global hata yakalama metodu
         public IActionResult Error()
         {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+            // Hata bilgilerini alalým
+            var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
+
+            // Hata nesnesini alalým
+            var exception = context?.Error; // Null olma durumu için null kontrolü yapýyoruz(?)
+
+            // Hata detaylarýný loglayalým
+            _logger.LogError(exception, "Global hata yakalandý: {Message}", exception?.Message);
+
+            //Kullanýcýya gösterilecek hata sayfasý modeli
+            var errorViewModel = new ErrorViewModel
+            {
+                Title = "Bir hata oluþtu",
+                Message = "Üzgünüz, iþleminizi tamamlayamadýk. Lütfen tekrar deneyiniz."
+            };
+
+            return View(errorViewModel);
         }
     }
 }

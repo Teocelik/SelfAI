@@ -13,11 +13,13 @@ namespace SelfAI.Controllers
     {
         private readonly IRenderNetAssetService _renderNetAssetService;
         private readonly IRenderNetGenerationService _renderNetGenerationService;
+        private readonly ILogger<RenderNetController> _logger;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, ILogger<RenderNetController> logger)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
+            _logger = logger;
         }
 
         public IActionResult Index()
