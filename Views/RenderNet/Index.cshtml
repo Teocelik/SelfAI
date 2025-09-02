@@ -10,9 +10,9 @@
 </head>
 <body class="bg-background text-text-primary min-h-screen">
     <!-- Main Container -->
-    <div class="flex h-screen">
+    <div class="flex h-screen w-full">
         <!-- Main Canvas Area -->
-        <div class="flex-1 p-6 overflow-hidden">
+        <div class="flex-1 p-6 overflow-hidden order-1 transition-all duration-300 ease-out" id="mainCanvas">
             <!-- Header -->
             <header class="mb-6">
                 <div class="flex items-center justify-between">
@@ -63,10 +63,10 @@
                     <div class="relative max-w-full max-h-full">
                         <img id="generatedImage" src alt="Generated AI Image" class="max-w-full max-h-full object-contain rounded-lg shadow-lg" />
                         <div class="absolute top-4 right-4 flex space-x-2">
-                            <button type="button" class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
+                            <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
                                 <i class="fas fa-download text-text-primary"></i>
                             </button>
-                            <button type="button" class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
+                            <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
                                 <i class="fas fa-share text-text-primary"></i>
                             </button>
                         </div>
@@ -75,8 +75,92 @@
             </div>
         </div>
 
+        <!-- Flux Style Panel - Overlay Panel -->
+        <div id="fluxStylePanel" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm hidden transition-all duration-300 ease-out">
+            <div class="w-full max-w-2xl h-[80vh] bg-surface border border-border overflow-y-auto custom-scrollbar flex-shrink-0 shadow-2xl transform scale-95 transition-transform duration-300 ease-out" style="border-radius: 2.5rem;" id="fluxPanelContent">
+                <!-- Panel Header -->
+                <div class="sticky top-0 bg-surface border-b border-border p-6 flex items-center justify-between z-10" style="border-top-left-radius: 2.5rem; border-top-right-radius: 2.5rem;">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center shadow-md">
+                            <i class="fas fa-palette text-white text-sm"></i>
+                        </div>
+                        <h2 class="text-lg font-semibold text-text-primary">Image Reference Style</h2>
+                    </div>
+                    <button id="closePanelBtn" class="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-surface-elevated transition-colors duration-200 hover:shadow-sm">
+                        <i class="fas fa-times text-text-secondary hover:text-text-primary text-lg"></i>
+                    </button>
+                </div>
+
+                <!-- Panel Content -->
+                <div class="p-6 space-y-6">
+                    <!-- Reference Image Upload -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-text-primary">Upload a style reference image</label>
+                        <div class="border-2 border-dashed border-border rounded-xl p-8 text-center hover:border-primary/50 transition-colors duration-200 cursor-pointer bg-surface-elevated/50" id="styleImageUploadArea">
+                            <input type="file" id="styleImageInput" accept="image/*" class="hidden" />
+                            <div id="styleUploadContent">
+                                <i class="fas fa-cloud-upload-alt text-3xl text-text-secondary mb-4"></i>
+                                <h3 class="text-sm font-medium text-text-primary mb-2">Upload a style reference image</h3>
+                                <p class="text-sm text-text-muted">PNG, JPG up to 10MB</p>
+                            </div>
+                            <div id="styleImagePreview" class="hidden">
+                                <img id="stylePreviewImg" src alt="Style Reference" class="max-w-full h-32 object-cover rounded-xl mx-auto mb-4 shadow-lg" />
+                                <button id="removeStyleImage" class="text-sm text-error hover:text-error-600 transition-colors duration-200">
+                                    <i class="fas fa-times mr-1"></i>Remove Image
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Style section title -->
+                    <div class="space-y-3">
+                        <label class="block text-sm font-medium text-text-primary">Select a style reference image from below</label>
+                    </div>
+
+                    <!-- Style Examples -->
+                    <div class="space-y-3">
+                        <div class="grid grid-cols-4 gap-4">
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style1">
+                                <img src="https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=150&h=150&fit=crop&crop=center" alt="Style Example 1" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style2">
+                                <img src="https://images.unsplash.com/photo-1578321272176-b7bbc0679853?w=150&h=150&fit=crop&crop=center" alt="Style Example 2" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style3">
+                                <img src="https://images.unsplash.com/photo-1547036967-23d11aacaee0?w=150&h=150&fit=crop&crop=center" alt="Style Example 3" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style4">
+                                <img src="https://images.unsplash.com/photo-1549887534-1541e9326642?w=150&h=150&fit=crop&crop=center" alt="Style Example 4" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style5">
+                                <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=150&h=150&fit=crop&crop=center" alt="Style Example 5" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style6">
+                                <img src="https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=150&h=150&fit=crop&crop=center" alt="Style Example 6" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style7">
+                                <img src="https://images.unsplash.com/photo-1558618644-fcd25c85cd64?w=150&h=150&fit=crop&crop=center" alt="Style Example 7" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                            <div class="aspect-square bg-surface-elevated rounded-lg overflow-hidden cursor-pointer hover:ring-2 hover:ring-primary transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105" data-style="style8">
+                                <img src="https://images.unsplash.com/photo-1519451241324-20b4bd2bebae?w=150&h=150&fit=crop&crop=center" alt="Style Example 8" class="w-full h-full object-cover hover:scale-105 transition-transform duration-200" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Apply Button -->
+                    <div class="pt-4 border-t border-border">
+                        <button id="applyStyleBtn" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary-600 hover:to-secondary-600 text-white font-medium py-3 px-6 rounded-xl transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                            <i class="fas fa-check mr-2"></i>
+                            Apply Style
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Right Sidebar -->
-        <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar">
+        <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar order-3 flex-shrink-0 transition-all duration-300 ease-out" id="rightSidebar">
+
             <form asp-controller="RenderNet" asp-action="GenerateImage" id="uploadForm" method="post" enctype="multipart/form-data" class="p-6 space-y-6">
                 <div class="p-6 space-y-6">
                     <!-- Consistency Controls -->
@@ -158,21 +242,28 @@
 
                     <!-- Flux Image Style Section -->
                     <div class="space-y-3">
-                        <button type="button" id="styleToggle" class="w-full flex items-center justify-between text-sm font-medium text-text-primary hover:text-primary transition-colors duration-200">
-                            <span>Flux Image Style</span>
-                            <i id="styleArrow" class="fas fa-chevron-down transition-transform duration-200"></i>
-                        </button>
+                        <button type="button" id="fluxImageStyleBtn" class="w-full flex items-center justify-between bg-surface-elevated hover:bg-surface-hover border border-border hover:border-primary rounded-lg p-4 text-left transition-all duration-200 group relative overflow-hidden">
+                            <!-- Thumbnail Image -->
+                            <div class="flex items-center space-x-3 flex-1">
+                                <div class="w-12 h-12 bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex-shrink-0 overflow-hidden">
+                                    <img src="../assets/images/image-1756673522612.png" alt="Mountain landscape" class="w-full h-full object-cover" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />
+                                    <div class="w-full h-full bg-gradient-to-br from-gray-700 to-gray-900 rounded-lg flex items-center justify-center" style="display: none;">
+                                        <i class="fas fa-mountain text-white text-lg"></i>
+                                    </div>
+                                </div>
 
-                        <div id="styleContent" class="space-y-4 overflow-hidden transition-all duration-300">
-                            <div class="space-y-3">
-                                <label class="block text-xs font-medium text-text-secondary">Style Strength</label>
-                                <div class="flex items-center space-x-3">
-                                    <span class="text-xs text-text-muted">Low</span>
-                                    <input type="range" min="0" max="100" value="50" class="flex-1 h-2 bg-surface-elevated rounded-lg appearance-none cursor-pointer slider" />
-                                    <span class="text-xs text-text-muted">High</span>
+                                <!-- Text Content -->
+                                <div class="flex-1 min-w-0">
+                                    <h3 class="text-sm font-medium text-text-primary mb-1">Flux Image Style</h3>
+                                    <p class="text-xs text-text-secondary">Upload a reference pic to generate images in a similar style</p>
                                 </div>
                             </div>
-                        </div>
+
+                            <!-- Arrow Icon -->
+                            <div class="flex-shrink-0 ml-3">
+                                <i id="fluxStyleArrow" class="fas fa-chevron-right text-text-secondary group-hover:text-primary transition-all duration-200"></i>
+                            </div>
+                        </button>
                     </div>
 
                     <!-- Aspect Ratio -->
@@ -224,7 +315,7 @@
                     </button>
             </form>
 
-            <!-- Generation History -->
+           @*  <!-- Generation History -->
             <div class="pt-4 border-t border-border">
                 <h3 class="text-sm font-medium text-text-primary mb-3">Recent Generations</h3>
                 <div class="space-y-2">
@@ -247,7 +338,7 @@
                         </div>
                     </div>
                 </div>
-            </div>
+            </div> *@
         </div>
     </div>
     </div>
@@ -322,101 +413,261 @@
             }, 500);
         });
 
-                document.addEventListener("DOMContentLoaded", function () {
-                // Consistency Controls functionality
-                const characterBtn = document.getElementById('characterBtn');
-                const faceLockBtn = document.getElementById('faceLockBtn');
-                const poseLockBtn = document.getElementById('poseLockBtn');
-                const faceLockDropZone = document.getElementById('faceLockDropZone');
+        // Consistency Controls functionality
+        const characterBtn = document.getElementById('characterBtn');
+        const faceLockBtn = document.getElementById('faceLockBtn');
+        const poseLockBtn = document.getElementById('poseLockBtn');
+        const faceLockDropZone = document.getElementById('faceLockDropZone');
 
-                // Face Lock button functionality
-                faceLockBtn.addEventListener('click', function() {
-                    // Toggle active state
-                    faceLockBtn.classList.toggle('bg-primary');
-                    faceLockBtn.classList.toggle('text-white');
+        // Face Lock button functionality
+        faceLockBtn.addEventListener('click', function() {
+            // Toggle active state
+            faceLockBtn.classList.toggle('bg-primary');
+            faceLockBtn.classList.toggle('text-white');
 
-                    // Toggle drop zone visibility
-                    if (faceLockDropZone.classList.contains('hidden')) {
-                        faceLockDropZone.classList.remove('hidden');
-                        faceLockBtn.querySelector('span').textContent = 'Face Lock Active';
-                    } else {
-                        faceLockDropZone.classList.add('hidden');
-                        faceLockBtn.querySelector('span').textContent = 'Face Lock';
-                        faceLockBtn.classList.remove('bg-primary', 'text-white');
-                    }
-                });
+            // Toggle drop zone visibility
+            if (faceLockDropZone.classList.contains('hidden')) {
+                faceLockDropZone.classList.remove('hidden');
+                faceLockBtn.querySelector('span').textContent = 'Face Lock Active';
+            } else {
+                faceLockDropZone.classList.add('hidden');
+                faceLockBtn.querySelector('span').textContent = 'Face Lock';
+                faceLockBtn.classList.remove('bg-primary', 'text-white');
+            }
+        });
 
-                // Face Lock file upload handling
-                const faceLockUploadArea = document.getElementById('faceLockUploadArea');
-                const faceLockImage = document.getElementById('faceLockImage');
-                const faceLockUploadContent = document.getElementById('faceLockUploadContent');
-                const faceLockImagePreview = document.getElementById('faceLockImagePreview');
-                const faceLockPreviewImg = document.getElementById('faceLockPreviewImg');
-                const removeFaceLockImage = document.getElementById('removeFaceLockImage');
+        // Face Lock file upload handling
+        const faceLockUploadArea = document.getElementById('faceLockUploadArea');
+        const faceLockImage = document.getElementById('faceLockImage');
+        const faceLockUploadContent = document.getElementById('faceLockUploadContent');
+        const faceLockImagePreview = document.getElementById('faceLockImagePreview');
+        const faceLockPreviewImg = document.getElementById('faceLockPreviewImg');
+        const removeFaceLockImage = document.getElementById('removeFaceLockImage');
 
-                faceLockUploadArea.addEventListener('click', () => faceLockImage.click());
+        faceLockUploadArea.addEventListener('click', () => faceLockImage.click());
 
-                faceLockUploadArea.addEventListener('dragover', (e) => {
-                    e.preventDefault();
-                    faceLockUploadArea.classList.add('border-primary');
-                });
+        faceLockUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            faceLockUploadArea.classList.add('border-primary');
+        });
 
-                faceLockUploadArea.addEventListener('dragleave', () => {
-                    faceLockUploadArea.classList.remove('border-primary');
-                });
+        faceLockUploadArea.addEventListener('dragleave', () => {
+            faceLockUploadArea.classList.remove('border-primary');
+        });
 
-                faceLockUploadArea.addEventListener('drop', (e) => {
-                    e.preventDefault();
-                    faceLockUploadArea.classList.remove('border-primary');
-                    const files = e.dataTransfer.files;
-                    if (files.length > 0) {
-                        handleFaceLockFileUpload(files[0]);
-                    }
-                });
+        faceLockUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            faceLockUploadArea.classList.remove('border-primary');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleFaceLockFileUpload(files[0]);
+            }
+        });
 
-                faceLockImage.addEventListener('change', (e) => {
-                    if (e.target.files.length > 0) {
-                        handleFaceLockFileUpload(e.target.files[0]);
-                    }
-                });
+        faceLockImage.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleFaceLockFileUpload(e.target.files[0]);
+            }
+        });
 
-                function handleFaceLockFileUpload(file) {
-                    if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            faceLockPreviewImg.src = e.target.result;
-                            faceLockUploadContent.classList.add('hidden');
-                            faceLockImagePreview.classList.remove('hidden');
-                        };
-                        reader.readAsDataURL(file);
-                    }
+        function handleFaceLockFileUpload(file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    faceLockPreviewImg.src = e.target.result;
+                    faceLockUploadContent.classList.add('hidden');
+                    faceLockImagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        removeFaceLockImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            faceLockImage.value = '';
+            faceLockUploadContent.classList.remove('hidden');
+            faceLockImagePreview.classList.add('hidden');
+        });
+
+        // Flux Style Panel functionality - Updated for overlay positioning
+        const fluxImageStyleBtn = document.getElementById('fluxImageStyleBtn');
+        const fluxStylePanel = document.getElementById('fluxStylePanel');
+        const fluxPanelContent = document.getElementById('fluxPanelContent');
+        const fluxStyleArrow = document.getElementById('fluxStyleArrow');
+        const closePanelBtn = document.getElementById('closePanelBtn');
+        const mainCanvas = document.getElementById('mainCanvas');
+        const rightSidebar = document.getElementById('rightSidebar');
+
+        let isFluxPanelOpen = false;
+
+        function openFluxStylePanel() {
+            if (isFluxPanelOpen) return;
+
+            isFluxPanelOpen = true;
+
+            // Animate arrow rotation
+            fluxStyleArrow.style.transform = 'rotate(90deg)';
+
+            // Show overlay panel with smooth animation
+            fluxStylePanel.classList.remove('hidden');
+
+            // Animate panel appearance with slight delay for smooth effect
+            setTimeout(() => {
+                fluxPanelContent.style.transform = 'scale(1)';
+            }, 50);
+
+            // Make background elements inactive
+            document.body.style.overflow = 'hidden';
+            const backgroundElements = document.querySelectorAll('#mainCanvas, #rightSidebar');
+            backgroundElements.forEach(el => {
+                el.style.pointerEvents = 'none';
+                el.style.userSelect = 'none';
+            });
+        }
+
+        function closeFluxStylePanel() {
+            if (!isFluxPanelOpen) return;
+
+            isFluxPanelOpen = false;
+
+            // Animate arrow rotation back
+            fluxStyleArrow.style.transform = 'rotate(0deg)';
+
+            // Animate panel disappearance
+            fluxPanelContent.style.transform = 'scale(0.95)';
+
+            // Hide overlay after animation
+            setTimeout(() => {
+                fluxStylePanel.classList.add('hidden');
+            }, 300);
+
+            // Restore background elements functionality
+            document.body.style.overflow = '';
+            const backgroundElements = document.querySelectorAll('#mainCanvas, #rightSidebar');
+            backgroundElements.forEach(el => {
+                el.style.pointerEvents = '';
+                el.style.userSelect = '';
+            });
+        }
+
+        fluxImageStyleBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            if (isFluxPanelOpen) {
+                closeFluxStylePanel();
+            } else {
+                openFluxStylePanel();
+            }
+        });
+
+        closePanelBtn.addEventListener('click', closeFluxStylePanel);
+
+        // Close panel when clicking on overlay background
+        fluxStylePanel.addEventListener('click', (e) => {
+            if (e.target === fluxStylePanel) {
+                closeFluxStylePanel();
+            }
+        });
+
+        // Close panel with Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && isFluxPanelOpen) {
+                closeFluxStylePanel();
+            }
+        });
+
+        // Style image upload handling
+        const styleImageUploadArea = document.getElementById('styleImageUploadArea');
+        const styleImageInput = document.getElementById('styleImageInput');
+        const styleUploadContent = document.getElementById('styleUploadContent');
+        const styleImagePreview = document.getElementById('styleImagePreview');
+        const stylePreviewImg = document.getElementById('stylePreviewImg');
+        const removeStyleImage = document.getElementById('removeStyleImage');
+
+        styleImageUploadArea.addEventListener('click', () => styleImageInput.click());
+
+        styleImageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            styleImageUploadArea.classList.add('border-primary');
+        });
+
+        styleImageUploadArea.addEventListener('dragleave', () => {
+            styleImageUploadArea.classList.remove('border-primary');
+        });
+
+        styleImageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            styleImageUploadArea.classList.remove('border-primary');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                handleStyleImageUpload(files[0]);
+            }
+        });
+
+        styleImageInput.addEventListener('change', (e) => {
+            if (e.target.files.length > 0) {
+                handleStyleImageUpload(e.target.files[0]);
+            }
+        });
+
+        function handleStyleImageUpload(file) {
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    stylePreviewImg.src = e.target.result;
+                    styleUploadContent.classList.add('hidden');
+                    styleImagePreview.classList.remove('hidden');
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        removeStyleImage.addEventListener('click', (e) => {
+            e.stopPropagation();
+            styleImageInput.value = '';
+            styleUploadContent.classList.remove('hidden');
+            styleImagePreview.classList.add('hidden');
+        });
+
+        // Style example selection
+        const styleExamples = document.querySelectorAll('[data-style]');
+        let selectedStyleExample = null;
+
+        styleExamples.forEach(example => {
+            example.addEventListener('click', function() {
+                // Remove selection from previous example
+                if (selectedStyleExample) {
+                    selectedStyleExample.classList.remove('ring-2', 'ring-primary');
                 }
 
-                removeFaceLockImage.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    faceLockImage.value = '';
-                    faceLockUploadContent.classList.remove('hidden');
-                    faceLockImagePreview.classList.add('hidden');
-                });
+                // Select new example
+                selectedStyleExample = this;
+                this.classList.add('ring-2', 'ring-primary');
+
+                // Visual feedback
+                this.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    this.style.transform = '';
+                }, 100);
             });
+        });
 
+        // Apply style button
+        const applyStyleBtn = document.getElementById('applyStyleBtn');
+        applyStyleBtn.addEventListener('click', function() {
+            // Add loading state
+            const originalHTML = this.innerHTML;
+            this.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Applying...';
+            this.disabled = true;
 
-        // Style section toggle
-        const styleToggle = document.getElementById('styleToggle');
-        const styleContent = document.getElementById('styleContent');
-        const styleArrow = document.getElementById('styleArrow');
-        let isStyleExpanded = true;
-
-        styleToggle.addEventListener('click', function() {
-            isStyleExpanded = !isStyleExpanded;
-
-            if (isStyleExpanded) {
-                styleContent.style.maxHeight = styleContent.scrollHeight + 'px';
-                styleArrow.style.transform = 'rotate(0deg)';
-            } else {
-                styleContent.style.maxHeight = '0px';
-                styleArrow.style.transform = 'rotate(-90deg)';
-            }
+            // Simulate style application
+            setTimeout(() => {
+                this.innerHTML = '<i class="fas fa-check mr-2"></i>Applied!';
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                    this.disabled = false;
+                    closeFluxStylePanel();
+                }, 1000);
+            }, 1500);
         });
 
         // Image count controls
@@ -445,7 +696,7 @@
         const imageContainer = document.getElementById('imageContainer');
         const generatedImage = document.getElementById('generatedImage');
 
-        generateBtn.addEventListener('submit', function() {
+        generateBtn.addEventListener('click', function() {
             if (promptInput.value.trim() === '') {
                 promptInput.focus();
                 promptInput.classList.add('border-error');
@@ -461,6 +712,21 @@
             loadingState.classList.remove('hidden');
             generateBtn.disabled = true;
             generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+
+            // Simulate generation process
+            setTimeout(() => {
+                // Use a sample AI-generated style image
+                generatedImage.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+                generatedImage.onerror = function() {
+                    this.src = 'https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2';
+                    this.onerror = null;
+                };
+
+                loadingState.classList.add('hidden');
+                imageContainer.classList.remove('hidden');
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Image';
+            }, 3000);
         });
 
         // Clear all functionality
@@ -478,21 +744,39 @@
             faceLockBtn.classList.remove('bg-primary', 'text-white');
             faceLockBtn.querySelector('span').textContent = 'Face Lock';
 
+            // Clear style selections
+            if (selectedStyleExample) {
+                selectedStyleExample.classList.remove('ring-2', 'ring-primary');
+                selectedStyleExample = null;
+            }
+
+            // Clear style image upload
+            styleImageInput.value = '';
+            styleUploadContent.classList.remove('hidden');
+            styleImagePreview.classList.add('hidden');
+
             // Reset to default state
             loadingState.classList.add('hidden');
             imageContainer.classList.add('hidden');
             defaultState.classList.remove('hidden');
+
+            // Close flux panel if open
+            if (isFluxPanelOpen) {
+                closeFluxStylePanel();
+            }
         });
 
         // Custom slider styling
-        const slider = document.querySelector('.slider');
-        slider.addEventListener('input', function() {
-            const value = (this.value - this.min) / (this.max - this.min) * 100;
-            this.style.background = `linear-gradient(to right, #6366f1 0%, #6366f1 ${value}%, #333333 ${value}%, #333333 100%)`;
-        });
+        const sliders = document.querySelectorAll('input[type="range"]');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', function() {
+                const value = (this.value - this.min) / (this.max - this.min) * 100;
+                this.style.background = `linear-gradient(to right, #6366f1 0%, #6366f1 ${value}%, #333333 ${value}%, #333333 100%)`;
+            });
 
-        // Initialize slider
-        slider.dispatchEvent(new Event('input'));
+            // Initialize slider
+            slider.dispatchEvent(new Event('input'));
+        });
     </script>
     <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
 </body>
