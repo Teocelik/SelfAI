@@ -706,27 +706,27 @@
                 return;
             }
 
-            // Show loading state
-            defaultState.classList.add('hidden');
-            imageContainer.classList.add('hidden');
-            loadingState.classList.remove('hidden');
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
+            // // Show loading state
+            // defaultState.classList.add('hidden');
+            // imageContainer.classList.add('hidden');
+            // loadingState.classList.remove('hidden');
+            // generateBtn.disabled = true;
+            // generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
 
-            // Simulate generation process
-            setTimeout(() => {
-                // Use a sample AI-generated style image
-                generatedImage.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
-                generatedImage.onerror = function() {
-                    this.src = 'https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2';
-                    this.onerror = null;
-                };
+            // // Simulate generation process
+            // setTimeout(() => {
+            //     // Use a sample AI-generated style image
+            //     generatedImage.src = 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D';
+            //     generatedImage.onerror = function() {
+            //         this.src = 'https://images.pexels.com/photos/1103970/pexels-photo-1103970.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2';
+            //         this.onerror = null;
+            //     };
 
-                loadingState.classList.add('hidden');
-                imageContainer.classList.remove('hidden');
-                generateBtn.disabled = false;
-                generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Image';
-            }, 3000);
+            //     loadingState.classList.add('hidden');
+            //     imageContainer.classList.remove('hidden');
+            //     generateBtn.disabled = false;
+            //     generateBtn.innerHTML = '<i class="fas fa-magic mr-2"></i>Generate Image';
+            // }, 3000);
         });
 
         // Clear all functionality

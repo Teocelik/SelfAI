@@ -72,13 +72,13 @@ namespace SelfAI.Services.Concretes
         // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
         public async Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto dto)
         {
+            // Upload URL almak için GetUploadUrlAsync metodunu çağırıyoruz
+            var uploadResponse = await GetUploadUrlAsync();
+
             if (dto.AssetFile == null || dto.AssetFile.Length == 0)
             {
                 throw new ArgumentException("Dosya boş olamaz.");
             }
-
-            // Upload URL almak için GetUploadUrlAsync metodunu çağırıyoruz
-            var uploadResponse = await GetUploadUrlAsync();
 
             if (uploadResponse == null)
             {

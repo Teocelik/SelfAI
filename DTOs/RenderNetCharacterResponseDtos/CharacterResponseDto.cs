@@ -2,7 +2,7 @@
 {
     public class CharacterResponseDto
     {
-        public CharacterDataDto Data { get; set; }
+        public List<CharacterDataDto> Data { get; set; }
         public object Err { get; set; }
     }
 }

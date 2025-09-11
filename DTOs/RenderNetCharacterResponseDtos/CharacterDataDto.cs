@@ -7,8 +7,8 @@ namespace SelfAI.DTOs.RenderNetCharacterResponseDtos
         [JsonPropertyName("character_type")]
         public string CharacterType { get; set; }
 
-        [JsonPropertyName("input_image")]
-        public string InputImage { get; set; }
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
 
         [JsonPropertyName("name")]
         public string Name { get; set; }
@@ -16,7 +16,7 @@ namespace SelfAI.DTOs.RenderNetCharacterResponseDtos
         [JsonPropertyName("prompt")]
         public string Prompt { get; set; }
 
-        [JsonPropertyName("id")]
-        public string Id { get; set; }
+        [JsonPropertyName("system_character")]
+        public bool SystemCharacter { get; set; }
     }
 }

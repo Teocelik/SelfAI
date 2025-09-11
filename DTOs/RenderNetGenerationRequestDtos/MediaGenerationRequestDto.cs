@@ -1,4 +1,7 @@
-﻿namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
+﻿using SelfAI.DTOs.RenderNetCharacterResponseDtos;
+using System.Text.Json.Serialization;
+
+namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
 {
     public class MediaGenerationRequestDto
     {
@@ -19,5 +22,8 @@
         // Prompt alanları
         public string PositivePrompt { get; set; }
         public string NegativePrompt { get; set; }
+
+        [JsonPropertyName("character")]
+        public CharacterDataDto CharacterData { get; set; }
     }
 }

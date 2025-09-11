@@ -9,6 +9,7 @@ namespace SelfAI.Services.Concretes
     {
         private readonly HttpClient _httpClient;
         private readonly RenderNetOptions _settings;
+
         public RenderNetCharacterService(HttpClient httpClient, IOptions<RenderNetOptions> options)
         {
             _httpClient = httpClient;

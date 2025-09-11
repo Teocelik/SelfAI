@@ -31,8 +31,8 @@ namespace SelfAI.Controllers
         [HttpPost]
         public async Task<IActionResult> GenerateImage(MediaGenerationRequestDto requestDto)
         {
-            // uploadUrl alalım
-            var uploadUrlResponse = await _renderNetAssetService.GetUploadUrlAsync();
+            //// uploadUrl alalım
+            //var uploadUrlResponse = await _renderNetAssetService.GetUploadUrlAsync();
 
             // varlığı UploadUrl'ye yükleyelim(asset_id'yi bu servisten alıyoruz)
             var uploadImageResponse = await _renderNetAssetService.UploadAssetAsync(requestDto);
@@ -48,7 +48,7 @@ namespace SelfAI.Controllers
 
         //// UploadUrl'e görsel yüklemek için gerekli metot
         //[HttpPost]
-        //public async Task<IActionResult> UploadImage(MediaGenerationRequestDto requestDto)
+        //public async Task<IActionResult> 5(MediaGenerationRequestDto requestDto)
         //{
         //    // uploadUrl alalım
         //    var uploadUrlResponse = await _renderNetAssetService.GetUploadUrlAsync();
