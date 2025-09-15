@@ -11,6 +11,7 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
+builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
 //builder.Services.AddHttpClient<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 

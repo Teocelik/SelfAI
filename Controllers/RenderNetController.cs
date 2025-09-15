@@ -13,12 +13,14 @@ namespace SelfAI.Controllers
     {
         private readonly IRenderNetAssetService _renderNetAssetService;
         private readonly IRenderNetGenerationService _renderNetGenerationService;
+        private readonly IRenderNetResourcesService _renderNetResourcesService;
         private readonly ILogger<RenderNetController> _logger;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, ILogger<RenderNetController> logger)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, ILogger<RenderNetController> logger)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
+            _renderNetResourcesService = renderNetResourcesService;
             _logger = logger;
         }
 
@@ -27,7 +29,7 @@ namespace SelfAI.Controllers
             return View();
         }
 
-
+        // Görsel oluşturma isteği için gerekli action metot
         [HttpPost]
         public async Task<IActionResult> GenerateImage(MediaGenerationRequestDto requestDto)
         {
@@ -45,6 +47,14 @@ namespace SelfAI.Controllers
             return Ok(generateMediaResponse);
         }
 
+
+        // Flux image style'lerini çekmek için gerekli action metot
+        [HttpGet]
+        public async Task<IActionResult> GetFluxStyles()
+        {
+            var fluxStyleList = await _renderNetResourcesService.GetFluxStylesAsync();
+            return Ok();
+        }
 
         //// UploadUrl'e görsel yüklemek için gerekli metot
         //[HttpPost]

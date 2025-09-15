@@ -20,9 +20,19 @@ namespace SelfAI.Services.Concretes
         }
 
         // flux image style'lerini API'den çeker
-        public Task<string> ListFluxStyles()
+        public async Task<string> GetFluxStylesAsync()
         {
-            throw new NotImplementedException();
+            // request oluşturalım
+            var response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/styles");
+
+            // Eğer response başarılı değilse, bir hata fırlatalım
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Flux styles alınamadı. Hata kodu: {response.StatusCode}");
+            }
+            // response içeriğini okuyalım
+            var content = await response.Content.ReadAsStringAsync();
+            return content;
         }
     }
 }
