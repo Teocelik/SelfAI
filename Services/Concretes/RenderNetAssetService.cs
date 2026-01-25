@@ -29,27 +29,22 @@ namespace SelfAI.Services.Concretes
         public async Task<UploadAssetResponseDto> GetUploadUrlAsync()
         {
             // Yükleme URL'si almak için gerekli payload'u(Yük) oluşturalım
-            
             var payload = new
             {
                 size = new { height = 512, width = 512 }
             };
-
             // payloadı Json olarak serilize edip httpcontent olarak PostAsync metoduna verelim
             var payloadContent = JsonContent.Create(payload);
-
             // RenderNet API'sine yükleme URL'si almak için istek yapalım
             var response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/assets/upload", payloadContent);
-
             // Eğer response başarılı değilse, bir hata fırlatalım
             if (!response.IsSuccessStatusCode)
             {
+                var errorContent = await response.Content.ReadAsStringAsync();
                 throw new Exception($"Yükleme URL'si alınamadı. Hata kodu: {response.StatusCode}");
             }
-
             // response içeriğini okuyalım
             var content = await response.Content.ReadAsStringAsync();
-
             // içeriği deserilize edip UploadAssetData nesnesine dönüştürelim
             var options = new JsonSerializerOptions
             {
@@ -57,7 +52,6 @@ namespace SelfAI.Services.Concretes
             };
 
             var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
-
             // Eğer serilizeResponse null ise, bir hata fırlatalım
             if (serilizedResponse == null)
             {
@@ -66,8 +60,6 @@ namespace SelfAI.Services.Concretes
 
             return serilizedResponse;
         }
-
-
 
         // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
         public async Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto dto)

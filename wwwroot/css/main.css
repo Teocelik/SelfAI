@@ -2072,6 +2072,314 @@ body {
         box-shadow: inset 0 0 6px rgba(99, 102, 241, 0.05);
     }
 
+/* ================================================
+   MODEL SELECTION PANEL STYLES
+   ================================================ */
+
+/* Model Category Button - Active State */
+.model-category-btn.active {
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1) 0%, rgba(139, 92, 246, 0.1) 100%);
+    border-left: 3px solid #6366f1;
+}
+
+    .model-category-btn.active span {
+        color: #6366f1;
+    }
+
+/* Model Option - Selected State */
+.model-option.selected > div:first-child {
+    border-color: #6366f1 !important;
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+}
+
+.model-option.selected p {
+    color: #6366f1 !important;
+    font-weight: 500;
+}
+
+/* Model Panel Animation */
+#modelPanel {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    #modelPanel.open {
+        transform: translateX(0) !important;
+        opacity: 1 !important;
+    }
+
+    /* Model Panel Scrollbar */
+    #modelPanel .overflow-y-auto {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    }
+
+        #modelPanel .overflow-y-auto::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #modelPanel .overflow-y-auto::-webkit-scrollbar-track {
+            background: transparent;
+            border-radius: 20px;
+        }
+
+        #modelPanel .overflow-y-auto::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.5) 100%);
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+            #modelPanel .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+                background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.6) 100%);
+            }
+
+/* Model Option Hover Animation */
+.model-option {
+    transition: transform 0.2s ease;
+}
+
+    .model-option:hover {
+        transform: translateY(-2px);
+    }
+
+    .model-option > div:first-child {
+        transition: all 0.2s ease;
+    }
+
+/* Aspect Ratio for Model Images */
+.aspect-
+$$
+3\/4
+$$ {
+    aspect-ratio: 3 / 4;
+}
+
+/* Selected Model Tag Styles */
+.selected-model-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 6px 2px 2px;
+    background-color: rgba(51, 51, 51, 1);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    font-size: 11px;
+    color: #f8fafc;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    max-width: 120px;
+    flex-shrink: 0;
+}
+
+    .selected-model-tag:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+    }
+
+    .selected-model-tag img {
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+
+    .selected-model-tag span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 70px;
+    }
+
+    .selected-model-tag .remove-tag {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        border: none;
+        padding: 0;
+        font-size: 8px;
+        flex-shrink: 0;
+    }
+
+    .selected-model-tag .remove-tag:hover {
+            background: rgba(239, 68, 68, 0.2);
+            color: #ef4444;
+    }
+
+    /* Selected Models Container */
+    #selectedModelsContainer {
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    #selectedModelsTags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        max-width: 100%;
+    }
+
+/* Model Panel - Grid Scroll (Max 6 models visible - 2 rows) */
+.model-content > .grid {
+    max-height: 340px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    padding-right: 4px;
+}
+
+    .model-content > .grid::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    .model-content > .grid::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 20px;
+    }
+
+    .model-content > .grid::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.5) 100%);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+    .model-content > .grid::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.6) 100%);
+    }
+
+/* ================================================
+   END MODEL SELECTION PANEL STYLES
+   ================================================ */
+
+
+
+/* ================================================
+   FLUX IMAGE STYLE PANEL STYLES
+   ================================================ */
+
+/* Flux Style Panel Animation */
+#fluxStylePanel {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+    #fluxStylePanel.open {
+        transform: translateX(0) !important;
+        opacity: 1 !important;
+    }
+
+/* Style Option States */
+.style-option {
+    transition: transform 0.2s ease;
+}
+
+    .style-option:hover {
+        transform: translateY(-2px);
+    }
+
+    .style-option.selected > div:first-child {
+        border-color: #6366f1 !important;
+        box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+    }
+
+/* Style Upload Area */
+#styleUploadArea {
+    transition: all 0.2s ease;
+}
+
+    #styleUploadArea:hover {
+        border-color: rgba(99, 102, 241, 0.5);
+        background-color: rgba(99, 102, 241, 0.05);
+    }
+
+    #styleUploadArea.drag-over {
+        border-color: #6366f1;
+        background-color: rgba(99, 102, 241, 0.1);
+    }
+
+/* Intensity Slider Custom Style */
+#styleIntensity {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #2C2C2C;
+    border-radius: 4px;
+    outline: none;
+}
+
+    #styleIntensity::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6366f1;
+        cursor: pointer;
+        border: 2px solid #fff;
+        box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.3);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        #styleIntensity::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+        }
+
+    #styleIntensity::-moz-range-thumb {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #6366f1;
+        cursor: pointer;
+        border: 2px solid #fff;
+    }
+
+/* Track fill effect */
+#styleIntensity {
+    background: linear-gradient(to right, #6366f1 0%, #2C2C2C 0%);
+}
+
+/* Selected Style Preview Hover */
+#selectedStylePreview:hover {
+    box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5);
+}
+
+/* Flux Style Panel - Grid Scroll (Max 6 styles visible - 2 rows) */
+#styleExamplesGrid {
+    max-height: 340px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
+    padding-right: 4px;
+}
+
+    #styleExamplesGrid::-webkit-scrollbar {
+        width: 4px;
+    }
+
+    #styleExamplesGrid::-webkit-scrollbar-track {
+        background: transparent;
+        border-radius: 20px;
+    }
+
+    #styleExamplesGrid::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.5) 100%);
+        border-radius: 20px;
+        transition: all 0.3s ease;
+    }
+
+        #styleExamplesGrid::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.6) 100%);
+        }
+
+/* ================================================
+   END FLUX IMAGE STYLE PANEL STYLES
+   ================================================ */
+
 /* Responsive breakpoints */
 
 @media (max-width: 768px) {

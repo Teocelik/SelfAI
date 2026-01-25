@@ -2,7 +2,7 @@
 
 namespace SelfAI.DTOs.RenderNetResourceDtos
 {
-    public class FluxImageSytleDataDto
+    public class FluxImageSytleDetailDto
     {
         [JsonPropertyName("name")]
         public string Name { get; set; }

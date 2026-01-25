@@ -17,14 +17,15 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
+// Iyzico(Ödeme yöntemi) API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoOptions"));
 
 
 
 //Add Seasons
-builder.Services.AddSession(options=>
+builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromMinutes(5); // Oturumun 5 dakika sonra zaman aþýmýna uðramasýný saðlar
+    //options.IdleTimeout = TimeSpan.FromMinutes(35); // Oturumun 35 dakika sonra zaman aþýmýna uðramasýný saðlar
     options.Cookie.HttpOnly = true; // Çerezlerin JavaScript tarafýndan eriþilmemesini saðlar
     options.Cookie.IsEssential = true; // Oturum çerezinin gerekli olduðunu belirtir
 });
@@ -40,13 +41,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+app.UseHttpsRedirection();// HTTP gelen isteði HTTPS'e çevir.
+app.UseStaticFiles();// wwwroot klasörünü (CSS, JS, Resimler) dýþarýya aç
+app.UseRouting();// Adres yönlendirme mekanizmasýný çalýþtýr.
 app.UseSession(); // Oturum yönetimini etkinleþtirir
-app.UseHttpsRedirection();
-app.UseRouting();
+app.UseAuthorization();// Yetki kontrolü yap (Login olmuþ mu?).
 
-app.UseAuthorization();
-
-app.MapStaticAssets();
+//app.MapStaticAssets();
 
 //app.MapDefaultControllerRoute();
 //app.MapControllerRoute(

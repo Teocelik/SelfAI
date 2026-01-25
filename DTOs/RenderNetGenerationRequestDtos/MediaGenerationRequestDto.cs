@@ -1,4 +1,5 @@
 ﻿using SelfAI.DTOs.RenderNetCharacterResponseDtos;
+using SelfAI.DTOs.RenderNetResourceDtos;
 using System.Text.Json.Serialization;
 
 namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
@@ -13,11 +14,13 @@ namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
         public int BatchSize { get; set; }
         public double CfgScale { get; set; } 
         public string Model { get; set; } 
-        public string Style { get; set; } 
+        public string Style { get; set; }
+        [JsonPropertyName("style_detail")]
+        public FluxImageSytleDetailDto StyleDetail { get; set; }
         public int Steps { get; set; } 
         public int Seed { get; set; } 
         public string Quality { get; set; } 
-        public string Sampler { get; set; } 
+        public string Sampler { get; set; }
 
         // Prompt alanları
         public string PositivePrompt { get; set; }

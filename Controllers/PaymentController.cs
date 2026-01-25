@@ -18,6 +18,7 @@ namespace SelfAI.Controllers
             _paymentService = paymentService;
         }
 
+        //[HttpGet]
         public async Task<IActionResult> InitializeIyzicoCheckOutForm()
         {
             // Ödeme işlemini başlatıyoruz
