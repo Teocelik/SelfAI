@@ -2376,9 +2376,31 @@ $$ {
             background: linear-gradient(135deg, rgba(99, 102, 241, 0.4) 0%, rgba(139, 92, 246, 0.6) 100%);
         }
 
-/* ================================================
-   END FLUX IMAGE STYLE PANEL STYLES
-   ================================================ */
+    /* ================================================
+    END FLUX IMAGE STYLE PANEL STYLES
+    ================================================ */
+
+    /* ================================================
+    CONSISTENCY CONTROLS - EQUAL BUTTON SIZES
+    ================================================ */
+
+    #characterBtn,
+    #faceLockBtn,
+    #poseLockBtn {
+        min-width: 0;
+        flex: 1 1 0%;
+    }
+
+    #characterBtn .flex-col span,
+    #faceLockBtn .flex-col span,
+    #poseLockBtn .flex-col span {
+    white-space: nowrap;
+    font-size: 0.75rem;
+    }
+
+    /* ================================================
+    END CONSISTENCY CONTROLS
+    ================================================ */
 
 /* Responsive breakpoints */
 
@@ -2572,3 +2594,49 @@ $$ {
     --tw-text-opacity: 1;
     color: rgb(99 102 241 / var(--tw-text-opacity, 1));
 }
+
+/* ================================================
+   FACE LOCK PANEL STYLES
+   ================================================ */
+
+/* Face Lock Panel Base */
+#faceLockPanel {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+}
+
+    #faceLockPanel.open {
+        transform: translateX(0) !important;
+        opacity: 1 !important;
+    }
+
+/* Face Lock Upload Area */
+#faceLockPanelUploadArea {
+    transition: all 0.2s ease;
+}
+
+    #faceLockPanelUploadArea:hover {
+        border-color: #00CED1;
+        background-color: rgba(0, 206, 209, 0.05);
+    }
+
+    #faceLockPanelUploadArea.drag-over {
+        border-color: #00CED1;
+        background-color: rgba(0, 206, 209, 0.1);
+    }
+
+/* Face Lock Button Active State */
+#faceLockBtn.active {
+    background: linear-gradient(135deg, rgba(0, 206, 209, 0.1) 0%, rgba(0, 206, 209, 0.15) 100%);
+    border-color: #00CED1;
+}
+
+    #faceLockBtn.active i,
+    #faceLockBtn.active span {
+        color: #00CED1 !important;
+    }
+
+/* ================================================
+END FACE LOCK PANEL STYLES
+================================================ */
+

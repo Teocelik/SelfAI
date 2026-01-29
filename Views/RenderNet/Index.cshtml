@@ -467,6 +467,81 @@
         </div>
         <!-- Model selection slidebar end -->
 
+        <!-- Face Lock Panel - Floating Side Panel -->
+        <div id="faceLockPanel" class="fixed top-[80px] bg-[#1E1E1E] border border-[#333] rounded-[10px] shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px; width: 260px;">
+            <div class="flex flex-col rounded-[10px] overflow-hidden">
+                <!-- Panel Header -->
+                <div class="px-4 py-3 border-b border-[#333]">
+                    <div class="flex items-center justify-between mb-1">
+                        <div class="flex items-center space-x-2">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M16.125 11.25C16.125 12.0658 15.8831 12.8634 15.4298 13.5417C14.9766 14.2201 14.3323 14.7488 13.5786 15.061C12.8248 15.3732 11.9954 15.4549 11.1953 15.2957C10.3951 15.1366 9.66008 14.7437 9.08318 14.1668C8.50629 13.5899 8.11343 12.8549 7.95426 12.0547C7.7951 11.2546 7.87679 10.4252 8.189 9.67143C8.50121 8.91769 9.02992 8.27345 9.70827 7.82019C10.3866 7.36693 11.1842 7.125 12 7.125C13.094 7.125 14.1432 7.5596 14.9168 8.33318C15.6904 9.10677 16.125 10.156 16.125 11.25ZM21 4.5V19.5C21 19.8978 20.842 20.2794 20.5607 20.5607C20.2794 20.842 19.8978 21 19.5 21H4.5C4.10218 21 3.72064 20.842 3.43934 20.5607C3.15804 20.2794 3 19.8978 3 19.5V4.5C3 4.10218 3.15804 3.72064 3.43934 3.43934C3.72064 3.15804 4.10218 3 4.5 3H19.5C19.8978 3 20.2794 3.15804 20.5607 3.43934C20.842 3.72064 21 4.10218 21 4.5ZM19.5 19.5V4.5H4.5V19.5H4.84406C5.2905 18.0914 6.14026 16.8446 7.28813 15.9141C7.48062 15.7591 7.67937 15.6147 7.88437 15.4809C7.95268 15.4364 8.03365 15.4152 8.11503 15.4208C8.1964 15.4264 8.27374 15.4584 8.33531 15.5119C9.35382 16.3911 10.6545 16.8749 12 16.8749C13.3455 16.8749 14.6462 16.3911 15.6647 15.5119C15.7263 15.4584 15.8036 15.4264 15.885 15.4208C15.9663 15.4152 16.0473 15.4364 16.1156 15.4809C16.3206 15.6153 16.5194 15.7597 16.7119 15.9141C17.8597 16.8446 18.7095 18.0914 19.1559 19.5H19.5Z" fill="#FAFAFA" />
+                            </svg>
+                            <span class="text-sm font-medium text-white">Face Lock</span>
+                            <button type="button" class="text-[#888] hover:text-white transition-colors" title="Info">
+                                <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+                                    <path d="M8 1.5C4.41 1.5 1.5 4.41 1.5 8C1.5 11.59 4.41 14.5 8 14.5C11.59 14.5 14.5 11.59 14.5 8C14.5 4.41 11.59 1.5 8 1.5ZM8 13.5C4.97 13.5 2.5 11.03 2.5 8C2.5 4.97 4.97 2.5 8 2.5C11.03 2.5 13.5 4.97 13.5 8C13.5 11.03 11.03 13.5 8 13.5ZM8.5 11H7.5V7H8.5V11ZM8.5 6H7.5V5H8.5V6Z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Toggle Switch -->
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" id="faceLockToggle" class="sr-only peer" checked>
+                            <div class="w-8 h-[18px] bg-[#444] rounded-full peer peer-checked:bg-[#00CED1] after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-[14px] after:w-[14px] after:transition-all peer-checked:after:translate-x-[14px]"></div>
+                        </label>
+                    </div>
+                    <p class="text-[11px] text-[#888] leading-relaxed">Upload a photo to generate images with the same face</p>
+                </div>
+
+                <!-- Usage Guidelines Link -->
+                <div class="px-4 py-2 border-b border-[#333]">
+                    <a href="#" class="text-xs text-[#00CED1] hover:underline">Usage Guidelines</a>
+                </div>
+
+                <!-- Upload Section -->
+                <div class="px-4 py-3">
+                    <p class="text-xs text-white mb-3">Upload reference photo</p>
+                    <div class="border-2 border-dashed border-[#00CED1]/60 rounded-lg p-4 transition-colors duration-200 cursor-pointer hover:border-[#00CED1] hover:bg-[#00CED1]/5" id="faceLockPanelUploadArea">
+                        <input type="file" id="faceLockPanelImage" name="AssetFile" accept="image/*" class="hidden" />
+
+                        <!-- Upload Placeholder -->
+                        <div id="faceLockPanelUploadContent" class="flex flex-col items-center">
+                            <div class="w-[90px] h-[110px] rounded-lg overflow-hidden mb-3 relative border border-[#444]">
+                                <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=90&h=110&fit=crop&crop=face"
+                                     alt="Upload placeholder"
+                                     class="w-full h-full object-cover" />
+                                <div class="absolute inset-0 flex items-center justify-center bg-black/30">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" class="text-white">
+                                        <path d="M4 16L4 17C4 18.6569 5.34315 20 7 20L17 20C18.6569 20 20 18.6569 20 17L20 16M16 8L12 4M12 4L8 8M12 4L12 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </div>
+                            </div>
+                            
+                        </div>
+
+                        <!-- Image Preview -->
+                        <div id="faceLockPanelPreview" class="hidden flex flex-col items-center">
+                            <img id="faceLockPanelPreviewImg" src="" alt="Face Lock Preview" class="w-[90px] h-[110px] object-cover rounded-lg border border-[#00CED1]" />
+                            <button type="button" id="removeFaceLockPanelImage" class="mt-3 text-[10px] text-[#EF4444] hover:text-[#DC2626] transition-colors flex items-center">
+                                <i class="fas fa-trash-alt mr-1 text-[8px]"></i>Remove
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guide Section -->
+                <div class="px-4 py-3 border-t border-[#333]">
+                    <p class="text-xs font-medium text-white mb-2">Face Lock guide</p>
+                    <p class="text-[10px] text-[#888] leading-relaxed">
+                        Upload a close-up photo of ONE person with their face clearly visible.
+                    </p>
+                    <p class="text-[10px] text-[#888] leading-relaxed mt-2">
+                        Best results are obtained when the uploaded face is clearly visible, is facing forward, and isn't wearing glasses or shades.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <!-- Face Lock Panel End -->
 
         <!-- Right Sidebar -->
         <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar order-3 flex-shrink-0 transition-all duration-300 ease-out" id="rightSidebar">
@@ -489,6 +564,7 @@
                                     <span class="text-sm text-text-secondary group-hover:text-primary">Face Lock</span>
                                 </div>
                             </button>
+
                             <button type="button" id="poseLockBtn" class="flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
                                     <i class="fas fa-running text-xl text-text-secondary group-hover:text-primary"></i>
@@ -498,23 +574,10 @@
                         </div>
                     </div>
 
-                    <!-- Face Lock Drop Zone (Hidden by default) -->
-                    <div id="faceLockDropZone" class="hidden space-y-3 mb-6">
-                        <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-primary/50 transition-colors duration-200 cursor-pointer" id="faceLockUploadArea">
-                            <input type="file" id="faceLockImage" name="AssetFile" accept="image/*" class="hidden" />
-                            <div id="faceLockUploadContent">
-                                <i class="fas fa-cloud-upload-alt text-2xl text-text-secondary mb-2"></i>
-                                <p class="text-sm text-text-secondary mb-1">Drop face image here or click to browse</p>
-                                <p class="text-xs text-text-muted">PNG, JPG up to 10MB</p>
-                            </div>
-                            <div id="faceLockImagePreview" class="hidden">
-                                <img id="faceLockPreviewImg" src alt="Face Lock Preview" class="max-w-full h-32 object-cover rounded-lg mx-auto" />
-                                <button type="button" id="removeFaceLockImage" class="mt-2 text-xs text-error hover:text-error-600 transition-colors duration-200">
-                                    <i class="fas fa-times mr-1"></i>Remove
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    
+
+                    <!-- Face Lock Hidden Input (Form Submission için) -->
+                    <input type="file" id="faceLockImage" name="AssetFile" accept="image/*" class="hidden" />
 
                     <!-- Prompt Section -->
                     <div class="space-y-3">
@@ -691,797 +754,13 @@
           
         </div>
     </div>
-    </div>
-
-    <script>
-        // Predefined random prompts array for client-side functionality
-        const randomPrompts = [
-            "A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution",
-            "Cyberpunk cityscape at night with neon lights reflecting on wet streets, futuristic architecture, atmospheric lighting",
-            "Enchanted forest with glowing mushrooms, fairy lights, magical atmosphere, digital art style, vibrant colors",
-            "Ancient castle on a cliff overlooking a stormy ocean, dramatic lighting, gothic architecture, dark fantasy",
-            "Space explorer walking on an alien planet with twin moons, sci-fi concept art, cinematic composition",
-            "Steampunk airship flying above Victorian city, brass and copper details, industrial aesthetic, vintage technology",
-            "Underwater palace made of coral and pearls, mermaids swimming nearby, bioluminescent sea life, ethereal lighting",
-            "Post-apocalyptic wasteland with abandoned buildings, overgrown vegetation, dramatic sky, concept art style",
-            "Japanese temple in cherry blossom season, traditional architecture, peaceful atmosphere, spring colors",
-            "Robot warrior in futuristic armor, mechanical details, glowing energy weapons, dynamic action pose"
-        ];
-
-        // Character count for prompt
-        const promptInput = document.getElementById('promptInput');
-        const charCount = document.getElementById('charCount');
-
-        promptInput.addEventListener('input', function() {
-            const count = this.value.length;
-            charCount.textContent = `${count}/500`;
-            if (count > 500) {
-                charCount.classList.add('text-error');
-            } else {
-                charCount.classList.remove('text-error');
-            }
-        });
-
-        // Random Prompt functionality - Now using client-side array
-        const randomPromptBtn = document.getElementById('randomPromptBtn');
-
-        randomPromptBtn.addEventListener('click', function() {
-            // Add loading state
-            const originalHTML = this.innerHTML;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin text-text-secondary text-sm"></i>';
-            this.disabled = true;
-
-            // Simulate brief loading for better UX
-            setTimeout(() => {
-                try {
-                    // Get random prompt from predefined array
-                    const randomIndex = Math.floor(Math.random() * randomPrompts.length);
-                    const randomPrompt = randomPrompts[randomIndex];
-
-                    promptInput.value = randomPrompt;
-                    // Trigger input event to update character count
-                    promptInput.dispatchEvent(new Event('input'));
-
-                    // Add visual feedback
-                    promptInput.classList.add('border-primary');
-                    setTimeout(() => {
-                        promptInput.classList.remove('border-primary');
-                    }, 1000);
-
-                } catch (error) {
-                    console.error('Error generating random prompt:', error);
-                    // Show error feedback
-                    this.classList.add('border-error');
-                    setTimeout(() => {
-                        this.classList.remove('border-error');
-                    }, 1000);
-                } finally {
-                    // Restore button state
-                    this.innerHTML = originalHTML;
-                    this.disabled = false;
-                }
-            }, 500);
-        });
-
-        // Consistency Controls functionality
-        const characterBtn = document.getElementById('characterBtn');
-        const faceLockBtn = document.getElementById('faceLockBtn');
-        const poseLockBtn = document.getElementById('poseLockBtn');
-        const faceLockDropZone = document.getElementById('faceLockDropZone');
-
-        // Face Lock button functionality
-        faceLockBtn.addEventListener('click', function() {
-            // Toggle active state
-            faceLockBtn.classList.toggle('bg-primary');
-            faceLockBtn.classList.toggle('text-white');
-
-            // Toggle drop zone visibility
-            if (faceLockDropZone.classList.contains('hidden')) {
-                faceLockDropZone.classList.remove('hidden');
-                faceLockBtn.querySelector('span').textContent = 'Face Lock Active';
-            } else {
-                faceLockDropZone.classList.add('hidden');
-                faceLockBtn.querySelector('span').textContent = 'Face Lock';
-                faceLockBtn.classList.remove('bg-primary', 'text-white');
-            }
-        });
-
-        // Face Lock file upload handling
-        const faceLockUploadArea = document.getElementById('faceLockUploadArea');
-        const faceLockImage = document.getElementById('faceLockImage');
-        const faceLockUploadContent = document.getElementById('faceLockUploadContent');
-        const faceLockImagePreview = document.getElementById('faceLockImagePreview');
-        const faceLockPreviewImg = document.getElementById('faceLockPreviewImg');
-        const removeFaceLockImage = document.getElementById('removeFaceLockImage');
-
-        faceLockUploadArea.addEventListener('click', () => faceLockImage.click());
-
-        faceLockUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            faceLockUploadArea.classList.add('border-primary');
-        });
-
-        faceLockUploadArea.addEventListener('dragleave', () => {
-            faceLockUploadArea.classList.remove('border-primary');
-        });
-
-        faceLockUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            faceLockUploadArea.classList.remove('border-primary');
-            const files = e.dataTransfer.files;
-            if (files.length > 0) {
-                handleFaceLockFileUpload(files[0]);
-            }
-        });
-
-        faceLockImage.addEventListener('change', (e) => {
-            if (e.target.files.length > 0) {
-                handleFaceLockFileUpload(e.target.files[0]);
-            }
-        });
-
-        function handleFaceLockFileUpload(file) {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    faceLockPreviewImg.src = e.target.result;
-                    faceLockUploadContent.classList.add('hidden');
-                    faceLockImagePreview.classList.remove('hidden');
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        removeFaceLockImage.addEventListener('click', (e) => {
-            e.stopPropagation();
-            faceLockImage.value = '';
-            faceLockUploadContent.classList.remove('hidden');
-            faceLockImagePreview.classList.add('hidden');
-        });
-
-                // ================================================
-        // FLUX IMAGE STYLE PANEL FUNCTIONALITY
-        // ================================================
-
-        const fluxImageStyleBtn = document.getElementById('fluxImageStyleBtn');
-        const fluxStyleSelectedBtn = document.getElementById('fluxStyleSelectedBtn');
-        const fluxStylePanel = document.getElementById('fluxStylePanel');
-        const fluxStyleArrow = document.getElementById('fluxStyleArrow');
-        const fluxStyleArrowSelected = document.getElementById('fluxStyleArrowSelected');
-        const closeFluxPanelBtn = document.getElementById('closeFluxPanelBtn');
-        const styleOptions = document.querySelectorAll('.style-option');
-        const selectedStyleValue = document.getElementById('selectedStyleValue');
-        const selectedStylePreview = document.getElementById('selectedStylePreview');
-        const removeSelectedStyle = document.getElementById('removeSelectedStyle');
-        const styleIntensity = document.getElementById('styleIntensity');
-        const intensityValue = document.getElementById('intensityValue');
-        const fluxStyleDefault = document.getElementById('fluxStyleDefault');
-        const fluxStyleSelected = document.getElementById('fluxStyleSelected');
-
-        // Upload elements
-        const styleUploadArea = document.getElementById('styleUploadArea');
-        const styleImageInput = document.getElementById('styleImageInput');
-        const styleUploadContent = document.getElementById('styleUploadContent');
-        const styleUploadPreview = document.getElementById('styleUploadPreview');
-        const styleUploadPreviewImg = document.getElementById('styleUploadPreviewImg');
-        const removeUploadedStyle = document.getElementById('removeUploadedStyle');
-
-        let isFluxStylePanelOpen = false;
-        let selectedStyle = null;
-
-        function openFluxStylePanel() {
-            if (isFluxStylePanelOpen) return;
-            isFluxStylePanelOpen = true;
-
-            fluxStylePanel.classList.remove('hidden');
-
-            // Rotate arrow
-            if (fluxStyleArrow) fluxStyleArrow.style.transform = 'rotate(180deg)';
-            if (fluxStyleArrowSelected) fluxStyleArrowSelected.style.transform = 'rotate(180deg)';
-
-            setTimeout(() => {
-                fluxStylePanel.classList.add('open');
-            }, 10);
-        }
-
-        function closeFluxStylePanel() {
-            if (!isFluxStylePanelOpen) return;
-            isFluxStylePanelOpen = false;
-
-            fluxStylePanel.classList.remove('open');
-
-            // Reset arrow
-            if (fluxStyleArrow) fluxStyleArrow.style.transform = 'rotate(0deg)';
-            if (fluxStyleArrowSelected) fluxStyleArrowSelected.style.transform = 'rotate(0deg)';
-
-            setTimeout(() => {
-                fluxStylePanel.classList.add('hidden');
-            }, 300);
-        }
-
-        // Toggle panel - Default button
-        if (fluxImageStyleBtn) {
-            fluxImageStyleBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (isFluxStylePanelOpen) {
-                    closeFluxStylePanel();
-                } else {
-                    openFluxStylePanel();
-                }
-            });
-        }
-
-        // Toggle panel - Selected state button
-        if (fluxStyleSelectedBtn) {
-            fluxStyleSelectedBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (isFluxStylePanelOpen) {
-                    closeFluxStylePanel();
-                } else {
-                    openFluxStylePanel();
-                }
-            });
-        }
-
-        // Close button
-        if (closeFluxPanelBtn) {
-            closeFluxPanelBtn.addEventListener('click', closeFluxStylePanel);
-        }
-
-        function updateFluxStyleUI() {
-            if (!selectedStyle) {
-                // No selection - show default button
-                if (fluxStyleDefault) fluxStyleDefault.classList.remove('hidden');
-                if (fluxStyleSelected) fluxStyleSelected.classList.add('hidden');
-                if (selectedStyleValue) selectedStyleValue.value = '';
-                return;
-            }
-
-            // Has selection - show selected view
-            if (fluxStyleDefault) fluxStyleDefault.classList.add('hidden');
-            if (fluxStyleSelected) fluxStyleSelected.classList.remove('hidden');
-            if (selectedStylePreview) selectedStylePreview.src = selectedStyle.img;
-            if (selectedStyleValue) selectedStyleValue.value = selectedStyle.id;
-        }
-
-        // Style option selection
-        styleOptions.forEach(option => {
-            option.addEventListener('click', function() {
-                const styleId = this.dataset.style;
-                const styleName = this.dataset.name;
-                const styleImg = this.dataset.img;
-
-                // Remove previous selection
-                styleOptions.forEach(opt => opt.classList.remove('selected'));
-
-                // Add selection to clicked
-                this.classList.add('selected');
-
-                // Update selected style
-                selectedStyle = {
-                    id: styleId,
-                    name: styleName,
-                    img: styleImg,
-                    isUploaded: false
-                };
-
-                updateFluxStyleUI();
-
-                // Close panel after selection
-                setTimeout(() => {
-                    closeFluxStylePanel();
-                }, 200);
-            });
-        });
-
-        // Remove selected style
-        if (removeSelectedStyle) {
-            removeSelectedStyle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                selectedStyle = null;
-                styleOptions.forEach(opt => opt.classList.remove('selected'));
-                updateFluxStyleUI();
-
-                // Reset upload if it was uploaded
-                if (styleUploadContent) styleUploadContent.classList.remove('hidden');
-                if (styleUploadPreview) styleUploadPreview.classList.add('hidden');
-                if (styleImageInput) styleImageInput.value = '';
-            });
-        }
-
-        // Intensity slider
-        if (styleIntensity) {
-            styleIntensity.addEventListener('input', function() {
-                const value = this.value;
-                if (intensityValue) intensityValue.textContent = value;
-
-                // Update slider background
-                const percentage = ((value - 1) / 9) * 100;
-                this.style.background = `linear-gradient(to right, #6366f1 ${percentage}%, #2C2C2C ${percentage}%)`;
-            });
-
-            // Initialize slider
-            styleIntensity.dispatchEvent(new Event('input'));
-        }
-
-        // File Upload Handling
-        if (styleUploadArea) {
-            styleUploadArea.addEventListener('click', (e) => {
-                if (!e.target.closest('#removeUploadedStyle')) {
-                    styleImageInput.click();
-                }
-            });
-
-            styleUploadArea.addEventListener('dragover', (e) => {
-                e.preventDefault();
-                styleUploadArea.classList.add('drag-over');
-            });
-
-            styleUploadArea.addEventListener('dragleave', () => {
-                styleUploadArea.classList.remove('drag-over');
-            });
-
-            styleUploadArea.addEventListener('drop', (e) => {
-                e.preventDefault();
-                styleUploadArea.classList.remove('drag-over');
-                const files = e.dataTransfer.files;
-                if (files.length > 0) {
-                    handleStyleImageUpload(files[0]);
-                }
-            });
-        }
-
-        if (styleImageInput) {
-            styleImageInput.addEventListener('change', (e) => {
-                if (e.target.files.length > 0) {
-                    handleStyleImageUpload(e.target.files[0]);
-                }
-            });
-        }
-
-        function handleStyleImageUpload(file) {
-            if (file.type.startsWith('image/')) {
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    // Update upload area preview
-                    if (styleUploadPreviewImg) styleUploadPreviewImg.src = e.target.result;
-                    if (styleUploadContent) styleUploadContent.classList.add('hidden');
-                    if (styleUploadPreview) styleUploadPreview.classList.remove('hidden');
-
-                    // Remove selection from example styles
-                    styleOptions.forEach(opt => opt.classList.remove('selected'));
-
-                    // Update selected style    
-                    selectedStyle = {
-                        id: 'uploaded',
-                        name: 'Uploaded Image',
-                        img: e.target.result,
-                        isUploaded: true
-                    };
-
-                    updateFluxStyleUI();
-
-                    // Close panel after upload
-                    setTimeout(() => {
-                        closeFluxStylePanel();
-                    }, 300);
-                };
-                reader.readAsDataURL(file);
-            }
-        }
-
-        if (removeUploadedStyle) {
-            removeUploadedStyle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                if (styleImageInput) styleImageInput.value = '';
-                if (styleUploadContent) styleUploadContent.classList.remove('hidden');
-                if (styleUploadPreview) styleUploadPreview.classList.add('hidden');
-
-                // Only clear if current selection is uploaded
-                if (selectedStyle && selectedStyle.isUploaded) {
-                    selectedStyle = null;
-                    updateFluxStyleUI();
-                }
-            });
-        }
-
-        // Close panel when clicking outside
-        document.addEventListener('click', (e) => {
-            if (isFluxStylePanelOpen &&
-                fluxStylePanel &&
-                !fluxStylePanel.contains(e.target) &&
-                !e.target.closest('#fluxImageStyleSection')) {
-                closeFluxStylePanel();
-            }
-        });
-
-        // Close with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isFluxStylePanelOpen) {
-                closeFluxStylePanel();
-            }
-        });
-
-        // ================================================
-        // END FLUX IMAGE STYLE PANEL FUNCTIONALITY
-        // ================================================
-        
-
-        // Image count controls
-        const decreaseCount = document.getElementById('decreaseCount');
-        const increaseCount = document.getElementById('increaseCount');
-        const imageCount = document.getElementById('imageCount');
-
-        decreaseCount.addEventListener('click', () => {
-            const current = parseInt(imageCount.value);
-            if (current > 1) {
-                imageCount.value = current - 1;
-            }
-        });
-
-        increaseCount.addEventListener('click', () => {
-            const current = parseInt(imageCount.value);
-            if (current < 4) {
-                imageCount.value = current + 1;
-            }
-        });
-
-        // Generate button functionality
-        const generateBtn = document.getElementById('generateBtn');
-        const defaultState = document.getElementById('defaultState');
-        const loadingState = document.getElementById('loadingState');
-        const imageContainer = document.getElementById('imageContainer');
-        const generatedImage = document.getElementById('generatedImage');
-
-        generateBtn.addEventListener('click', function() {
-            if (promptInput.value.trim() === '') {
-                promptInput.focus();
-                promptInput.classList.add('border-error');
-                setTimeout(() => {
-                    promptInput.classList.remove('border-error');
-                }, 2000);
-                return;
-            }
-
-           
-        });
-
-        // Clear all functionality
-        const clearAllBtn = document.getElementById('clearAllBtn');
-        clearAllBtn.addEventListener('click', function() {
-            promptInput.value = '';
-            charCount.textContent = '0/500';
-            imageCount.value = '1';
-
-            // Clear face lock
-            faceLockImage.value = '';
-            faceLockUploadContent.classList.remove('hidden');
-            faceLockImagePreview.classList.add('hidden');
-            faceLockDropZone.classList.add('hidden');
-            faceLockBtn.classList.remove('bg-primary', 'text-white');
-            faceLockBtn.querySelector('span').textContent = 'Face Lock';
-
-            // Clear style selections
-            if (selectedStyleExample) {
-                selectedStyleExample.classList.remove('ring-2', 'ring-primary');
-                selectedStyleExample = null;
-            }
-
-            // Clear style image upload
-            styleImageInput.value = '';
-            styleUploadContent.classList.remove('hidden');
-            styleImagePreview.classList.add('hidden');
-
-            // Reset to default state
-            loadingState.classList.add('hidden');
-            imageContainer.classList.add('hidden');
-            defaultState.classList.remove('hidden');
-
-            // Close flux panel if open
-            if (isFluxPanelOpen) {
-                closeFluxStylePanel();
-            }
-
-                 // ========== YENİ EKLENEN KISIM ==========
-            // Reset model selection
-            if (typeof clearAllSelectedModels === 'function') {
-                clearAllSelectedModels();
-            }
-
-            // Close model panel if open
-            if (isModelPanelOpen) {
-                closeModelPanel();
-            }
-            // ========== YENİ EKLENEN KISIM SONU ==========
-
-                    // ========== FLUX STYLE RESET ==========
-            // Reset flux style selection
-            selectedStyle = null;
-            if (typeof updateSelectedStyleUI === 'function') {
-                updateSelectedStyleUI();
-            }
-            if (styleOptions) {
-                styleOptions.forEach(opt => opt.classList.remove('selected'));
-            }
-            if (styleUploadContent) styleUploadContent.classList.remove('hidden');
-            if (styleUploadPreview) styleUploadPreview.classList.add('hidden');
-            if (styleImageInput) styleImageInput.value = '';
-
-            // Close flux style panel if open
-            if (typeof isFluxStylePanelOpen !== 'undefined' && isFluxStylePanelOpen) {
-                closeFluxStylePanel();
-            }
-            // ========== END FLUX STYLE RESET ==========
-
-        });
-
-        // Custom slider styling
-        const sliders = document.querySelectorAll('input[type="range"]');
-        sliders.forEach(slider => {
-            slider.addEventListener('input', function() {
-                const value = (this.value - this.min) / (this.max - this.min) * 100;
-                this.style.background = `linear-gradient(to right, #6366f1 0%, #6366f1 ${value}%, #333333 ${value}%, #333333 100%)`;
-            });
-
-            // Initialize slider
-            slider.dispatchEvent(new Event('input'));
-        });
-
-        // ================================================
-        // MODEL SELECTION PANEL FUNCTIONALITY
-        // ================================================
-
-        const modelSelectBtn = document.getElementById('modelSelectBtn');
-        const modelPanel = document.getElementById('modelPanel');
-        const modelArrow = document.getElementById('modelArrow');
-        const modelCategoryBtns = document.querySelectorAll('.model-category-btn');
-        const modelContents = document.querySelectorAll('.model-content');
-        const modelOptions = document.querySelectorAll('.model-option');
-        const selectedModelValue = document.getElementById('selectedModelValue');
-                
-        const selectedModelBaseModel = document.getElementById('selectedModelBaseModel');
-        const selectedModelName = document.getElementById('selectedModelName');
-
-        const selectedModelText = document.getElementById('selectedModelText');
-        const selectedModelsContainer = document.getElementById('selectedModelsContainer');
-        const selectedModelsTags = document.getElementById('selectedModelsTags');
-        const clearAllModelsBtn = document.getElementById('clearAllModelsBtn');
-
-        let isModelPanelOpen = false;
-        let selectedModels = []; // Array to store selected models
-
-        function openModelPanel() {
-            if (isModelPanelOpen) return;
-            isModelPanelOpen = true;
-
-            modelPanel.classList.remove('hidden');
-            modelArrow.style.transform = 'rotate(180deg)';
-
-            // Trigger animation
-            setTimeout(() => {
-                modelPanel.classList.add('open');
-            }, 10);
-        }
-
-        function closeModelPanel() {
-            if (!isModelPanelOpen) return;
-            isModelPanelOpen = false;
-
-            modelPanel.classList.remove('open');
-            modelArrow.style.transform = 'rotate(0deg)';
-
-            // Hide after animation
-            setTimeout(() => {
-                modelPanel.classList.add('hidden');
-            }, 300);
-        }
-
-        // Toggle panel on button click
-        if (modelSelectBtn) {
-            modelSelectBtn.addEventListener('click', (e) => {
-                e.preventDefault();
-                if (isModelPanelOpen) {
-                    closeModelPanel();
-                } else {
-                    openModelPanel();
-                }
-            });
-        }
-
-        // Category switching
-        modelCategoryBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const category = this.dataset.category;
-
-                // Update active state
-                modelCategoryBtns.forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-
-                // Show corresponding content
-                modelContents.forEach(content => {
-                    content.classList.add('hidden');
-                });
-                const targetContent = document.getElementById(`${category}-content`);
-                if (targetContent) {
-                    targetContent.classList.remove('hidden');
-                }
-            });
-        });
-
-        // Render selected model tags
-                // Render selected model tags
-        function renderSelectedModelTags() {
-            if (!selectedModelsTags) return;
-
-            selectedModelsTags.innerHTML = '';
-
-            if (selectedModels.length === 0) {
-                selectedModelsContainer.classList.add('hidden');
-                if (selectedModelText) {
-                    selectedModelText.textContent = 'Select a model to start generating images';
-                }
-                if (selectedModelValue) {
-                    selectedModelValue.value = '';
-                }
-                return;
-            }
-
-            selectedModelsContainer.classList.remove('hidden');
-
-            selectedModels.forEach(model => {
-                const tag = document.createElement('div');
-                tag.className = 'selected-model-tag';
-
-                // Shorten long names
-                const shortName = model.name.length > 10 ? model.name.substring(0, 10) + '...' : model.name;
-
-                tag.innerHTML = `
-                    <img src="${model.img}" alt="${model.name}" />
-                    <span title="${model.name}">${shortName}</span>
-                    <button type="button" class="remove-tag" data-model="${model.name}">
-                        <i class="fas fa-times"></i>
-                    </button>
-                `;
-                selectedModelsTags.appendChild(tag);
-            });
-
-            // Update hidden input with all selected model IDs
-            if (selectedModelValue) {
-                selectedModelValue.value = selectedModels.map(m => m.id).join(',');
-            }
-
-            // Update button text
-            if (selectedModelText) {
-                selectedModelText.textContent = `${selectedModels.length} model${selectedModels.length > 1 ? 's' : ''} selected`;
-            }
-
-            // Add click handlers for remove buttons
-            document.querySelectorAll('.remove-tag').forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    e.stopPropagation();
-                    const modelId = btn.dataset.model;
-                    removeModel(modelId);
-                });
-            });
-        }
-
-        // Add model to selection
-        function addModel(baseModel, modelName, modelImg) {
-            // Check if already selected
-        const existingIndex = selectedModels.findIndex(m => m.name === modelName);
-
-            if (existingIndex > -1) {
-                // If already selected, remove it (toggle behavior)
-                selectedModels.splice(existingIndex, 1);
-            } else {
-                // Add new model
-                selectedModels.push({
-                    baseModel: baseModel,
-                    name: modelName,
-                    img: modelImg
-                });
-            }
-
-            renderSelectedModelTags();
-            updateModelOptionStates();
-            updateHiddenInputs();
-        }
-
-        // Update hidden inputs for DTO binding
-        function updateHiddenInputs() {
-            if (selectedModels.length > 0) {
-                // İlk seçilen modelin bilgilerini DTO'ya gönder
-                const firstModel = selectedModels[0];
-                if (selectedModelBaseModel) selectedModelBaseModel.value = firstModel.baseModel;
-                if (selectedModelName) selectedModelName.value = firstModel.name;
-                if (selectedModelValue) selectedModelValue.value = firstModel.name;
-                } else {
-                if (selectedModelBaseModel) selectedModelBaseModel.value = '';
-                if (selectedModelName) selectedModelName.value = '';
-                if (selectedModelValue) selectedModelValue.value = '';
-            }
-        }
-
-        // Remove model from selection
-        function removeModel(modelName) {
-            selectedModels = selectedModels.filter(m => m.name !== modelName);
-            renderSelectedModelTags();
-            updateModelOptionStates();
-            updateHiddenInputs();
-        }
-
-        // Update visual state of model options
-        function updateModelOptionStates() {
-            modelOptions.forEach(option => {
-                const modelName = option.dataset.name;
-                if (selectedModels.find(m => m.name === modelName)) {
-                    option.classList.add('selected');
-                } else {
-                    option.classList.remove('selected');
-                }
-            });
-        }
-
-        // Clear all selected models
-        function clearAllSelectedModels() {
-            selectedModels = [];
-            renderSelectedModelTags();
-            updateModelOptionStates();
-            updateHiddenInputs();
-        }
-
-        // Model option selection
-        modelOptions.forEach(option => {
-        option.addEventListener('click', function() {
-            const baseModel = this.dataset.baseModel || this.dataset.model; // Eski format için fallback
-            const modelName = this.dataset.name;
-            const modelImg = this.dataset.img;
-
-            addModel(baseModel, modelName, modelImg);
-
-                // Visual feedback
-                const imgContainer = this.querySelector('div');
-                if (imgContainer) {
-                    imgContainer.style.transform = 'scale(0.95)';
-                    setTimeout(() => {
-                        imgContainer.style.transform = 'scale(1)';
-                    }, 150);
-                }
-            });
-        });
-
-        // Clear all button
-        if (clearAllModelsBtn) {
-            clearAllModelsBtn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                clearAllSelectedModels();
-            });
-        }
-
-        // Close panel when clicking outside
-        document.addEventListener('click', (e) => {
-            if (isModelPanelOpen &&
-                modelPanel &&
-                modelSelectBtn &&
-                !modelPanel.contains(e.target) &&
-                !modelSelectBtn.contains(e.target) &&
-                !e.target.closest('.selected-model-tag')) {
-                closeModelPanel();
-            }
-        });
-
-        // Close with Escape key
-        document.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape' && isModelPanelOpen) {
-                closeModelPanel();
-            }
-        });
-
-        // ================================================
-        // END MODEL SELECTION PANEL FUNCTIONALITY
-        // ================================================
-
-    </script>
+    <!-- JavaScript Files -->
+    <script src="~/js/prompt-handler.js"></script>
+    <script src="~/js/face-lock-panel.js"></script>
+    <script src="~/js/flux-image-styles.js"></script>
+    <script src="~/js/model-selection-panel.js"></script>
+    <script src="~/js/image-controls.js"></script>
+    <script src="~/js/app.js"></script>
     <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
 </body>
 </html>
