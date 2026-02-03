@@ -6,11 +6,8 @@ namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
 {
     public class MediaGenerationRequestDto
     {
-        // 1. KULLANICININ YÜKLEDİĞİ DOSYA
-        public IFormFile AssetFile { get; set; }
-
-        // 2. GÖRSEL OLUŞTURMA PARAMETRELERİ
-
+        // yüz kilidi için asset_id
+        public string FaceLockAssetId { get; set; }
         //görüntü boyutu 
         public string AspectRatio { get; set; } 
         //oluşturulacak görsel sayısı

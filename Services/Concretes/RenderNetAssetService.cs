@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using SelfAI.Configurations;
 using SelfAI.DTOs.RenderNet;
 using SelfAI.DTOs.RenderNetGenerationRequestDtos;
+using SelfAI.DTOs.RenderNetUploadResponseDtos;
 using SelfAI.Services.Interfaces;
 using System.Drawing;
 using System.Net.Http.Headers;
@@ -25,72 +26,122 @@ namespace SelfAI.Services.Concretes
             _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _settings.ApiKey);
         }
 
+
+
         // Bu metot, RenderNet API'sinden bir yükleme URL'si alır.
-        public async Task<UploadAssetResponseDto> GetUploadUrlAsync()
+        //public async Task<UploadAssetResponseDto> GetUploadUrlAsync()
+        //{
+        //    // Yükleme URL'si almak için gerekli payload'u(Yük) oluşturalım
+        //    var payload = new
+        //    {
+        //        size = new { height = 512, width = 512 }
+        //    };
+        //    // payloadı Json olarak serilize edip httpcontent olarak PostAsync metoduna verelim
+        //    var payloadContent = JsonContent.Create(payload);
+        //    // RenderNet API'sine yükleme URL'si almak için istek yapalım
+        //    var response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/assets/upload", payloadContent);
+        //    // Eğer response başarılı değilse, bir hata fırlatalım
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        var errorContent = await response.Content.ReadAsStringAsync();
+        //        throw new Exception($"Yükleme URL'si alınamadı. Hata kodu: {response.StatusCode}");
+        //    }
+        //    // response içeriğini okuyalım
+        //    var content = await response.Content.ReadAsStringAsync();
+        //    // içeriği deserilize edip UploadAssetData nesnesine dönüştürelim
+        //    var options = new JsonSerializerOptions
+        //    {
+        //        PropertyNameCaseInsensitive = true
+        //    };
+
+        //    var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
+        //    // Eğer serilizeResponse null ise, bir hata fırlatalım
+        //    if (serilizedResponse == null)
+        //    {
+        //        throw new Exception("Yükleme URL'si alınamadı.");
+        //    }
+
+        //    return serilizedResponse;
+        //}
+
+        // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
+        //public async Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto dto)
+        //{
+        //    // Upload URL almak için GetUploadUrlAsync metodunu çağırıyoruz
+        //    var uploadResponse = await GetUploadUrlAsync();
+
+        //    if (dto.AssetFile == null || dto.AssetFile.Length == 0)
+        //    {
+        //        throw new ArgumentException("Dosya boş olamaz.");
+        //    }
+
+        //    if (uploadResponse == null)
+        //    {
+        //        throw new InvalidOperationException("Upload URL alınamadı.");
+        //    }
+        //    // OpenReadStream ile dosyanın içeriğini okuyoruz
+        //    using var stream = dto.AssetFile.OpenReadStream();
+        //    // StreamContent oluşturuyoruz ve içeriği ayarlıyoruz
+        //    using var content = new StreamContent(stream);
+        //    // Dosyanın tipini bildiriyoruz (image/png, image/jpeg vs.)
+        //    content.Headers.ContentType = new MediaTypeHeaderValue(dto.AssetFile.ContentType);
+        //    // Put isteği ile dosyayı yüklüyoruz
+        //    var response = await _httpClient.PutAsync(uploadResponse.Data.UploadUrl, content);
+        //    // Eğer istek başarılı değilse, bir hata fırlatıyoruz
+        //    if (!response.IsSuccessStatusCode)
+        //    {
+        //        throw new Exception($"Dosya yükleme başarısız. Hata kodu: {response.StatusCode}");
+        //    }
+        //    // Yükleme başarılı ise, UploadAssetResponse nesnesini döndürüyoruz
+        //    return uploadResponse;
+        //}
+
+
+        public async Task<UploadAssetResponseDto> GetAssetIdAsync(UploadAssetRequestDto request)
         {
-            // Yükleme URL'si almak için gerekli payload'u(Yük) oluşturalım
+            // 1. Upload URL al
             var payload = new
             {
                 size = new { height = 512, width = 512 }
             };
-            // payloadı Json olarak serilize edip httpcontent olarak PostAsync metoduna verelim
             var payloadContent = JsonContent.Create(payload);
-            // RenderNet API'sine yükleme URL'si almak için istek yapalım
+
             var response = await _httpClient.PostAsync($"{_httpClient.BaseAddress}/assets/upload", payloadContent);
-            // Eğer response başarılı değilse, bir hata fırlatalım
+
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                throw new Exception($"Yükleme URL'si alınamadı. Hata kodu: {response.StatusCode}");
+                throw new Exception($"Yükleme URL'si alınamadı. Hata kodu: {response.StatusCode}, Detay: {errorContent}");
             }
-            // response içeriğini okuyalım
             var content = await response.Content.ReadAsStringAsync();
-            // içeriği deserilize edip UploadAssetData nesnesine dönüştürelim
+
             var options = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             };
+            var serializedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
 
-            var serilizedResponse = JsonSerializer.Deserialize<UploadAssetResponseDto>(content, options);
-            // Eğer serilizeResponse null ise, bir hata fırlatalım
-            if (serilizedResponse == null)
+            if (serializedResponse == null)
             {
-                throw new Exception("Yükleme URL'si alınamadı.");
+                throw new Exception("Yükleme URL'si alınamadı. Response deserialize edilemedi.");
             }
-
-            return serilizedResponse;
-        }
-
-        // Bu metot, RenderNet API'sine varlık yüklemek için kullanılır.
-        public async Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto dto)
-        {
-            // Upload URL almak için GetUploadUrlAsync metodunu çağırıyoruz
-            var uploadResponse = await GetUploadUrlAsync();
-
-            if (dto.AssetFile == null || dto.AssetFile.Length == 0)
+            // 2. Dosyayı Upload URL'e yükle
+            // Stream'i başa sar (eğer önceden okunduysa)
+            if (request.Content.CanSeek)
             {
-                throw new ArgumentException("Dosya boş olamaz.");
+                request.Content.Position = 0;
             }
+            using var streamContent = new StreamContent(request.Content);
+            streamContent.Headers.ContentType = new MediaTypeHeaderValue(request.ContentType);
 
-            if (uploadResponse == null)
+            var uploadResponse = await _httpClient.PutAsync(serializedResponse.Data.UploadUrl, streamContent);
+
+            if (!uploadResponse.IsSuccessStatusCode)
             {
-                throw new InvalidOperationException("Upload URL alınamadı.");
+                var uploadError = await uploadResponse.Content.ReadAsStringAsync();
+                throw new Exception($"Dosya yükleme başarısız. Hata kodu: {uploadResponse.StatusCode}, Detay: {uploadError}");
             }
-            // OpenReadStream ile dosyanın içeriğini okuyoruz
-            using var stream = dto.AssetFile.OpenReadStream();
-            // StreamContent oluşturuyoruz ve içeriği ayarlıyoruz
-            using var content = new StreamContent(stream);
-            // Dosyanın tipini bildiriyoruz (image/png, image/jpeg vs.)
-            content.Headers.ContentType = new MediaTypeHeaderValue(dto.AssetFile.ContentType);
-            // Put isteği ile dosyayı yüklüyoruz
-            var response = await _httpClient.PutAsync(uploadResponse.Data.UploadUrl, content);
-            // Eğer istek başarılı değilse, bir hata fırlatıyoruz
-            if (!response.IsSuccessStatusCode)
-            {
-                throw new Exception($"Dosya yükleme başarısız. Hata kodu: {response.StatusCode}");
-            }
-            // Yükleme başarılı ise, UploadAssetResponse nesnesini döndürüyoruz
-            return uploadResponse;
+            return serializedResponse;
         }
     }
 }

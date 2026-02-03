@@ -577,7 +577,8 @@
                     
 
                     <!-- Face Lock Hidden Input (Form Submission için) -->
-                    <input type="file" id="faceLockImage" name="AssetFile" accept="image/*" class="hidden" />
+                    @* <input type="file" id="faceLockImage" name="AssetFile" accept="image/*" class="hidden" /> *@
+                    
 
                     <!-- Prompt Section -->
                     <div class="space-y-3">
@@ -603,6 +604,7 @@
                     <!-- Model Selection -->
                     <!-- Model Selection - Expandable Panel Trigger -->
                     <div class="space-y-3">
+                        <input type="hidden" id="faceLockAssetId" name="FaceLockAssetId" value="" />
                         <input type="hidden" id="selectedModelValue" name="Model" value="" />
                         <input type="hidden" id="selectedModelBaseModel" name="StyleDetail.BaseModel" value="" />
                         <input type="hidden" id="selectedModelName" name="StyleDetail.Name" value="" />
@@ -751,7 +753,6 @@
                     </button>
             </form>
 
-          
         </div>
     </div>
     <!-- JavaScript Files -->

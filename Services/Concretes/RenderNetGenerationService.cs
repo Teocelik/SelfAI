@@ -21,12 +21,12 @@ namespace SelfAI.Services.Concretes
         }
 
         // asset_id + prompt = AI görsel
-        public Task<string> GenerateMediaAsync(string assetId, MediaGenerationRequestDto dto)
+        public Task<string> GenerateMediaAsync(MediaGenerationRequestDto dto)
         {
-            if(string.IsNullOrEmpty(assetId))
-            {
-                throw new ArgumentException("Asset ID cannot be null or empty.", nameof(assetId));
-            }
+            //if(string.IsNullOrEmpty(assetId))
+            //{
+            //    throw new ArgumentException("Asset ID cannot be null or empty.", nameof(assetId));
+            //}
 
             //Payload oluştur(UploadUrl'den asset_id'yi al)
             var testPayload = new[]
@@ -41,11 +41,8 @@ namespace SelfAI.Services.Concretes
                         steps = 25,
                         seed = 42,
 
-                        facelock = new
-                        {
-                            asset_id = assetId, // UploadUrl'den alınan asset_id
-                        },
-
+                        facelock = dto.FaceLockAssetId, //Yüz kilidi için asset_id
+                        
                         prompt = new
                         {
                             //Kullanıcının promptu veya hazır promptlardan biri
