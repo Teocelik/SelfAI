@@ -25,6 +25,7 @@
   <ItemGroup>
     <Folder Include="DTOs\RenderNetGenerationDto\" />
     <Folder Include="Views\Account\" />
+    <Folder Include="wwwroot\images\models\flux\" />
   </ItemGroup>
 
 </Project>

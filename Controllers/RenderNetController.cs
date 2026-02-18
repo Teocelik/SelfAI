@@ -50,8 +50,16 @@ namespace SelfAI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetFluxStyles()
         {
-            var fluxStyleList = await _renderNetResourcesService.GetFluxStylesAsync();
-            return Ok();
+            try
+            {
+                var fluxStyleResult = await _renderNetResourcesService.GetFluxStylesAsync();
+
+                return Ok(new { data = fluxStyleResult.Data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
+            }
         }
 
         [HttpPost]

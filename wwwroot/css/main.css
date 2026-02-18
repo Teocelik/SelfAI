@@ -2636,6 +2636,35 @@ $$ {
         color: #00CED1 !important;
     }
 
+
+/* Face Lock Button - Sabit Boyut */
+#faceLockBtn {
+    min-width: 80px;
+    min-height: 88px;
+    max-height: 88px;
+    box-sizing: border-box;
+}
+
+/* Thumbnail Sabit Boyut */
+.face-lock-btn-thumbnail {
+    width: 40px !important;
+    height: 40px !important;
+    flex-shrink: 0;
+    overflow: hidden;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .face-lock-btn-thumbnail img {
+        width: 100% !important;
+        height: 100% !important;
+        max-width: 40px;
+        max-height: 40px;
+        object-fit: cover;
+        object-position: center;
+    }
 /* ================================================
 END FACE LOCK PANEL STYLES
 ================================================ */
