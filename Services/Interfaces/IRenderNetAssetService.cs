@@ -14,6 +14,6 @@ namespace SelfAI.Services.Interfaces
         // Varlık yükleme işlemi için gerekli metot imzası
         //Task<UploadAssetResponseDto> UploadAssetAsync(MediaGenerationRequestDto imageFile);
 
-        Task<UploadAssetResponseDto> GetAssetIdAsync(UploadAssetRequestDto request);
+        Task<ServiceResult<UploadAssetResponseDto>> GetAssetIdAsync(UploadAssetRequestDto request);
     }
 }

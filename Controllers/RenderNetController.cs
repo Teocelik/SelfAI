@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SelfAI.BackgroundServices;
 using Newtonsoft.Json;
 using SelfAI.DTOs.RenderNet;
 using SelfAI.DTOs.RenderNetGenerationRequestDtos;
@@ -16,33 +17,89 @@ namespace SelfAI.Controllers
         private readonly IRenderNetGenerationService _renderNetGenerationService;
         private readonly IRenderNetResourcesService _renderNetResourcesService;
         private readonly ILogger<RenderNetController> _logger;
+        private readonly GenerationPollingService _pollingService;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, ILogger<RenderNetController> logger)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
             _renderNetResourcesService = renderNetResourcesService;
             _logger = logger;
+            _pollingService = pollingService;
         }
 
         public IActionResult Index()
         {
+            _logger.LogInformation("Ana sayfa yüklendi!");
             return View();
         }
 
         //Görsel oluşturma isteği için gerekli action metot
         [HttpPost]
-        public async Task<IActionResult> GenerateImage(MediaGenerationRequestDto requestDto)
+        public async Task<IActionResult> GenerateImage(
+    MediaGenerationRequestDto requestDto,
+    [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId,
+    [FromHeader(Name = "X-Client-Id")] string clientId)  
         {
-            // varlığı UploadUrl'ye yükleyelim(asset_id'yi bu servisten alıyoruz)
-            //var uploadImageResponse = await _renderNetAssetService.UploadAssetAsync(requestDto);
+            var result = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
 
-            // media oluşturma isteğini yapalım
-            var generateMediaResponse = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
 
-            // Eğer media oluşturma başarılı ise, sonucu döndürelim
-            //Şimdilik sadece başarılı olduğunu kontrol ediyoruz
-            return Ok(generateMediaResponse);
+            var generationId = result.Data.Data.GenerationId;
+
+            // 🆕 clientId + connectionId birlikte gönderiliyor
+            if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(connectionId))
+            {
+                _pollingService.AddJob(generationId, clientId, connectionId);
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = result.Message,
+                generationId = generationId
+            });
+        }
+
+
+
+        /// <summary>
+        /// 🆕 Generation durumunu kontrol et (Polling endpoint)
+        /// Frontend belirli aralıklarla bu endpoint'i çağırır
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetGenerationStatus(string generationId)
+        {
+            if (string.IsNullOrEmpty(generationId))
+                return BadRequest(new { success = false, message = "Generation ID gerekli." });
+
+            var result = await _renderNetGenerationService.GetGenerationAsync(generationId);
+
+            if (result.IsSuccess)
+            {
+                var media = result.Data.Data.Media;
+
+                // Tüm medyaların durumunu kontrol et
+                bool allCompleted = media.All(m => m.Status == "success");
+                bool anyFailed = media.Any(m => m.Status == "failed");
+
+                return Ok(new
+                {
+                    success = true,
+                    completed = allCompleted,       // Tümü hazır mı?
+                    failed = anyFailed,             // Herhangi biri başarısız mı?
+                    media = media.Select(m => new   // Her medyanın durumu
+                    {
+                        id = m.Id,
+                        status = m.Status,
+                        url = m.Url,                // success ise URL dolu
+                        type = m.Type
+                    })
+                });
+            }
+
+            return StatusCode(result.StatusCode, new { success = false, message = result.Message });
         }
 
 
@@ -89,7 +146,7 @@ namespace SelfAI.Controllers
                 return Ok(new
                 {
                     success = true,
-                    assetId = uploadImageResponse.Data.Asset.Id,
+                    assetId = uploadImageResponse.Data?.Data.Asset.Id,
                     data = uploadImageResponse
                 });
             }

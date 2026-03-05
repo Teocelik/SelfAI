@@ -1,4 +1,7 @@
+using SelfAI.BackgroundServices;  
 using SelfAI.Configurations;
+using SelfAI.Hubs;
+using SelfAI.Middlewares;
 using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
 
@@ -8,12 +11,20 @@ var builder = WebApplication.CreateBuilder(args);
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// SignalR ekle
+builder.Services.AddSignalR();
+
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
 builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
 //builder.Services.AddHttpClient<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+
+// Background Polling Service (Singleton olarak çalýþýr)
+builder.Services.AddSingleton<GenerationPollingService>();
+builder.Services.AddHostedService(provider =>
+    provider.GetRequiredService<GenerationPollingService>());
 
 // RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
 builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
@@ -30,9 +41,17 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true; // Oturum çerezinin gerekli olduðunu belirtir
 });
 
+// Loglama
+builder.Logging.ClearProviders();
+builder.Logging.AddConsole();
+builder.Logging.AddDebug();
+
+
 var app = builder.Build();
 
 //Global hata yakalama middleware'i
+app.UseGlobalExceptionHandling();
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -46,6 +65,9 @@ app.UseStaticFiles();// wwwroot klasörünü (CSS, JS, Resimler) dýþarýya aç
 app.UseRouting();// Adres yönlendirme mekanizmasýný çalýþtýr.
 app.UseSession(); // Oturum yönetimini etkinleþtirir
 app.UseAuthorization();// Yetki kontrolü yap (Login olmuþ mu?).
+
+// ?? SignalR Hub endpoint'ini map'le
+app.MapHub<GenerationHub>("/generationHub");
 
 //app.MapStaticAssets();
 

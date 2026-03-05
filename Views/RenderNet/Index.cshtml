@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+﻿@* <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
@@ -8,7 +8,16 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
     <script type="module" src="https://static.rocket.new/rocket-web.js?_cfg=https%3A%2F%2Faiimageg6696back.builtwithrocket.new&_be=https%3A%2F%2Fapplication.rocket.new&_v=0.1.6"></script>
 </head>
-<body class="bg-background text-text-primary min-h-screen">
+<body class="bg-background text-text-primary min-h-screen"> *@
+
+
+
+@{
+    ViewData["Title"] = "AI Image Generation Studio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
     <!-- Main Container -->
     <div class="flex h-screen w-full">
         <!-- Main Canvas Area -->
@@ -750,6 +759,7 @@
         </div>
     </div>
     <!-- JavaScript Files -->
+    @section Scripts {
     <script src="~/js/prompt-handler.js"></script>
     <script src="~/js/face-lock-panel.js"></script>
     <script src="~/js/flux-image-styles.js"></script>
@@ -757,6 +767,7 @@
     <script src="~/js/model-selection-panel.js"></script>
     <script src="~/js/image-controls.js"></script>
     <script src="~/js/app.js"></script>
-    <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script>
-</body>
-</html>
+    @* <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script> *@
+    }
+@* </body>
+</html> *@

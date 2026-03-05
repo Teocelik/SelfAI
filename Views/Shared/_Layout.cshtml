@@ -4,27 +4,56 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - SelfAI</title>
-    <script type="importmap"></script>
-   
-    <link rel="stylesheet" href="~/wwwroot/css/main.css" />
-</head>
-<body>
-  
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-           
-        </main>
-    </div>
 
-   @*  <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2025 - SelfAI - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer> *@
+    <!-- ═══ CSS Dosyaları ═══ -->
+    <link rel="stylesheet" href="~/css/main.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />                <!-- 🆕 Toast CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" 
+          rel="stylesheet" />                                        <!-- 🆕 Font Awesome (Index'ten taşındı) -->
+
+    <!-- Sayfaya Özel CSS varsa buraya gelir -->
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<!-- 
+    🆕 Body class'ları: Index.cshtml'den taşındı
+    Tüm sayfalarda dark theme + Tailwind base class'ları aktif
+-->
+<body class="bg-background text-text-primary min-h-screen">
+
+    <!-- ═══════════════════════════════════════════════ -->
+    <!-- 🆕 Toast Container - TÜM SAYFALARDA ÇALIŞIR   -->
+    <!-- Sağ üst köşede sabit, JS tarafından doldurulur -->
+    <!-- ═══════════════════════════════════════════════ -->
+    <div id="toastContainer"></div>
+
+    <!-- 
+        NEDEN? 
+        Bootstrap'ın .container class'ı max-width koyar (1140px vs).
+        Index.cshtml tam ekran (h-screen, w-full) kullanıyor.
+        Container bunu kısıtlardı. 
+        
+        Her sayfa kendi container yapısını yönetsin.
+        İstersen Payment sayfasında <div class="container"> eklersin.
+    -->
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- ═══ JavaScript Dosyaları ═══ -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- 🆕 SignalR Client Library (CDN) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <!-- 🆕 Toast JS - DİĞER TÜM SCRIPT'LERDEN ÖNCE! -->
+    <!-- Çünkü diğer JS dosyaları Toast.success(), apiFetch() kullanacak -->
+    <script src="~/js/toast.js"></script>
+
     <script src="~/js/site.js" asp-append-version="true"></script>
+
+   
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
