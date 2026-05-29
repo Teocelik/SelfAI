@@ -2,7 +2,7 @@
 using SelfAI.Configurations;
 using SelfAI.DTOs.RenderNet;
 using SelfAI.DTOs.RenderNetUploadResponseDtos;
-using SelfAI.Models; // 🆕
+using SelfAI.Models;
 using SelfAI.Services.Interfaces;
 using System.Net.Http.Headers;
 using System.Text.Json;

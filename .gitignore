@@ -362,5 +362,8 @@ MigrationBackup/
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
 
-# Production ortamý ayarlarý (þifreler, connection string'ler içerir)
+# Production ortamï¿½ ayarlarï¿½ (ï¿½ifreler, connection string'ler iï¿½erir)
 appsettings.Production.json
+
+# Development ortamï¿½ ayarlarï¿½ (User Secrets kullanï¿½ldï¿½ï¿½ï¿½ndan repoya girmemeli)
+appsettings.Development.json

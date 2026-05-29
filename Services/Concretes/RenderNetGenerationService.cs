@@ -5,6 +5,7 @@ using SelfAI.DTOs.RenderNetGenerationResponseDtos; // 🆕
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace SelfAI.Services.Concretes
 {
@@ -18,6 +19,12 @@ namespace SelfAI.Services.Concretes
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
             PropertyNameCaseInsensitive = true
+        };
+
+        // Request payload için: null alanları (örn. opsiyonel facelock) serialize etme.
+        private readonly JsonSerializerOptions _requestJsonOptions = new()
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
         };
 
         public RenderNetGenerationService(
@@ -35,8 +42,7 @@ namespace SelfAI.Services.Concretes
 
         /// <summary>
         /// Görsel oluşturma isteği
-        /// ✅ Artık string yerine GenerateMediaResponseDto dönüyor
-        /// ✅ generation_id parse ediliyor
+        /// generation_id parse ediliyor
         /// </summary>
         public async Task<ServiceResult<GenerateMediaResponseDto>> GenerateMediaAsync(MediaGenerationRequestDto dto)
         {
@@ -44,35 +50,66 @@ namespace SelfAI.Services.Concretes
                 "Görsel oluşturma isteği başlatıldı. | Model: {Model} | AspectRatio: {AspectRatio} | BatchSize: {BatchSize}",
                 dto.Model, dto.AspectRatio, dto.BatchSize);
 
-            var payload = new[]
+            // API kuralı: style ve model aynı objede bulunamaz (mutually exclusive).
+            // Style seçildiyse style gönderilir, yoksa model gönderilir.
+            // Facelock opsiyoneldir: asset_id boşsa alan hiç gönderilmez (WhenWritingNull).
+            var hasStyle = !string.IsNullOrWhiteSpace(dto.Style);
+            var hasFacelock = !string.IsNullOrWhiteSpace(dto.FaceLockAssetId);
+
+            var promptObj = new
             {
-                new
+                positive = dto.PositivePrompt,
+                negative = dto.NegativePrompt
+            };
+
+            var facelockObj = hasFacelock
+                ? (object?)new { asset_id = dto.FaceLockAssetId }
+                : null;
+
+            object item;
+            if (hasStyle)
+            {
+                item = new
                 {
                     aspect_ratio = dto.AspectRatio,
                     batch_size = dto.BatchSize,
-                    cfg_scale = 7,
+                    cfg_scale = dto.CfgScale,
+                    steps = dto.Steps,
+                    seed = dto.Seed,
+                    sampler = dto.Sampler,
+                    quality = dto.Quality,
+                    style = dto.Style,
+                    facelock = facelockObj,
+                    prompt = promptObj
+                };
+            }
+            else
+            {
+                item = new
+                {
+                    aspect_ratio = dto.AspectRatio,
+                    batch_size = dto.BatchSize,
+                    cfg_scale = dto.CfgScale,
+                    steps = dto.Steps,
+                    seed = dto.Seed,
+                    sampler = dto.Sampler,
+                    quality = dto.Quality,
                     model = dto.Model,
-                    style = "Realistic",
-                    steps = 25,
-                    seed = 42,
-                    facelock = dto.FaceLockAssetId,
-                    prompt = new
-                    {
-                        positive = dto.PositivePrompt,
-                        negative = "nsfw, deformed, extra limbs, bad anatomy, deformed pupils, text, worst quality, jpeg artifacts, ugly, duplicate, morbid, mutilated"
-                    },
-                    quality = "Standard",
-                    sampler = "DPM++ 2M Karras",
-                }
-            };
+                    facelock = facelockObj,
+                    prompt = promptObj
+                };
+            }
+
+            var payload = new[] { item };
 
             try
             {
-                _logger.LogDebug("RenderNet API'ye istek gönderiliyor. | URL: {Url}",
-                    $"{_settings.BaseUrl}/generations");
+                _logger.LogDebug(
+                    "RenderNet API'ye istek gönderiliyor. | URL: {Url} | UsesStyle: {UsesStyle} | UsesFacelock: {UsesFacelock}",
+                    $"{_settings.BaseUrl}/generations", hasStyle, hasFacelock);
 
                 var response = await _httpClient.PostAsJsonAsync(
-                    $"{_settings.BaseUrl}/generations", payload);
+                    $"{_settings.BaseUrl}/generations", payload, _requestJsonOptions);
 
                 if (!response.IsSuccessStatusCode)
                 {

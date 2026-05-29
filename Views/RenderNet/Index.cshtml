@@ -587,7 +587,7 @@
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Image Prompt</label>
                         <div class="relative">
-                            <textarea id="promptInput" name="PositivePrompt" placeholder="Describe the image you want to create... Be as detailed as possible for better results. Example: A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution" class="w-full h-32 bg-background border border-border rounded-lg px-4 py-3 pr-12 text-text-primary placeholder-text-muted resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200"></textarea>
+                            <textarea id="promptInput" name="PositivePrompt" translate="no" placeholder="Describe the image you want to create... Be as detailed as possible for better results. Example: A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution" class="w-full h-32 bg-background border border-border rounded-lg px-4 py-3 pr-12 text-text-primary placeholder-text-muted resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200"></textarea>
                             <button type="button" id="randomPromptBtn" class="absolute bottom-3 right-3 w-8 h-8 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg flex items-center justify-center transition-all duration-200 group" title="Get random prompt">
                                 <i class="fas fa-dice text-text-secondary group-hover:text-primary text-sm"></i>
                             </button>
@@ -636,7 +636,7 @@
                     <!-- Flux Image Style Section -->
                     <div class="space-y-3" id="fluxImageStyleSection">
                         <!-- Flux Image Style - DTO Binding -->
-                        <input type="hidden" id="selectedStyleValue" name="StyleReference" value="" />
+                        <input type="hidden" id="selectedStyleValue" name="Style" value="" />
 
                         <!-- Seçim Yapılmadan Önceki Görünüm -->
                         <div id="fluxStyleDefault" class="block">
@@ -738,6 +738,8 @@
                     <!-- Seed Configuration -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Seed</label>
+                        <!-- Phase 2 TODO: Custom Seed UX (input görünür/gizli, dice butonu JS) eklenecek. Şimdilik 0 = random olarak gönderiliyor. -->
+                        <input type="hidden" name="Seed" value="0" />
                         <div class="flex space-x-2">
                             <select class="flex-1 bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200">
                                 <option value="random" selected>Random</option>

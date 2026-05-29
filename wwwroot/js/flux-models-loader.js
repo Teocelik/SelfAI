@@ -263,9 +263,6 @@
 //        const selectedModelBaseModel = document.getElementById('selectedModelBaseModel');
 //        const selectedModelName = document.getElementById('selectedModelName');
 
-//        if (selectedModelValue) selectedModelValue.value = modelName;
-//        if (selectedModelBaseModel) selectedModelBaseModel.value = baseModel;
-//        if (selectedModelName) selectedModelName.value = modelName;
 
 //        console.log('[FluxModelsLoader] Hidden inputs updated:', {
 //            Model: modelName,
@@ -614,9 +611,6 @@
 //        const selectedModelBaseModel = document.getElementById('selectedModelBaseModel');
 //        const selectedModelName = document.getElementById('selectedModelName');
 
-//        if (selectedModelValue) selectedModelValue.value = modelName;
-//        if (selectedModelBaseModel) selectedModelBaseModel.value = baseModel;
-//        if (selectedModelName) selectedModelName.value = modelName;
 
 //        console.log('[FluxModelsLoader] Hidden inputs updated:', {
 //            Model: modelName,

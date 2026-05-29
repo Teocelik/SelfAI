@@ -90,7 +90,6 @@
 
 //        const current = parseInt(imageCount.value);
 //        if (current > MIN_COUNT) {
-//            imageCount.value = current - 1;
 //        }
 //    }
 
@@ -102,7 +101,6 @@
 
 //        const current = parseInt(imageCount.value);
 //        if (current < MAX_COUNT) {
-//            imageCount.value = current + 1;
 //        }
 //    }
 
@@ -130,7 +128,6 @@
 
 //        // Reset image count
 //        if (imageCount) {
-//            imageCount.value = '1';
 //        }
 
 //        // Reset face lock
@@ -195,7 +192,6 @@
 //     */
 //    function setImageCount(count) {
 //        if (imageCount) {
-//            imageCount.value = Math.max(MIN_COUNT, Math.min(MAX_COUNT, count));
 //        }
 //    }
 

@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.BackgroundServices;
-using Newtonsoft.Json;
 using SelfAI.DTOs.RenderNet;
 using SelfAI.DTOs.RenderNetGenerationRequestDtos;
 using SelfAI.DTOs.RenderNetUploadResponseDtos;
@@ -37,10 +36,18 @@ namespace SelfAI.Controllers
         //Görsel oluşturma isteği için gerekli action metot
         [HttpPost]
         public async Task<IActionResult> GenerateImage(
-    MediaGenerationRequestDto requestDto,
-    [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId,
-    [FromHeader(Name = "X-Client-Id")] string clientId)  
+        MediaGenerationRequestDto requestDto,
+        [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId,
+        [FromHeader(Name = "X-Client-Id")] string clientId)
         {
+            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(connectionId))
+            {
+                _logger.LogWarning(
+                    "GenerateImage isteği eksik başlıkla geldi. | ClientId: {ClientId} | ConnectionId: {ConnectionId}",
+                    clientId, connectionId);
+                return BadRequest(new { success = false, message = "Oturum bilgisi eksik. Lütfen sayfayı yenileyin." });
+            }
+
             var result = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
 
             if (!result.IsSuccess)
@@ -48,11 +55,7 @@ namespace SelfAI.Controllers
 
             var generationId = result.Data.Data.GenerationId;
 
-            // 🆕 clientId + connectionId birlikte gönderiliyor
-            if (!string.IsNullOrEmpty(clientId) && !string.IsNullOrEmpty(connectionId))
-            {
-                _pollingService.AddJob(generationId, clientId, connectionId);
-            }
+            _pollingService.AddJob(generationId, clientId, connectionId);
 
             return Ok(new
             {

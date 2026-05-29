@@ -18,17 +18,17 @@ builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
 builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
-//builder.Services.AddHttpClient<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
+builder.Services.AddSingleton<IPromptService, PromptService>();
 
-// Background Polling Service (Singleton olarak çalýþýr)
+// Background Polling Service (Singleton olarak ï¿½alï¿½ï¿½ï¿½r)
 builder.Services.AddSingleton<GenerationPollingService>();
 builder.Services.AddHostedService(provider =>
     provider.GetRequiredService<GenerationPollingService>());
 
-// RenderNet API ayarlarýný yapýlandýrma(konfigürasyon)
+// RenderNet API ayarlarï¿½nï¿½ yapï¿½landï¿½rma(konfigï¿½rasyon)
 builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
-// Iyzico(Ödeme yöntemi) API ayarlarýný yapýlandýrma(konfigürasyon)
+// Iyzico(ï¿½deme yï¿½ntemi) API ayarlarï¿½nï¿½ yapï¿½landï¿½rma(konfigï¿½rasyon)
 builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoOptions"));
 
 
@@ -36,9 +36,9 @@ builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("Iyzi
 //Add Seasons
 builder.Services.AddSession(options =>
 {
-    //options.IdleTimeout = TimeSpan.FromMinutes(35); // Oturumun 35 dakika sonra zaman aþýmýna uðramasýný saðlar
-    options.Cookie.HttpOnly = true; // Çerezlerin JavaScript tarafýndan eriþilmemesini saðlar
-    options.Cookie.IsEssential = true; // Oturum çerezinin gerekli olduðunu belirtir
+    //options.IdleTimeout = TimeSpan.FromMinutes(35); // Oturumun 35 dakika sonra zaman aï¿½ï¿½mï¿½na uï¿½ramasï¿½nï¿½ saï¿½lar
+    options.Cookie.HttpOnly = true; // ï¿½erezlerin JavaScript tarafï¿½ndan eriï¿½ilmemesini saï¿½lar
+    options.Cookie.IsEssential = true; // Oturum ï¿½erezinin gerekli olduï¿½unu belirtir
 });
 
 // Loglama
@@ -60,29 +60,17 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();// HTTP gelen isteði HTTPS'e çevir.
-app.UseStaticFiles();// wwwroot klasörünü (CSS, JS, Resimler) dýþarýya aç
-app.UseRouting();// Adres yönlendirme mekanizmasýný çalýþtýr.
-app.UseSession(); // Oturum yönetimini etkinleþtirir
-app.UseAuthorization();// Yetki kontrolü yap (Login olmuþ mu?).
+app.UseHttpsRedirection();// HTTP gelen isteï¿½i HTTPS'e ï¿½evir.
+app.UseStaticFiles();// wwwroot klasï¿½rï¿½nï¿½ (CSS, JS, Resimler) dï¿½ï¿½arï¿½ya aï¿½
+app.UseRouting();// Adres yï¿½nlendirme mekanizmasï¿½nï¿½ ï¿½alï¿½ï¿½tï¿½r.
+app.UseSession(); // Oturum yï¿½netimini etkinleï¿½tirir
+app.UseAuthorization();// Yetki kontrolï¿½ yap (Login olmuï¿½ mu?).
 
 // ?? SignalR Hub endpoint'ini map'le
 app.MapHub<GenerationHub>("/generationHub");
 
-//app.MapStaticAssets();
-
-//app.MapDefaultControllerRoute();
-//app.MapControllerRoute(
-//        name: "default",
-//        pattern: "{controller=Payment}/{action=InitializeIyzicoCheckOutForm}/{id?}");
-
 app.MapControllerRoute(
         name: "default",
         pattern: "{controller=RenderNet}/{action=Index}/{id?}");
-
-//app.MapControllerRoute(
-//        name: "default",
-//        pattern: "{controller=Home}/{action=Index}/{id?}");
-
 
 app.Run();

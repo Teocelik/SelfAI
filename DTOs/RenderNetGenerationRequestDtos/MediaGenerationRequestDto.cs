@@ -22,15 +22,16 @@ namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
         [JsonPropertyName("style_detail")]
         public FluxImageSytleDetailDto StyleDetail { get; set; }
         //oluşturma adım sayısı
-        public int Steps { get; set; } 
-        public int Seed { get; set; } 
+        public int Steps { get; set; } = 25;
+        public int Seed { get; set; }
 
-        public string Quality { get; set; } 
-        public string Sampler { get; set; }
+        public string Quality { get; set; } = "Plus";
+        public string Sampler { get; set; } = "DPM++ 2M Karras";
 
         // Prompt alanları
         public string PositivePrompt { get; set; }
-        public string NegativePrompt { get; set; }
+        // NSFW/uygunsuz içerik koruması için güvenli varsayılan. Kullanıcı form alanı eklenirse override eder.
+        public string NegativePrompt { get; set; } = "nsfw, deformed, extra limbs, bad anatomy, deformed pupils, text, worst quality, jpeg artifacts, ugly, duplicate, morbid, mutilated";
 
         [JsonPropertyName("character")]
         public CharacterDataDto CharacterData { get; set; }

@@ -1,39 +1,8 @@
-﻿//document.addEventListener("DOMContentLoaded", () => {
-//    const promptInput = document.getElementById("promptInput");
-//    const randomPromptButton = document.getElementById("randomPromptButton");
-
-//    function getRandomPrompt() {
-//        const randomIndex = Math.floor(Math.random() * prompts.length);
-//        return prompts[randomIndex];
-//    }
-
-//    randomPromptButton.addEventListener("click", () => {
-//        const randomPrompt = getRandomPrompt();
-//        promptInput.value = randomPrompt;
-//    });
-//});
-
-/**
- * Prompt Handler Module
- * Handles prompt input, character counting, and random prompt generation
- */
-
-const PromptHandler = (function () {
+﻿const PromptHandler = (function () {
     'use strict';
 
-    // Predefined random prompts array
-    const randomPrompts = [
-        "A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution",
-        "Cyberpunk cityscape at night with neon lights reflecting on wet streets, futuristic architecture, atmospheric lighting",
-        "Enchanted forest with glowing mushrooms, fairy lights, magical atmosphere, digital art style, vibrant colors",
-        "Ancient castle on a cliff overlooking a stormy ocean, dramatic lighting, gothic architecture, dark fantasy",
-        "Space explorer walking on an alien planet with twin moons, sci-fi concept art, cinematic composition",
-        "Steampunk airship flying above Victorian city, brass and copper details, industrial aesthetic, vintage technology",
-        "Underwater palace made of coral and pearls, mermaids swimming nearby, bioluminescent sea life, ethereal lighting",
-        "Post-apocalyptic wasteland with abandoned buildings, overgrown vegetation, dramatic sky, concept art style",
-        "Japanese temple in cherry blossom season, traditional architecture, peaceful atmosphere, spring colors",
-        "Robot warrior in futuristic armor, mechanical details, glowing energy weapons, dynamic action pose"
-    ];
+    // Backend'den yüklenen hazır prompt listesi
+    let randomPrompts = [];
 
     // DOM Elements
     let promptInput = null;
@@ -49,6 +18,23 @@ const PromptHandler = (function () {
     function init() {
         cacheElements();
         bindEvents();
+        loadPromptsFromBackend();
+    }
+
+    /**
+     * Hazır prompt listesini backend'den yükler.
+     * apiFetch hata durumunda kendi Toast.error'ını gösterip null döndürür,
+     * bu yüzden burada ekstra toast göstermiyoruz; sadece console.error log'larız.
+     */
+    async function loadPromptsFromBackend() {
+        const response = await apiFetch('/Prompt/GetAll');
+
+        if (!response || !Array.isArray(response.data)) {
+            console.error('Promptlar yüklenemedi:', response);
+            return;
+        }
+
+        randomPrompts = response.data;
     }
 
     /**
@@ -104,6 +90,11 @@ const PromptHandler = (function () {
         // Simulate brief loading for better UX
         setTimeout(() => {
             try {
+                if (randomPrompts.length === 0) {
+                    Toast.warning('Prompt listesi henüz hazır değil.', 'Bekleyin');
+                    return;
+                }
+
                 // Get random prompt from predefined array
                 const randomIndex = Math.floor(Math.random() * randomPrompts.length);
                 const randomPrompt = randomPrompts[randomIndex];
