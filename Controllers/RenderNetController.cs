@@ -122,6 +122,18 @@ namespace SelfAI.Controllers
             }
         }
 
+        // Flux modellerini çekmek için gerekli action metot
+        [HttpGet]
+        public async Task<IActionResult> GetModels(string type = "flux")
+        {
+            var result = await _renderNetResourcesService.GetModelsAsync(type);
+
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message, data = result.Data });
+        }
+
         [HttpPost]
         public async Task<IActionResult> GetAssetId(IFormFile formFile)
         {

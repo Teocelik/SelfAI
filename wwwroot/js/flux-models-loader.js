@@ -792,7 +792,7 @@ const FluxModelsLoader = (function () {
         console.log('[FluxModelsLoader] Fetching Flux models from API...');
 
         try {
-            const response = await fetch('/RenderNet/GetFluxStyles', {
+            const response = await fetch('/RenderNet/GetModels?type=flux', {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
