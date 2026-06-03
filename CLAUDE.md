@@ -46,6 +46,7 @@ Yani proje sadece görsel üretimi değil, **görsel + video** üretimini destek
   - Yeni iş mantığı eklerken Controller ile Service arasında temiz bir sınır koru — Service'in dış API'yi çağırma adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (GenerationPollingService) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir — değiştirme önerme.
   - SQS'e karşı alternatif kuyruk sistemleri (RabbitMQ, Hangfire, Azure Service Bus) ÖNERME — karar verildi.
+  - **Pose Lock ControlNet placeholder'ları (doğrulama bekliyor):** Faz D.1'de eklenen `POSE_NAME = "Openpose"` constant'ı SD ekosistem standardına göre koyulmuş bir placeholder. RenderNet'in `/pub/v1/controlnets` endpoint'i ücretsiz tier'da erişilemediği için kesinleştirilemedi. **Paid API hesabı alındığında** `GET /pub/v1/controlnets` çağrılıp dönen ControlNet listesinde pose modelinin **gerçek `name`** değeri görülmeli; uyuşmuyorsa `RenderNetGenerationService.cs` içindeki POSE_NAME constant'ı güncellenmeli. control_mode (0=Balanced) ve resize_mode (0=Resize&Fill) integer default'ları muhafazakar seçimler, çoğu durumda çalışmalı. Pose generation patliyorsa ilk bakılacak yer burası.
 
 Ödeme entegrasyonu **Iyzico** (Türkiye'de kredi satışı için), kimlik doğrulama planı **Firebase**'dir. Üretim asenkron olduğu için arka planda **polling + SignalR** ile sonuç kullanıcıya push edilir.
 

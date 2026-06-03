@@ -47,6 +47,7 @@
         initImageControls();
         initSeedHandler();
         initCharacterPanel();
+        initPoseLockPanel();
         initFormHandler();
         initSignalR();
 
@@ -286,6 +287,11 @@
     function initCharacterPanel() {
         if (typeof CharacterPanel !== 'undefined') CharacterPanel.init();
         else console.warn('CharacterPanel module not found');
+    }
+
+    function initPoseLockPanel() {
+        if (typeof PoseLockPanel !== 'undefined') PoseLockPanel.init();
+        else console.warn('PoseLockPanel module not found');
     }
 
     function resetAll() {

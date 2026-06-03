@@ -7,6 +7,9 @@ namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
     {
         // yüz kilidi için asset_id
         public string FaceLockAssetId { get; set; }
+        // Pose referans görselinin asset_id'si (ControlNet/Pose Lock için).
+        // Boş ise pose lock payload'a dahil edilmez.
+        public string PoseLockAssetId { get; set; }
         //görüntü boyutu 
         public string AspectRatio { get; set; } 
         //oluşturulacak görsel sayısı

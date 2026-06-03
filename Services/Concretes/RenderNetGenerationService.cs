@@ -15,6 +15,17 @@ namespace SelfAI.Services.Concretes
         private readonly RenderNetOptions _settings;
         private readonly ILogger<RenderNetGenerationService> _logger;
 
+        // Pose Lock (ControlNet) sabitleri.
+        // NOT: "Openpose" placeholder, SD ekosistem standardına göre konuldu.
+        // Paid API hesabı alındığında GET /pub/v1/controlnets çağrılıp
+        // RenderNet'in pose ControlNet adı doğrulanmalı, eşleşmiyorsa burası
+        // güncellenmeli.
+        private const string POSE_NAME = "Openpose";
+        // control_mode: API integer enum (0=Balanced, 1=Prompt öncelikli, 2=ControlNet öncelikli).
+        private const int POSE_CONTROL_MODE = 0;
+        // resize_mode: API integer enum (0=Resize&Fill, 1=Crop&Resize, 2=Just Resize).
+        private const int POSE_RESIZE_MODE = 0;
+
         // JSON ayarları (snake_case API yanıtları için)
         private readonly JsonSerializerOptions _jsonOptions = new()
         {
@@ -186,6 +197,9 @@ namespace SelfAI.Services.Concretes
         ///  - ikisi de boşsa: ne character ne facelock koyulur.
         /// Eklenmeyen alanlar null bırakılır → WhenWritingNull ile serialize edilmez.
         /// Character her style/model dalında AYNI objedir (tek karakter çoklu modelle).
+        /// Pose Lock (control_net) bu kurallardan ORTHOGONAL'dir: character/facelock
+        /// exclusivity'sinden bağımsız çalışır, PoseLockAssetId doluysa her dala
+        /// AYNI control_net objesi eklenir (character ve/veya facelock ile birlikte var olabilir).
         /// </summary>
         private static object BuildGenerationElement(
             MediaGenerationRequestDto dto, string? model, string? style)
@@ -211,6 +225,18 @@ namespace SelfAI.Services.Concretes
                 ? new { asset_id = dto.FaceLockAssetId }
                 : null;
 
+            // Pose Lock (control_net) koşullu ve orthogonal: PoseLockAssetId doluysa eklenir,
+            // character/facelock durumundan BAĞIMSIZ. control_mode ve resize_mode integer enum.
+            object? controlNetObj = !string.IsNullOrWhiteSpace(dto.PoseLockAssetId)
+                ? new
+                {
+                    asset_id = dto.PoseLockAssetId,
+                    control_mode = POSE_CONTROL_MODE,
+                    name = POSE_NAME,
+                    resize_mode = POSE_RESIZE_MODE
+                }
+                : null;
+
             if (!string.IsNullOrWhiteSpace(style))
             {
                 return new
@@ -225,6 +251,7 @@ namespace SelfAI.Services.Concretes
                     style = style,
                     character = characterObj,
                     facelock = facelockObj,
+                    control_net = controlNetObj,
                     prompt = promptObj
                 };
             }
@@ -243,6 +270,7 @@ namespace SelfAI.Services.Concretes
                     model = model,
                     character = characterObj,
                     facelock = facelockObj,
+                    control_net = controlNetObj,
                     prompt = promptObj
                 };
             }
@@ -258,6 +286,7 @@ namespace SelfAI.Services.Concretes
                 quality = dto.Quality,
                 character = characterObj,
                 facelock = facelockObj,
+                control_net = controlNetObj,
                 prompt = promptObj
             };
         }
