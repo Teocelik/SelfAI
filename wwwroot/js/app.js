@@ -45,6 +45,8 @@
         initFluxImageStyles();
         initModelSelectionPanel();
         initImageControls();
+        initSeedHandler();
+        initCharacterPanel();
         initFormHandler();
         initSignalR();
 
@@ -77,11 +79,16 @@
             ImageControls.setGenerateButtonState(false);
 
             if (data.media && data.media.length > 0) {
-                const firstImage = data.media.find(m => m.status === 'success' && m.url);
+                const successfulImages = data.media
+                    .filter(m => m.status === 'success' && m.url)
+                    .map(m => m.url);
 
-                if (firstImage) {
-                    Toast.success('Görsel başarıyla oluşturuldu!', 'Tamamlandı 🎨');
-                    ImageControls.showGeneratedImage(firstImage.url);
+                if (successfulImages.length > 0) {
+                    const message = successfulImages.length === 1
+                        ? 'Görsel başarıyla oluşturuldu!'
+                        : `${successfulImages.length} görsel başarıyla oluşturuldu!`;
+                    Toast.success(message, 'Tamamlandı 🎨');
+                    ImageControls.showGeneratedImages(successfulImages);
                 } else {
                     Toast.error('Görsel URL\'i alınamadı.');
                     ImageControls.showDefaultState();
@@ -187,7 +194,23 @@
         ImageControls.showLoadingState();
         ImageControls.setGenerateButtonState(true);
 
+        // Random modda her Generate'te yeni seed üret (custom modda kullanıcının değeri korunur)
+        if (typeof SeedHandler !== 'undefined') {
+            const refreshedSeed = SeedHandler.refreshIfRandom();
+            if (refreshedSeed) console.log('Random seed yenilendi:', refreshedSeed);
+        }
+
         const formData = new FormData(uploadForm);
+
+        // 🆕 Character mention dönüşümü: UI'da @Name görünür, backend'e {Name} gider (RenderNet formatı)
+        if (typeof CharacterPanel !== 'undefined') {
+            const originalPrompt = formData.get('PositivePrompt');
+            const transformedPrompt = CharacterPanel.transformPromptForSubmit(originalPrompt);
+            if (transformedPrompt !== originalPrompt) {
+                formData.set('PositivePrompt', transformedPrompt);
+                console.log('[Character] Prompt @Name → {Name} dönüştürüldü');
+            }
+        }
 
         // 🆕 Hem clientId hem connectionId gönder
         const result = await apiFetch('/RenderNet/GenerateImage', {
@@ -195,7 +218,7 @@
             body: formData,
             headers: {
                 'X-SignalR-ConnectionId': connectionId,
-                'X-Client-Id': clientId                    // 🆕
+                'X-Client-Id': clientId                    //
             }
         });
 
@@ -255,6 +278,16 @@
         else console.warn('ImageControls module not found');
     }
 
+    function initSeedHandler() {
+        if (typeof SeedHandler !== 'undefined') SeedHandler.init();
+        else console.warn('SeedHandler module not found');
+    }
+
+    function initCharacterPanel() {
+        if (typeof CharacterPanel !== 'undefined') CharacterPanel.init();
+        else console.warn('CharacterPanel module not found');
+    }
+
     function resetAll() {
         if (typeof PromptHandler !== 'undefined') PromptHandler.clear();
         if (typeof FaceLockPanel !== 'undefined') FaceLockPanel.reset();
@@ -266,7 +299,7 @@
     return {
         init,
         resetAll,
-        getClientId,     // 🆕
+        getClientId,     //
         getConnectionId
     };
 })();

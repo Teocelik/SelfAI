@@ -70,7 +70,7 @@
                 <!-- Generated Image Container (Hidden by default) -->
                 <div id="imageContainer" class="hidden w-full h-full flex items-center justify-center">
                     <div class="relative max-w-full max-h-full">
-                        <img id="generatedImage" src alt="Generated AI Image" class="max-w-full max-h-full object-contain rounded-lg shadow-lg" />
+                        <img id="generatedImage"  alt="Generated AI Image" class="max-w-full max-h-full object-contain rounded-lg shadow-lg" />
                         <div class="absolute top-4 right-4 flex space-x-2">
                             <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
                                 <i class="fas fa-download text-text-primary"></i>
@@ -218,15 +218,15 @@
                             <span class="text-base">▲</span>
                             <span class="text-sm font-medium text-text-primary">Flux</span>
                         </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200" data-category="google">
+                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="google">
                             <span class="text-base">G</span>
                             <span class="text-sm font-medium text-text-primary">Google</span>
                         </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200" data-category="magic">
+                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="magic">
                             <span class="text-base">✦</span>
                             <span class="text-sm font-medium text-text-primary">Magic</span>
                         </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200" data-category="pro">
+                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="pro">
                             <span class="text-base">⊞</span>
                             <span class="text-sm font-medium text-text-primary">Pro</span>
                         </button>
@@ -552,6 +552,46 @@
         </div>
         <!-- Face Lock Panel End -->
 
+        <!-- Character Panel - Floating Side Panel (Face Lock paneliyle aynı tasarım dili) -->
+    <div id="characterPanel"
+         class="fixed top-[80px] bg-[#1E1E1E] border border-[#333] rounded-[10px] shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
+         style="right: 400px; width: 440px; max-height: calc(100vh - 120px);">
+        <div class="flex-shrink-0 flex flex-col rounded-[10px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
+                <!-- Panel Header -->
+                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#333]">
+                    <div>
+                        <h3 class="text-white text-sm font-semibold">Characters</h3>
+                        <p class="text-gray-400 text-xs mt-1">Select a character to generate their images</p>
+                    </div>
+                    <button type="button" id="closeCharacterPanel" class="text-gray-400 hover:text-white transition-colors">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+
+                <!-- Mode Selector (always visible) -->
+                <div class="p-4 border-b border-[#333]">
+                    <p class="text-xs text-white mb-2">Character Effect</p>
+                    <div class="flex gap-2" id="characterModeButtons">
+                        <button type="button" data-mode="flexible" class="character-mode-btn flex-1 px-3 py-1.5 rounded-md text-xs bg-[#2A2A2A] text-gray-400 hover:bg-[#333] transition-colors">Flexible</button>
+                        <button type="button" data-mode="balanced" class="character-mode-btn flex-1 px-3 py-1.5 rounded-md text-xs bg-[#00CED1] text-white transition-colors">Balanced</button>
+                        <button type="button" data-mode="strong" class="character-mode-btn flex-1 px-3 py-1.5 rounded-md text-xs bg-[#2A2A2A] text-gray-400 hover:bg-[#333] transition-colors">Strong</button>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-2" id="characterModeDescription">Ideal for creating realistic images and more.</p>
+                </div>
+
+                <!-- Character Grid -->
+            <div class="flex-1 overflow-y-auto p-4">
+                <div id="characterGrid" class="grid grid-cols-3 gap-3">
+                        <!-- Kartlar character-panel.js tarafından dinamik eklenir -->
+                        <div class="text-gray-400 text-xs col-span-2 text-center py-4" id="characterEmptyState">
+                            Karakterler yükleniyor...
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- Character Panel End -->
+
         <!-- Right Sidebar -->
         <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar order-3 flex-shrink-0 transition-all duration-300 ease-out" id="rightSidebar">
 
@@ -561,11 +601,13 @@
                     <div class="space-y-3 mb-6">
                         <label class="block text-sm font-medium text-text-primary">Consistency Controls</label>
                         <div class="flex space-x-3">
-                            <button type="button" id="characterBtn" class="flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
+                            <button type="button" id="characterBtn" class="relative flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
                                     <i class="fas fa-user text-xl text-text-secondary group-hover:text-primary"></i>
                                     <span class="text-sm text-text-secondary group-hover:text-primary">Character</span>
                                 </div>
+                                <!-- Karakter aktif göstergesi (turkuaz dot) -->
+                                <div id="characterActiveDot" class="hidden absolute bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#00CED1] rounded-full"></div>
                             </button>
                             <button type="button" id="faceLockBtn" name="AssetFile" class="flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
@@ -582,6 +624,7 @@
                             </button>
                         </div>
                     </div>
+                </div>
 
                     <!-- Prompt Section -->
                     <div class="space-y-3">
@@ -608,6 +651,8 @@
                     <!-- Model Selection - Expandable Panel Trigger -->
                     <div class="space-y-3">
                         <input type="hidden" id="faceLockAssetId" name="FaceLockAssetId" value="" />
+                        <input type="hidden" id="characterId" name="CharacterId" value="" />
+                        <input type="hidden" id="characterMode" name="CharacterMode" value="balanced" />
                         <input type="hidden" id="selectedModelValue" name="Model" value="" />
                         <input type="hidden" id="selectedModelBaseModel" name="StyleDetail.BaseModel" value="" />
                         <input type="hidden" id="selectedModelName" name="StyleDetail.Name" value="" />
@@ -633,8 +678,8 @@
                         </div>
                     </div>
 
-                    <!-- Flux Image Style Section -->
-                    <div class="space-y-3" id="fluxImageStyleSection">
+                    <!-- Flux Image Style Section (Faz A.2'de gizlendi; hidden input form'da kalır) -->
+                    <div class="space-y-3 hidden" id="fluxImageStyleSection">
                         <!-- Flux Image Style - DTO Binding -->
                         <input type="hidden" id="selectedStyleValue" name="Style" value="" />
 
@@ -739,16 +784,24 @@
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Seed</label>
                         <!-- Phase 2 TODO: Custom Seed UX (input görünür/gizli, dice butonu JS) eklenecek. Şimdilik 0 = random olarak gönderiliyor. -->
-                        <input type="hidden" name="Seed" value="0" />
+                        <input type="hidden" name="Seed" value="0" id="seedHiddenInput" />
                         <div class="flex space-x-2">
-                            <select class="flex-1 bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200">
+                            <select id="seedModeSelect" class="flex-1 bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200">
                                 <option value="random" selected>Random</option>
                                 <option value="custom">Custom Seed</option>
                             </select>
-                            <button type="button" class="px-4 py-3 bg-background border border-border rounded-lg hover:border-primary transition-colors duration-200">
+                            <button type="button" id="diceBtn" class="px-4 py-3 bg-background border border-border rounded-lg hover:border-primary transition-colors duration-200">
                                 <i class="fas fa-dice text-text-secondary"></i>
                             </button>
                         </div>
+
+                        <!-- Custom Seed input: yalnızca "Custom Seed" seçilince görünür -->
+                        <input type="number"
+                               id="customSeedInput"
+                               min="0"
+                               max="2147483647"
+                               placeholder="Enter seed value"
+                               class="hidden w-full bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200" />
                     </div>
 
                     <!-- Clear All Button -->
@@ -768,6 +821,8 @@
     <script src="~/js/flux-models-loader.js"></script>
     <script src="~/js/model-selection-panel.js"></script>
     <script src="~/js/image-controls.js"></script>
+    <script src="~/js/seed-handler.js"></script>
+    <script src="~/js/character-panel.js"></script>
     <script src="~/js/app.js"></script>
     @* <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script> *@
     }

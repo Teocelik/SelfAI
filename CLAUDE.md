@@ -42,6 +42,10 @@ Yani proje sadece görsel üretimi değil, **görsel + video** üretimini destek
   - **Service**: tüm iş mantığı. Veri doğrulama (business rule), karar verme, dış API entegrasyonu, polling/job koordinasyonu, default değer atama. Servis hiçbir zaman HTTP'yi bilmemeli (HttpContext inject etme, Request/Response objelerine erişme).
   - **DTO**: ham veri taşıyıcı. Mantık veya method içermez, varsayılan değerler (CfgScale=7.0 gibi) tamam ama davranış değil.
   - Bu sınırı ihlal eden öneri yapma. Şüphedeysen "bu controller'a mı service'e mi ait" diye sor.
+  - - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Service → direkt RenderNet API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
+  - Yeni iş mantığı eklerken Controller ile Service arasında temiz bir sınır koru — Service'in dış API'yi çağırma adımı ileride SQS consumer worker'ına taşınabilmeli.
+  - Polling job mantığı (GenerationPollingService) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir — değiştirme önerme.
+  - SQS'e karşı alternatif kuyruk sistemleri (RabbitMQ, Hangfire, Azure Service Bus) ÖNERME — karar verildi.
 
 Ödeme entegrasyonu **Iyzico** (Türkiye'de kredi satışı için), kimlik doğrulama planı **Firebase**'dir. Üretim asenkron olduğu için arka planda **polling + SignalR** ile sonuç kullanıcıya push edilir.
 

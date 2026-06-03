@@ -395,7 +395,8 @@ const ImageControls = (function () {
     }
 
     /**
-     * Show generated image
+     * Show generated image (TEKİL)
+     * ⚠️ Yedek olarak korunuyor. Multi-image akışı için showGeneratedImages kullanılır.
      * @param {string} imageUrl
      */
     function showGeneratedImage(imageUrl) {
@@ -403,6 +404,51 @@ const ImageControls = (function () {
         if (loadingState) loadingState.classList.add('hidden');
         if (imageContainer) imageContainer.classList.remove('hidden');
         if (generatedImage) generatedImage.src = imageUrl;
+    }
+
+    /**
+     * 🆕 Birden fazla görseli canvas'a render et (multi-model üretimi)
+     *
+     * showGeneratedImage tek bir <img>'i güncellerken, bu metot imageContainer'ın
+     * içeriğini baştan kurarak N görseli basit bir grid içinde gösterir.
+     * Tek görselde tek sütun, 2+ görselde 2 sütunlu responsive grid kullanılır.
+     *
+     * @param {string[]} urls - başarıyla üretilmiş görsel URL'leri
+     */
+    function showGeneratedImages(urls) {
+        if (!imageContainer) return;
+
+        if (!Array.isArray(urls) || urls.length === 0) {
+            showDefaultState();
+            return;
+        }
+
+        if (defaultState) defaultState.classList.add('hidden');
+        if (loadingState) loadingState.classList.add('hidden');
+        imageContainer.classList.remove('hidden');
+
+        // Tek görsel → tek sütun, çoklu görsel → 2 sütunlu grid
+        const gridColsClass = urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2';
+
+        const grid = document.createElement('div');
+        grid.className = `grid ${gridColsClass} gap-4 w-full h-full overflow-auto p-2`;
+
+        urls.forEach((url, index) => {
+            const wrapper = document.createElement('div');
+            wrapper.className = 'relative flex items-center justify-center';
+
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = `Generated AI Image ${index + 1}`;
+            img.className = 'max-w-full max-h-full object-contain rounded-lg shadow-lg';
+
+            wrapper.appendChild(img);
+            grid.appendChild(wrapper);
+        });
+
+        // imageContainer'ı temizleyip yeni grid'i yerleştir
+        imageContainer.innerHTML = '';
+        imageContainer.appendChild(grid);
     }
 
     /**
@@ -447,6 +493,7 @@ const ImageControls = (function () {
         showDefaultState,
         showLoadingState,
         showGeneratedImage,
+        showGeneratedImages,     // 🆕 multi-image
         setGenerateButtonState,  // 🆕
         getImageCount,
         setImageCount

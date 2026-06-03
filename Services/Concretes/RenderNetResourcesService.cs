@@ -24,16 +24,24 @@ namespace SelfAI.Services.Concretes
             _httpClient.DefaultRequestHeaders.Add("X-API-KEY", _settings.ApiKey);
         }
 
-        // flux image style'lerini API'den çeker
-        public async Task<FluxImageStyleRootDto> GetFluxStylesAsync()
+        // Stilleri API'den çeker (GetModelsAsync ile aynı kalıp; ServiceResult + structured log)
+        public async Task<ServiceResult<IReadOnlyList<FluxImageSytleDetailDto>>> GetStylesAsync(
+            string type = "flux",
+            int pageSize = 50)
         {
-            // request oluşturalım
-            var response = await _httpClient.GetAsync($"{_httpClient.BaseAddress}/styles?type=flux&page=1&page_size=17");
+            // request oluşturalım (BaseAddress sonda slash içermediği için tam URL kuruyoruz)
+            var response = await _httpClient.GetAsync(
+                $"{_httpClient.BaseAddress}/styles?type={type}&page=1&page_size={pageSize}");
 
-            // Eğer response başarılı değilse, bir hata fırlatalım
+            // Eğer response başarılı değilse, kullanıcıya güvenli bir mesaj dönelim
             if (!response.IsSuccessStatusCode)
             {
-                throw new Exception($"Flux styles alınamadı. Hata kodu: {response.StatusCode}");
+                _logger.LogWarning(
+                    "Stiller alınamadı. | Type: {Type} | StatusCode: {StatusCode}",
+                    type, (int)response.StatusCode);
+
+                return ServiceResult<IReadOnlyList<FluxImageSytleDetailDto>>.Failure(
+                    "Stiller getirilemedi. Lütfen daha sonra tekrar deneyin.", 502);
             }
 
             // response içeriğini okuyalım
@@ -44,20 +52,30 @@ namespace SelfAI.Services.Concretes
                 PropertyNameCaseInsensitive = true
             });
 
-            if (result is null)
+            if (result?.Data is null)
             {
-                throw new Exception($"Flux stiller alınamadı! Hata kodu {response.StatusCode}");
+                _logger.LogWarning(
+                    "Stil yanıtı ayrıştırılamadı. | Type: {Type} | StatusCode: {StatusCode}",
+                    type, (int)response.StatusCode);
+
+                return ServiceResult<IReadOnlyList<FluxImageSytleDetailDto>>.Failure(
+                    "Stiller getirilemedi. Lütfen daha sonra tekrar deneyin.", 502);
             }
 
-            return result;
+            _logger.LogInformation(
+                "Stiller getirildi. | Type: {Type} | Count: {Count}",
+                type, result.Data.Count);
+
+            return ServiceResult<IReadOnlyList<FluxImageSytleDetailDto>>.Success(
+                result.Data, "Stiller getirildi");
         }
 
-        // Flux modellerini API'den çeker (GetFluxStylesAsync ile aynı kalıp; ServiceResult + structured log)
+        // Flux modellerini API'den çeker (GetStylesAsync ile aynı kalıp; ServiceResult + structured log)
         public async Task<ServiceResult<IReadOnlyList<ModelInfoDto>>> GetModelsAsync(
             string type = "flux",
             int pageSize = 50)
         {
-            // request oluşturalım (BaseAddress sonda slash içermediği için tam URL kuruyoruz, GetFluxStylesAsync ile aynı)
+            // request oluşturalım (BaseAddress sonda slash içermediği için tam URL kuruyoruz, GetStylesAsync ile aynı)
             var response = await _httpClient.GetAsync(
                 $"{_httpClient.BaseAddress}/models?type={type}&page=1&page_size={pageSize}");
 

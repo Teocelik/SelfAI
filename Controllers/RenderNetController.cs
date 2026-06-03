@@ -15,14 +15,16 @@ namespace SelfAI.Controllers
         private readonly IRenderNetAssetService _renderNetAssetService;
         private readonly IRenderNetGenerationService _renderNetGenerationService;
         private readonly IRenderNetResourcesService _renderNetResourcesService;
+        private readonly IRenderNetCharacterService _renderNetCharacterService;
         private readonly ILogger<RenderNetController> _logger;
         private readonly GenerationPollingService _pollingService;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, IRenderNetCharacterService renderNetCharacterService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
             _renderNetResourcesService = renderNetResourcesService;
+            _renderNetCharacterService = renderNetCharacterService;
             _logger = logger;
             _pollingService = pollingService;
         }
@@ -106,20 +108,16 @@ namespace SelfAI.Controllers
         }
 
 
-        // Flux image style'lerini çekmek için gerekli action metot
+        // Stilleri çekmek için gerekli action metot
         [HttpGet]
-        public async Task<IActionResult> GetFluxStyles()
+        public async Task<IActionResult> GetStyles(string type = "flux")
         {
-            try
-            {
-                var fluxStyleResult = await _renderNetResourcesService.GetFluxStylesAsync();
+            var result = await _renderNetResourcesService.GetStylesAsync(type);
 
-                return Ok(new { data = fluxStyleResult.Data });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { error = ex.Message });
-            }
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message, data = result.Data });
         }
 
         // Flux modellerini çekmek için gerekli action metot
@@ -132,6 +130,18 @@ namespace SelfAI.Controllers
                 return StatusCode(result.StatusCode, new { success = false, message = result.Message });
 
             return Ok(new { success = true, message = result.Message, data = result.Data });
+        }
+
+        // Karakterleri çekmek için gerekli action metot
+        [HttpGet]
+        public async Task<IActionResult> GetCharacters(int page = 1, int pageSize = 50)
+        {
+            var result = await _renderNetCharacterService.GetCharactersAsync(page, pageSize);
+
+            if (result.IsSuccess)
+                return Ok(new { success = true, message = result.Message, data = result.Data });
+
+            return StatusCode(result.StatusCode, new { success = false, message = result.Message });
         }
 
         [HttpPost]

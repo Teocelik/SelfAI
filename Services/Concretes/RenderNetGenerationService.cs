@@ -46,67 +46,66 @@ namespace SelfAI.Services.Concretes
         /// </summary>
         public async Task<ServiceResult<GenerateMediaResponseDto>> GenerateMediaAsync(MediaGenerationRequestDto dto)
         {
+            // Multi-model desteği: Model ve Style alanları virgülle ayrılmış birden fazla
+            // değer içerebilir (örn. "Flux,JuggernautXL" / "Cinematic,Anime").
+            // Bunlar listelere parse edilip her biri için ayrı bir generation elemanı kurulur.
+            var models = string.IsNullOrWhiteSpace(dto.Model)
+                ? new List<string>()
+                : dto.Model.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                           .Select(s => s.Trim())
+                           .Where(s => !string.IsNullOrEmpty(s))
+                           .ToList();
+
+            var styles = string.IsNullOrWhiteSpace(dto.Style)
+                ? new List<string>()
+                : dto.Style.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                           .Select(s => s.Trim())
+                           .Where(s => !string.IsNullOrEmpty(s))
+                           .ToList();
+
+            // Count validation: her iki liste de doluysa sayıları eşleşmeli (1-1 pair).
+            if (models.Count > 0 && styles.Count > 0 && models.Count != styles.Count)
+            {
+                _logger.LogWarning(
+                    "Multi-model: Model ve Style sayıları eşleşmiyor. | ModelCount: {Mc} | StyleCount: {Sc}",
+                    models.Count, styles.Count);
+
+                return ServiceResult<GenerateMediaResponseDto>.Failure(
+                    "Model ve Style sayıları eşleşmiyor.", 400);
+            }
+
+            // Üretilecek eleman sayısı: iki listenin büyüğü. İkisi de boşsa tek default eleman.
+            var n = Math.Max(models.Count, styles.Count);
+            if (n == 0) n = 1;
+
             _logger.LogInformation(
-                "Görsel oluşturma isteği başlatıldı. | Model: {Model} | AspectRatio: {AspectRatio} | BatchSize: {BatchSize}",
-                dto.Model, dto.AspectRatio, dto.BatchSize);
+                "Multi-model generation isteği. | Count: {N} | Models: {Models} | Styles: {Styles}",
+                n, dto.Model, dto.Style);
+
+            // Character ile FaceLock mutually exclusive: CharacterId doluysa facelock alanı eklenmez
+            // (CharacterDataDto zaten yüz tutarlılığı sağlar). Bu kural her eleman için
+            // BuildGenerationElement içinde uygulanır; aşağıdaki bayraklar yalnızca loglama içindir.
+            var hasCharacter = !string.IsNullOrWhiteSpace(dto.CharacterId);
+            var hasFacelock = !string.IsNullOrWhiteSpace(dto.FaceLockAssetId) && !hasCharacter;
 
             // API kuralı: style ve model aynı objede bulunamaz (mutually exclusive).
-            // Style seçildiyse style gönderilir, yoksa model gönderilir.
-            // Facelock opsiyoneldir: asset_id boşsa alan hiç gönderilmez (WhenWritingNull).
-            var hasStyle = !string.IsNullOrWhiteSpace(dto.Style);
-            var hasFacelock = !string.IsNullOrWhiteSpace(dto.FaceLockAssetId);
-
-            var promptObj = new
+            // Bu kural her eleman için ayrı uygulanır (bkz. BuildGenerationElement).
+            var payloadElements = new List<object>();
+            for (int i = 0; i < n; i++)
             {
-                positive = dto.PositivePrompt,
-                negative = dto.NegativePrompt
-            };
+                var modelForThis = i < models.Count ? models[i] : null;
+                var styleForThis = i < styles.Count ? styles[i] : null;
 
-            var facelockObj = hasFacelock
-                ? (object?)new { asset_id = dto.FaceLockAssetId }
-                : null;
-
-            object item;
-            if (hasStyle)
-            {
-                item = new
-                {
-                    aspect_ratio = dto.AspectRatio,
-                    batch_size = dto.BatchSize,
-                    cfg_scale = dto.CfgScale,
-                    steps = dto.Steps,
-                    seed = dto.Seed,
-                    sampler = dto.Sampler,
-                    quality = dto.Quality,
-                    style = dto.Style,
-                    facelock = facelockObj,
-                    prompt = promptObj
-                };
-            }
-            else
-            {
-                item = new
-                {
-                    aspect_ratio = dto.AspectRatio,
-                    batch_size = dto.BatchSize,
-                    cfg_scale = dto.CfgScale,
-                    steps = dto.Steps,
-                    seed = dto.Seed,
-                    sampler = dto.Sampler,
-                    quality = dto.Quality,
-                    model = dto.Model,
-                    facelock = facelockObj,
-                    prompt = promptObj
-                };
+                payloadElements.Add(BuildGenerationElement(dto, modelForThis, styleForThis));
             }
 
-            var payload = new[] { item };
+            var payload = payloadElements.ToArray();
 
             try
             {
                 _logger.LogDebug(
-                    "RenderNet API'ye istek gönderiliyor. | URL: {Url} | UsesStyle: {UsesStyle} | UsesFacelock: {UsesFacelock}",
-                    $"{_settings.BaseUrl}/generations", hasStyle, hasFacelock);
+                    "RenderNet API'ye istek gönderiliyor. | URL: {Url} | ElementCount: {Count} | UsesFacelock: {UsesFacelock} | UsesCharacter: {UsesCharacter}",
+                    $"{_settings.BaseUrl}/generations", payload.Length, hasFacelock, hasCharacter);
 
                 var response = await _httpClient.PostAsJsonAsync(
                     $"{_settings.BaseUrl}/generations", payload, _requestJsonOptions);
@@ -172,6 +171,95 @@ namespace SelfAI.Services.Concretes
                 return ServiceResult<GenerateMediaResponseDto>.Failure(
                     "Görsel oluşturulurken beklenmeyen bir hata oluştu.");
             }
+        }
+
+        /// <summary>
+        /// Tek bir generation elemanını (anonymous object) kurar.
+        /// API kuralı gereği style ve model aynı objede bulunamaz:
+        ///  - style doluysa: style koyulur, model koyulmaz.
+        ///  - style boş ama model doluysa: model koyulur.
+        ///  - ikisi de boşsa: hiçbiri koyulmaz, API default'a düşer.
+        /// Character ve FaceLock mutually exclusive:
+        ///  - CharacterId doluysa: character koyulur, facelock koyulmaz (asset_id form'dan
+        ///    dolu gelse bile sessizce ignore edilir).
+        ///  - CharacterId boş, FaceLockAssetId doluysa: facelock koyulur (Phase 1 davranışı).
+        ///  - ikisi de boşsa: ne character ne facelock koyulur.
+        /// Eklenmeyen alanlar null bırakılır → WhenWritingNull ile serialize edilmez.
+        /// Character her style/model dalında AYNI objedir (tek karakter çoklu modelle).
+        /// </summary>
+        private static object BuildGenerationElement(
+            MediaGenerationRequestDto dto, string? model, string? style)
+        {
+            var promptObj = new
+            {
+                positive = dto.PositivePrompt,
+                negative = dto.NegativePrompt
+            };
+
+            // Character koşullu: CharacterId doluysa kurulur, aksi halde null.
+            var hasCharacter = !string.IsNullOrWhiteSpace(dto.CharacterId);
+            object? characterObj = hasCharacter
+                ? new
+                {
+                    character_id = dto.CharacterId,
+                    mode = string.IsNullOrWhiteSpace(dto.CharacterMode) ? "balanced" : dto.CharacterMode
+                }
+                : null;
+
+            // Facelock koşullu: yalnızca character YOKKEN ve asset_id doluyken eklenir (mutual exclusivity).
+            object? facelockObj = (!hasCharacter && !string.IsNullOrWhiteSpace(dto.FaceLockAssetId))
+                ? new { asset_id = dto.FaceLockAssetId }
+                : null;
+
+            if (!string.IsNullOrWhiteSpace(style))
+            {
+                return new
+                {
+                    aspect_ratio = dto.AspectRatio,
+                    batch_size = dto.BatchSize,
+                    cfg_scale = dto.CfgScale,
+                    steps = dto.Steps,
+                    seed = dto.Seed,
+                    sampler = dto.Sampler,
+                    quality = dto.Quality,
+                    style = style,
+                    character = characterObj,
+                    facelock = facelockObj,
+                    prompt = promptObj
+                };
+            }
+
+            if (!string.IsNullOrWhiteSpace(model))
+            {
+                return new
+                {
+                    aspect_ratio = dto.AspectRatio,
+                    batch_size = dto.BatchSize,
+                    cfg_scale = dto.CfgScale,
+                    steps = dto.Steps,
+                    seed = dto.Seed,
+                    sampler = dto.Sampler,
+                    quality = dto.Quality,
+                    model = model,
+                    character = characterObj,
+                    facelock = facelockObj,
+                    prompt = promptObj
+                };
+            }
+
+            return new
+            {
+                aspect_ratio = dto.AspectRatio,
+                batch_size = dto.BatchSize,
+                cfg_scale = dto.CfgScale,
+                steps = dto.Steps,
+                seed = dto.Seed,
+                sampler = dto.Sampler,
+                quality = dto.Quality,
+                character = characterObj,
+                facelock = facelockObj,
+                prompt = promptObj
+            };
         }
 
         /// <summary>

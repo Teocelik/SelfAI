@@ -15,6 +15,7 @@ const ModelSelectionPanel = (function () {
     let modelContents = null;
     let modelOptions = null;
     let selectedModelValue = null;
+    let selectedStyleValue = null;
     let selectedModelBaseModel = null;
     let selectedModelName = null;
     let selectedModelText = null;
@@ -45,6 +46,7 @@ const ModelSelectionPanel = (function () {
         modelContents = document.querySelectorAll('.model-content');
         modelOptions = document.querySelectorAll('.model-option');
         selectedModelValue = document.getElementById('selectedModelValue');
+        selectedStyleValue = document.getElementById('selectedStyleValue');
         selectedModelBaseModel = document.getElementById('selectedModelBaseModel');
         selectedModelName = document.getElementById('selectedModelName');
         selectedModelText = document.getElementById('selectedModelText');
@@ -185,13 +187,15 @@ const ModelSelectionPanel = (function () {
     function handleModelOptionClick(e) {
         // this yerine e.currentTarget kullan (arrow function uyumluluğu için)
         const option = e.currentTarget;
-        const baseModel = option.dataset.baseModel || option.dataset.model;
-        const modelName = option.dataset.name;
-        const modelImg = option.dataset.img;
+        // Yeni kartlarda data-model/data-style var; eski hardcoded kartlarda yoksa fallback uygula.
+        const model = option.dataset.model || option.dataset.baseModel || 'Flux';
+        const style = option.dataset.style || option.dataset.name;
+        const baseModel = option.dataset.baseModel || 'flux';
+        const img = option.dataset.img;
 
-        console.log('[ModelSelectionPanel] Model clicked:', { baseModel, modelName, modelImg });
+        console.log('[ModelSelectionPanel] Card clicked:', { model, style, baseModel, img });
 
-        addModel(baseModel, modelName, modelImg);
+        addModel(model, style, baseModel, img);
 
         // Visual feedback
         const imgContainer = option.querySelector('div');
@@ -204,21 +208,22 @@ const ModelSelectionPanel = (function () {
     }
 
     /**
-     * Add model to selection
+     * Add (model, style) pair to selection
      */
-    function addModel(baseModel, modelName, modelImg) {
-        // Check if already selected
-        const existingIndex = selectedModels.findIndex(m => m.name === modelName);
+    function addModel(model, style, baseModel, img) {
+        // Aynı (model, style) çifti unique key — toggle davranışı
+        const existingIndex = selectedModels.findIndex(m => m.model === model && m.style === style);
 
         if (existingIndex > -1) {
             // If already selected, remove it (toggle behavior)
             selectedModels.splice(existingIndex, 1);
         } else {
-            // Add new model
+            // Add new pair
             selectedModels.push({
+                model: model,
+                style: style,
                 baseModel: baseModel,
-                name: modelName,
-                img: modelImg
+                img: img
             });
         }
 
@@ -228,10 +233,10 @@ const ModelSelectionPanel = (function () {
     }
 
     /**
-     * Remove model from selection
+     * Remove (model, style) pair from selection
      */
-    function removeModel(modelName) {
-        selectedModels = selectedModels.filter(m => m.name !== modelName);
+    function removeModel(model, style) {
+        selectedModels = selectedModels.filter(m => !(m.model === model && m.style === style));
         renderTags();
         updateOptionStates();
         updateHiddenInputs();
@@ -252,33 +257,27 @@ const ModelSelectionPanel = (function () {
                 selectedModelText.classList.remove('text-primary');
                 selectedModelText.classList.add('text-text-secondary');
             }
-            if (selectedModelValue) selectedModelValue.value = '';
             return;
         }
 
         if (selectedModelsContainer) selectedModelsContainer.classList.remove('hidden');
 
-        selectedModels.forEach(model => {
+        selectedModels.forEach(pair => {
             const tag = document.createElement('div');
             tag.className = 'selected-model-tag';
 
-            // Shorten long names
-            const shortName = model.name.length > 10 ? model.name.substring(0, 10) + '...' : model.name;
+            // Etikette style adı gösterilir (Flux tek olduğu için kartlar style ile anılır)
+            const shortName = pair.style.length > 10 ? pair.style.substring(0, 10) + '...' : pair.style;
 
             tag.innerHTML = `
-                <img src="${model.img}" alt="${model.name}" />
-                <span title="${model.name}">${shortName}</span>
-                <button type="button" class="remove-tag" data-model="${model.name}">
+                <img src="${pair.img}" alt="${pair.style}" />
+                <span title="${pair.style}">${shortName}</span>
+                <button type="button" class="remove-tag" data-model="${pair.model}" data-style="${pair.style}">
                     <i class="fas fa-times"></i>
                 </button>
             `;
             selectedModelsTags.appendChild(tag);
         });
-
-        // Update hidden input with all selected model IDs
-        if (selectedModelValue) {
-            selectedModelValue.value = selectedModels.map(m => m.name).join(',');
-        }
 
         // Update button text
         if (selectedModelText) {
@@ -287,12 +286,11 @@ const ModelSelectionPanel = (function () {
             selectedModelText.classList.add('text-primary');
         }
 
-        // Add click handlers for remove buttons
+        // Add click handlers for remove buttons (model + style çifti ile)
         document.querySelectorAll('.remove-tag').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 e.stopPropagation();
-                const modelId = btn.dataset.model;
-                removeModel(modelId);
+                removeModel(btn.dataset.model, btn.dataset.style);
             });
         });
     }
@@ -305,11 +303,13 @@ const ModelSelectionPanel = (function () {
         const currentModelOptions = document.querySelectorAll('.model-option');
 
         currentModelOptions.forEach(option => {
-            const modelName = option.dataset.name;
+            // Çift bazlı eşleşme; eski hardcoded kartlar için fallback
+            const model = option.dataset.model || option.dataset.baseModel || 'Flux';
+            const style = option.dataset.style || option.dataset.name;
             // ✅ Basitçe ilk div'i seç (aspect-[3/4] olan div)
             const imgContainer = option.firstElementChild;
 
-            if (selectedModels.find(m => m.name === modelName)) {
+            if (selectedModels.find(m => m.model === model && m.style === style)) {
                 option.classList.add('selected');
                 if (imgContainer) {
                     imgContainer.classList.remove('border-transparent');
@@ -330,19 +330,25 @@ const ModelSelectionPanel = (function () {
      */
     function updateHiddenInputs() {
         if (selectedModels.length > 0) {
-            const firstModel = selectedModels[0];
-            if (selectedModelBaseModel) selectedModelBaseModel.value = firstModel.baseModel;
-            if (selectedModelName) selectedModelName.value = firstModel.name;
-            if (selectedModelValue) selectedModelValue.value = firstModel.name;
+            // Model ve Style senkron çiftler halinde yazılır:
+            //   Model = "Flux,Flux"   Style = "Cinematic,Anime"
+            if (selectedModelValue) selectedModelValue.value = selectedModels.map(m => m.model).join(',');
+            if (selectedStyleValue) selectedStyleValue.value = selectedModels.map(m => m.style).join(',');
+
+            // StyleDetail ilk çiftten doldurulur (Phase 1 DTO hizalaması korunur)
+            const first = selectedModels[0];
+            if (selectedModelBaseModel) selectedModelBaseModel.value = first.baseModel;
+            if (selectedModelName) selectedModelName.value = first.style;
 
             console.log('[ModelSelectionPanel] Hidden inputs updated:', {
-                baseModel: firstModel.baseModel,
-                name: firstModel.name
+                model: selectedModelValue?.value,
+                style: selectedStyleValue?.value
             });
         } else {
+            if (selectedModelValue) selectedModelValue.value = '';
+            if (selectedStyleValue) selectedStyleValue.value = '';
             if (selectedModelBaseModel) selectedModelBaseModel.value = '';
             if (selectedModelName) selectedModelName.value = '';
-            if (selectedModelValue) selectedModelValue.value = '';
         }
     }
 

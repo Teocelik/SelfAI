@@ -1,5 +1,4 @@
-﻿using SelfAI.DTOs.RenderNetCharacterResponseDtos;
-using SelfAI.DTOs.RenderNetResourceDtos;
+﻿using SelfAI.DTOs.RenderNetResourceDtos;
 using System.Text.Json.Serialization;
 
 namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
@@ -33,7 +32,10 @@ namespace SelfAI.DTOs.RenderNetGenerationRequestDtos
         // NSFW/uygunsuz içerik koruması için güvenli varsayılan. Kullanıcı form alanı eklenirse override eder.
         public string NegativePrompt { get; set; } = "nsfw, deformed, extra limbs, bad anatomy, deformed pupils, text, worst quality, jpeg artifacts, ugly, duplicate, morbid, mutilated";
 
-        [JsonPropertyName("character")]
-        public CharacterDataDto CharacterData { get; set; }
+        // Karakter seçimi (opsiyonel). Boşsa karakter olmadan üretim.
+        public string CharacterId { get; set; }
+
+        // API'nin character.mode değeri: "flexible" | "balanced" | "strong"
+        public string CharacterMode { get; set; } = "balanced";
     }
 }
