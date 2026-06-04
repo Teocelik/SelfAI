@@ -1,8 +1,11 @@
-﻿using Microsoft.AspNetCore.SignalR;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using SelfAI.BackgroundServices;
+using System.Security.Claims;
 
 namespace SelfAI.Hubs
 {
+    [Authorize]
     public class GenerationHub : Hub
     {
         private readonly ILogger<GenerationHub> _logger;
@@ -17,37 +20,31 @@ namespace SelfAI.Hubs
         }
 
         /// <summary>
-        /// 🆕 Kullanıcı bağlanıp clientId ile kendini tanıtır
-        /// 
-        /// Frontend bu metodu çağırır:
-        ///   connection.invoke('RegisterClient', 'usr_abc-123');
-        /// 
-        /// Bu sayede:
-        /// 1. Yeni connectionId ile eşleştirilir
-        /// 2. Bekleyen sonuçlar varsa ANINDA gönderilir
+        /// Kullanıcı bağlandığında otomatik olarak çalışır.
+        /// Firebase UID üzerinden:
+        /// 1. userId → connectionId mapping güncellenir
+        /// 2. Bekleyen sonuçlar varsa ANINDA teslim edilir
+        /// Frontend artık manuel "RegisterClient" çağrısı yapmaz.
         /// </summary>
-        public async Task RegisterClient(string clientId)
+        public override async Task OnConnectedAsync()
         {
-            if (string.IsNullOrEmpty(clientId))
+            var userId = Context.User?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (string.IsNullOrEmpty(userId))
             {
-                _logger.LogWarning("RegisterClient: clientId boş! | ConnectionId: {ConnId}",
+                _logger.LogWarning(
+                    "SignalR: Kimliği doğrulanamayan bağlantı reddedildi. | ConnectionId: {ConnId}",
                     Context.ConnectionId);
+                Context.Abort();
                 return;
             }
 
             _logger.LogInformation(
-                "Client kaydedildi. | ClientId: {ClientId} | ConnectionId: {ConnId}",
-                clientId, Context.ConnectionId);
+                "SignalR: Bağlantı kuruldu. | UserId: {Uid} | ConnectionId: {ConnId}",
+                userId, Context.ConnectionId);
 
             // PollingService'e bildir → connectionId güncelle + bekleyen sonuçları gönder
-            await _pollingService.ClientReconnected(clientId, Context.ConnectionId);
-        }
-
-        public override async Task OnConnectedAsync()
-        {
-            _logger.LogInformation(
-                "SignalR: Bağlantı kuruldu. | ConnectionId: {ConnId}",
-                Context.ConnectionId);
+            await _pollingService.UserConnectedAsync(userId, Context.ConnectionId);
 
             await base.OnConnectedAsync();
         }

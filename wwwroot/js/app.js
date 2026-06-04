@@ -5,36 +5,10 @@
     let signalRConnection = null;
 
     // ═══════════════════════════════════════════════
-    // 🆕 CLIENT ID YÖNETİMİ
-    // Kullanıcıyı tanımak için benzersiz ID
-    // localStorage'da saklanır, tarayıcı kapansa bile kalır
-    // ═══════════════════════════════════════════════
-
-    /**
-     * Client ID al veya oluştur
-     * 
-     * 💡 NEDEN localStorage?
-     * - Session → Tarayıcı kapanınca silinir ❌
-     * - Cookie → Kullanıcı silebilir, süre dolabilir ❌
-     * - localStorage → Tarayıcı kapansa bile KALIR ✅
-     *                  Kullanıcı manuel silmedikçe kaybolmaz
-     * 
-     * İleride auth sistemi eklendiğinde:
-     *   clientId → userId ile değiştirilir
-     */
-    function getClientId() {
-        let clientId = localStorage.getItem('selfai_client_id');
-
-        if (!clientId) {
-            // Benzersiz ID oluştur (UUID v4 formatı)
-            clientId = 'client_' + crypto.randomUUID();
-            localStorage.setItem('selfai_client_id', clientId);
-            console.log('[ClientId] Yeni oluşturuldu:', clientId);
-        }
-
-        return clientId;
-    }
-
+    // KULLANICI KİMLİĞİ
+    // clientId mekanizması kaldırıldı. Kimlik artık auth çereziyle
+    // (Firebase UID) sunucu tarafında belirlenir. SignalR ve fetch
+    // çağrıları çerezi otomatik gönderir; ekstra header gerekmez.
     // ═══════════════════════════════════════════════
 
     function init() {
@@ -52,7 +26,6 @@
         initSignalR();
 
         console.log('AI Image Generation Studio initialized successfully');
-        console.log('[ClientId]:', getClientId());
     }
 
     // ═══════════════════════════════════════════════
@@ -119,10 +92,11 @@
             console.log('[SignalR] Yeniden bağlanılıyor...');
         });
 
-        // 🆕 Yeniden bağlandığında kendini tanıt + bekleyen sonuçları al
+        // Yeniden bağlanınca sunucu OnConnectedAsync'i otomatik tetikler
+        // (auth çerezi üzerinden userId çözülür, bekleyen sonuçlar teslim edilir).
+        // Frontend'in manuel kayıt yapmasına gerek yok.
         signalRConnection.onreconnected(function () {
             console.log('[SignalR] Yeniden bağlandı!');
-            registerWithServer();
         });
 
         signalRConnection.onclose(function () {
@@ -136,33 +110,10 @@
         try {
             await signalRConnection.start();
             console.log('[SignalR] Bağlantı kuruldu. ConnectionId:', signalRConnection.connectionId);
-
-            // 🆕 Bağlantı kurulduğunda kendini tanıt
-            await registerWithServer();
+            // Kayıt + bekleyen sonuç teslimi sunucuda OnConnectedAsync ile otomatik yapılır.
         } catch (err) {
             console.error('[SignalR] Bağlantı hatası:', err);
             setTimeout(startSignalRConnection, 5000);
-        }
-    }
-
-    /**
-     * 🆕 Sunucuya clientId ile kendini tanıt
-     * 
-     * Bu çağrı şunları tetikler:
-     * 1. Backend clientId → connectionId mapping'ini günceller
-     * 2. Bekleyen sonuçlar varsa ANINDA gönderir
-     * 
-     * Ne zaman çağrılır:
-     * - İlk bağlantıda
-     * - Yeniden bağlantıda (sayfa yenileme, internet kopması vb.)
-     */
-    async function registerWithServer() {
-        try {
-            const clientId = getClientId();
-            await signalRConnection.invoke('RegisterClient', clientId);
-            console.log('[SignalR] Server\'a kayıt olundu. ClientId:', clientId);
-        } catch (err) {
-            console.error('[SignalR] Kayıt hatası:', err);
         }
     }
 
@@ -185,7 +136,6 @@
         if (!validateForm()) return;
 
         const connectionId = getConnectionId();
-        const clientId = getClientId();
 
         if (!connectionId) {
             Toast.error('Sunucu ile bağlantı kurulamadı. Sayfayı yenileyin.', 'Bağlantı Hatası');
@@ -213,13 +163,12 @@
             }
         }
 
-        // 🆕 Hem clientId hem connectionId gönder
+        // Kimlik auth çereziyle gider; yalnızca SignalR connectionId header'ı gerekir.
         const result = await apiFetch('/RenderNet/GenerateImage', {
             method: 'POST',
             body: formData,
             headers: {
-                'X-SignalR-ConnectionId': connectionId,
-                'X-Client-Id': clientId                    //
+                'X-SignalR-ConnectionId': connectionId
             }
         });
 
@@ -305,7 +254,6 @@
     return {
         init,
         resetAll,
-        getClientId,     //
         getConnectionId
     };
 })();

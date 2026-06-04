@@ -197,6 +197,18 @@ async function apiFetch(url, options = {}) {
     try {
         const response = await fetch(url, fetchOptions);
 
+        // 🆕 Oturum yoksa/süresi dolduysa sunucu 401 döner.
+        // Kullanıcıyı uyar ve login modal'ının bulunduğu Home/Index'e yönlendir.
+        // returnUrl ile, giriş sonrası kullanıcı bulunduğu sayfaya geri döner.
+        if (response.status === 401) {
+            Toast.warning('Giriş yapmanız gerekiyor, yönlendiriliyorsunuz...', 'Giriş Gerekli');
+            const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
+            setTimeout(() => {
+                window.location.href = `/Home/Index?returnUrl=${returnUrl}`;
+            }, 1000); // kullanıcı toast'u görsün diye 1sn gecikme
+            return null;
+        }
+
         // HTTP durum kodu kontrolü
         if (!response.ok) {
             // Sunucu JSON hata mesajı döndüyse oku

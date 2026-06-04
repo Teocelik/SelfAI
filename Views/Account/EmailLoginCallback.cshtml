@@ -1,0 +1,18 @@
+@{
+    ViewData["Title"] = "Giriş Yapılıyor";
+    Layout = "_Layout";
+}
+
+<div class="flex flex-col items-center justify-center min-h-[60vh]">
+    <div id="emailLoginStatus" class="text-center">
+        <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+        <p class="text-white text-lg">Giriş yapılıyor, lütfen bekleyin...</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="~/js/firebase-init.js"></script>
+    <script src="~/js/firebase-auth-callback.js"></script>
+}

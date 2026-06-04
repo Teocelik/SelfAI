@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.BackgroundServices;
 using SelfAI.DTOs.RenderNet;
@@ -6,10 +7,12 @@ using SelfAI.DTOs.RenderNetGenerationRequestDtos;
 using SelfAI.DTOs.RenderNetUploadResponseDtos;
 using SelfAI.Services.Interfaces;
 using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Text.Json;
 
 namespace SelfAI.Controllers
 {
+    [Authorize]
     public class RenderNetController : Controller
     {
         private readonly IRenderNetAssetService _renderNetAssetService;
@@ -29,6 +32,7 @@ namespace SelfAI.Controllers
             _pollingService = pollingService;
         }
 
+        [AllowAnonymous]
         public IActionResult Index()
         {
             _logger.LogInformation("Ana sayfa yüklendi!");
@@ -39,15 +43,21 @@ namespace SelfAI.Controllers
         [HttpPost]
         public async Task<IActionResult> GenerateImage(
         MediaGenerationRequestDto requestDto,
-        [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId,
-        [FromHeader(Name = "X-Client-Id")] string clientId)
+        [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId)
         {
-            if (string.IsNullOrWhiteSpace(clientId) || string.IsNullOrWhiteSpace(connectionId))
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+            {
+                _logger.LogWarning("GenerateImage: Authenticated kullanıcı bulunamadı.");
+                return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+            }
+
+            if (string.IsNullOrWhiteSpace(connectionId))
             {
                 _logger.LogWarning(
-                    "GenerateImage isteği eksik başlıkla geldi. | ClientId: {ClientId} | ConnectionId: {ConnectionId}",
-                    clientId, connectionId);
-                return BadRequest(new { success = false, message = "Oturum bilgisi eksik. Lütfen sayfayı yenileyin." });
+                    "GenerateImage isteği eksik connectionId ile geldi. | UserId: {Uid}",
+                    userId);
+                return BadRequest(new { success = false, message = "SignalR bağlantı bilgisi eksik. Lütfen sayfayı yenileyin." });
             }
 
             var result = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
@@ -57,7 +67,7 @@ namespace SelfAI.Controllers
 
             var generationId = result.Data.Data.GenerationId;
 
-            _pollingService.AddJob(generationId, clientId, connectionId);
+            _pollingService.AddJob(generationId, userId, connectionId);
 
             return Ok(new
             {

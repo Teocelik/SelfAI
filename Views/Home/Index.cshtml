@@ -87,11 +87,30 @@
         <div class="container">
             <ul class="navbar-nav ms-auto">
                 <li class="nav-item">
-                    <button class="btn gradient-btn"
-                            data-bs-toggle="modal"
-                            data-bs-target="#signupModal">
-                        Kaydol / Giriş Yap
-                    </button>
+                    @if (User.Identity?.IsAuthenticated == true)
+                    {
+                        <div class="d-flex align-items-center gap-3">
+                            <span class="text-dark small">
+                                @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                                  ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                                  ?? "Kullanıcı")
+                            </span>
+                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    Çıkış Yap
+                                </button>
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        <button id="loginRegisterBtn"
+                                class="btn gradient-btn"
+                                data-bs-toggle="modal"
+                                data-bs-target="#signupModal">
+                            Kaydol / Giriş Yap
+                        </button>
+                    }
                 </li>
             </ul>
         </div>
@@ -161,6 +180,19 @@
         <script src="~/js/firebase-init.js"></script>
         <script src="~/js/firebase-auth-link.js"></script>
         <script src="~/js/firebase-auth-google.js"></script>
+
+        <script>
+            // 401 sonrası returnUrl ile yönlendirildiyse, login modal'ını otomatik aç.
+            // Kullanıcı zaten giriş yapmak için geldi; ekstra tıklamaya gerek kalmaz.
+            document.addEventListener('DOMContentLoaded', function () {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('returnUrl')) {
+                    const loginBtn = document.getElementById('loginRegisterBtn')
+                        || document.querySelector('[data-bs-target="#signupModal"]');
+                    if (loginBtn) loginBtn.click();
+                }
+            });
+        </script>
     }
 </body>
 </html>

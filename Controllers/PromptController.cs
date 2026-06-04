@@ -1,8 +1,10 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.Services.Interfaces;
 
 namespace SelfAI.Controllers
 {
+    [Authorize]
     public class PromptController : Controller
     {
         private readonly IPromptService _promptService;

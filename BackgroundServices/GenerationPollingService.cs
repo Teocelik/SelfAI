@@ -19,10 +19,12 @@ namespace SelfAI.BackgroundServices
         // Kullanıcı çevrimdışıyken tamamlanan işler burada bekler
         private readonly ConcurrentDictionary<string, List<CompletedResult>> _pendingResults = new();
 
-        // ═══ 🆕 CLIENT → CONNECTION MAPPING ═══
-        // Hangi clientId'nin hangi connectionId ile bağlı olduğunu tutar
-        // Kullanıcı geri geldiğinde connectionId değişir, bunu güncellememiz lazım
-        private readonly ConcurrentDictionary<string, string> _clientConnections = new();
+        // ═══ 🆕 USER → CONNECTION MAPPING ═══
+        // Hangi userId'nin (Firebase UID) hangi connectionId ile bağlı olduğunu tutar.
+        // Kullanıcı geri geldiğinde connectionId değişir, bunu güncellememiz lazım.
+        // Bildirim gönderimi Clients.User(userId) ile yapıldığı için bu map ağırlıklı
+        // olarak "kullanıcı online mı?" kontrolü ve job connectionId takibi için kullanılır.
+        private readonly ConcurrentDictionary<string, string> _userConnections = new();
 
         private const int POLLING_INTERVAL_MS = 3000;
         private const int MAX_ATTEMPTS = 60;
@@ -42,12 +44,12 @@ namespace SelfAI.BackgroundServices
         /// <summary>
         /// Yeni bir polling görevi ekle
         /// </summary>
-        public void AddJob(string generationId, string clientId, string connectionId)
+        public void AddJob(string generationId, string userId, string connectionId)
         {
             var job = new PollingJob
             {
                 GenerationId = generationId,
-                ClientId = clientId,           // 🆕 Kullanıcı kimliği (kalıcı)
+                UserId = userId,                // 🆕 Firebase UID (kalıcı kullanıcı kimliği)
                 ConnectionId = connectionId,    // SignalR bağlantısı (değişebilir)
                 Attempts = 0,
                 CreatedAt = DateTime.UtcNow
@@ -55,29 +57,29 @@ namespace SelfAI.BackgroundServices
 
             _activeJobs.TryAdd(generationId, job);
 
-            // Client → Connection mapping'i güncelle
-            _clientConnections.AddOrUpdate(clientId, connectionId, (_, __) => connectionId);
+            // User → Connection mapping'i güncelle
+            _userConnections.AddOrUpdate(userId, connectionId, (_, __) => connectionId);
 
             _logger.LogInformation(
-                "Polling job eklendi. | GenerationId: {GenId} | ClientId: {ClientId} | ConnectionId: {ConnId}",
-                generationId, clientId, connectionId);
+                "Polling job eklendi. | GenerationId: {GenId} | UserId: {Uid} | ConnectionId: {ConnId}",
+                generationId, userId, connectionId);
         }
 
         /// <summary>
-        /// 🆕 Kullanıcı geri geldiğinde connectionId'yi güncelle
-        /// ve bekleyen sonuçları gönder
+        /// 🆕 Kullanıcı bağlandığında (Hub.OnConnectedAsync) otomatik çağrılır:
+        /// connectionId'yi güncelle ve bekleyen sonuçları gönder.
         /// </summary>
-        public async Task ClientReconnected(string clientId, string newConnectionId)
+        public async Task UserConnectedAsync(string userId, string newConnectionId)
         {
             _logger.LogInformation(
-                "Client yeniden bağlandı. | ClientId: {ClientId} | NewConnectionId: {ConnId}",
-                clientId, newConnectionId);
+                "Kullanıcı bağlandı. | UserId: {Uid} | NewConnectionId: {ConnId}",
+                userId, newConnectionId);
 
             // 1. Connection mapping'i güncelle
-            _clientConnections.AddOrUpdate(clientId, newConnectionId, (_, __) => newConnectionId);
+            _userConnections.AddOrUpdate(userId, newConnectionId, (_, __) => newConnectionId);
 
             // 2. Aktif job'ların connectionId'sini güncelle
-            foreach (var job in _activeJobs.Values.Where(j => j.ClientId == clientId))
+            foreach (var job in _activeJobs.Values.Where(j => j.UserId == userId))
             {
                 job.ConnectionId = newConnectionId;
                 _logger.LogDebug(
@@ -86,20 +88,20 @@ namespace SelfAI.BackgroundServices
             }
 
             // 3. Bekleyen sonuçları gönder
-            await DeliverPendingResults(clientId, newConnectionId);
+            await DeliverPendingResults(userId, newConnectionId);
         }
 
         /// <summary>
         /// 🆕 Bekleyen sonuçları kullanıcıya gönder
         /// </summary>
-        private async Task DeliverPendingResults(string clientId, string connectionId)
+        private async Task DeliverPendingResults(string userId, string connectionId)
         {
-            if (!_pendingResults.TryRemove(clientId, out var results))
+            if (!_pendingResults.TryRemove(userId, out var results))
                 return; // Bekleyen sonuç yok
 
             _logger.LogInformation(
-                "Bekleyen {Count} sonuç gönderiliyor. | ClientId: {ClientId}",
-                results.Count, clientId);
+                "Bekleyen {Count} sonuç gönderiliyor. | UserId: {Uid}",
+                results.Count, userId);
 
             foreach (var result in results)
             {
@@ -113,6 +115,7 @@ namespace SelfAI.BackgroundServices
                         _ => "GenerationCompleted"
                     };
 
+                    // Sadece o anda bağlanan bağlantıya teslim et (anlık reconnect teslimatı)
                     await _hubContext.Clients.Client(connectionId)
                         .SendAsync(method, result.Data);
 
@@ -127,7 +130,7 @@ namespace SelfAI.BackgroundServices
                         result.GenerationId);
 
                     // Gönderilemezse tekrar kaydet
-                    SavePendingResult(clientId, result);
+                    SavePendingResult(userId, result);
                 }
             }
         }
@@ -135,17 +138,17 @@ namespace SelfAI.BackgroundServices
         /// <summary>
         /// 🆕 Sonucu bekleyen sonuçlara kaydet (kullanıcı çevrimdışı)
         /// </summary>
-        private void SavePendingResult(string clientId, CompletedResult result)
+        private void SavePendingResult(string userId, CompletedResult result)
         {
             _pendingResults.AddOrUpdate(
-                clientId,
+                userId,
                 new List<CompletedResult> { result },           // İlk sonuç
                 (_, existing) => { existing.Add(result); return existing; } // Listeye ekle
             );
 
             _logger.LogDebug(
-                "Sonuç pending'e kaydedildi. | ClientId: {ClientId} | GenerationId: {GenId}",
-                clientId, result.GenerationId);
+                "Sonuç pending'e kaydedildi. | UserId: {Uid} | GenerationId: {GenId}",
+                userId, result.GenerationId);
         }
 
         /// <summary>
@@ -273,25 +276,26 @@ namespace SelfAI.BackgroundServices
             };
 
             _logger.LogInformation(
-                "Job sonuçlandı. | GenerationId: {GenId} | Type: {Type} | ClientId: {ClientId}",
-                job.GenerationId, type, job.ClientId);
+                "Job sonuçlandı. | GenerationId: {GenId} | Type: {Type} | UserId: {Uid}",
+                job.GenerationId, type, job.UserId);
 
-            // Güncel connectionId'yi al
-            var currentConnectionId = _clientConnections.GetValueOrDefault(job.ClientId);
+            // Kullanıcı online mı? (mapping varsa online kabul edilir)
+            var currentConnectionId = _userConnections.GetValueOrDefault(job.UserId);
 
-            // SignalR ile göndermeyi dene
+            // SignalR ile göndermeyi dene.
+            // Clients.User(userId): kullanıcının TÜM aktif bağlantılarına (multi-tab) yayar.
             bool delivered = false;
             if (!string.IsNullOrEmpty(currentConnectionId))
             {
                 try
                 {
-                    await _hubContext.Clients.Client(currentConnectionId)
+                    await _hubContext.Clients.User(job.UserId)
                         .SendAsync(method, data);
                     delivered = true;
 
                     _logger.LogInformation(
-                        "Sonuç SignalR ile gönderildi. | GenerationId: {GenId} | ConnectionId: {ConnId}",
-                        job.GenerationId, currentConnectionId);
+                        "Sonuç SignalR ile gönderildi. | GenerationId: {GenId} | UserId: {Uid}",
+                        job.GenerationId, job.UserId);
                 }
                 catch (Exception ex)
                 {
@@ -305,10 +309,10 @@ namespace SelfAI.BackgroundServices
             if (!delivered)
             {
                 _logger.LogInformation(
-                    "Kullanıcı çevrimdışı, sonuç pending'e kaydedildi. | GenerationId: {GenId} | ClientId: {ClientId}",
-                    job.GenerationId, job.ClientId);
+                    "Kullanıcı çevrimdışı, sonuç pending'e kaydedildi. | GenerationId: {GenId} | UserId: {Uid}",
+                    job.GenerationId, job.UserId);
 
-                SavePendingResult(job.ClientId, new CompletedResult
+                SavePendingResult(job.UserId, new CompletedResult
                 {
                     GenerationId = job.GenerationId,
                     Type = type,
@@ -342,7 +346,7 @@ namespace SelfAI.BackgroundServices
     public class PollingJob
     {
         public string GenerationId { get; set; }
-        public string ClientId { get; set; }       // 🆕 Kalıcı kullanıcı kimliği
+        public string UserId { get; set; }          // 🆕 Firebase UID (kalıcı kullanıcı kimliği)
         public string ConnectionId { get; set; }    // Değişebilir
         public int Attempts { get; set; }
         public DateTime CreatedAt { get; set; }

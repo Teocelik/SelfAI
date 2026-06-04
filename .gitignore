@@ -367,3 +367,6 @@ appsettings.Production.json
 
 # Development ortam� ayarlar� (User Secrets kullan�ld���ndan repoya girmemeli)
 appsettings.Development.json
+
+# Firebase credentials (contains sensitive information)
+firebase-credentials.json

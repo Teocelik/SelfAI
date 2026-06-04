@@ -742,3 +742,30 @@ body {
 /* ================================================
 END FACE LOCK PANEL STYLES
 ================================================ */
+
+/* ================================================
+   CUSTOM SCROLLBAR — ince, koyu (panel iç scroll'lar için)
+   Affogato benzeri sade görünüm. Character + Pose Lock panellerinde kullanılır.
+   ================================================ */
+.scrollbar-thin {
+    scrollbar-width: thin; /* Firefox */
+    scrollbar-color: #444 transparent; /* Firefox */
+}
+
+    .scrollbar-thin::-webkit-scrollbar {
+        width: 6px;
+        height: 6px;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    .scrollbar-thin::-webkit-scrollbar-thumb {
+        background: #444;
+        border-radius: 3px;
+    }
+
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }

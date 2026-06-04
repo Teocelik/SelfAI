@@ -1,4 +1,8 @@
-using SelfAI.BackgroundServices;  
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.SignalR;
+using SelfAI.BackgroundServices;
 using SelfAI.Configurations;
 using SelfAI.Hubs;
 using SelfAI.Middlewares;
@@ -8,11 +12,43 @@ using SelfAI.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// ═══ Firebase Admin SDK initialization ═══
+// Service account JSON yolu User Secrets'ten gelir. Server tarafında ID token doğrulamak için gerekli.
+var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
+if (string.IsNullOrWhiteSpace(firebaseCredentialsPath))
+{
+    throw new InvalidOperationException(
+        "Firebase:CredentialsPath User Secrets'te tanımlı değil. " +
+        "Lütfen Firebase Admin SDK service account JSON dosyasının yolunu ekleyin."
+    );
+}
+
+if (!File.Exists(firebaseCredentialsPath))
+{
+    throw new FileNotFoundException(
+        $"Firebase credentials dosyası bulunamadı: {firebaseCredentialsPath}. " +
+        "Dosyayı proje köküne koyduğunuzdan emin olun."
+    );
+}
+
+// DefaultInstance null kontrolü: hot reload / test çalıştırmalarında double-init hatasını önler.
+if (FirebaseApp.DefaultInstance == null)
+{
+    FirebaseApp.Create(new AppOptions
+    {
+        Credential = GoogleCredential.FromFile(firebaseCredentialsPath)
+    });
+}
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 // SignalR ekle
 builder.Services.AddSignalR();
+
+// SignalR'ın Clients.User(userId) altyapısını Firebase UID'ye bağla.
+// Böylece bir kullanıcının TÜM aktif bağlantılarına (multi-tab) tek seferde yayın yapılabilir.
+builder.Services.AddSingleton<IUserIdProvider, FirebaseUserIdProvider>();
 
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
@@ -20,6 +56,49 @@ builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterSer
 builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
+
+// Firebase token doğrulama servisi (state taşımıyor, FirebaseAuth.DefaultInstance zaten singleton)
+builder.Services.AddSingleton<IFirebaseAuthService, FirebaseAuthService>();
+
+// ═══ Cookie Authentication ═══
+// Firebase ile doğrulanan kullanıcı için server-side oturum çerezi. Endpoint'ler C.2'de bağlanacak.
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Home/Index";
+        options.LogoutPath = "/Account/Logout";
+        options.AccessDeniedPath = "/Account/AccessDenied";
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+        options.Cookie.Name = "SelfAI.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+
+        // AJAX/API isteklerinde login sayfasına redirect yerine 401/403 döndür.
+        // Frontend (apiFetch) 401'i yakalayıp login modal'ını açar.
+        options.Events.OnRedirectToLogin = context =>
+        {
+            if (IsApiRequest(context.Request))
+            {
+                context.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            }
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        };
+
+        options.Events.OnRedirectToAccessDenied = context =>
+        {
+            if (IsApiRequest(context.Request))
+            {
+                context.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+            context.Response.Redirect(context.RedirectUri);
+            return Task.CompletedTask;
+        };
+    });
 
 // Background Polling Service (Singleton olarak �al���r)
 builder.Services.AddSingleton<GenerationPollingService>();
@@ -64,13 +143,28 @@ app.UseHttpsRedirection();// HTTP gelen iste�i HTTPS'e �evir.
 app.UseStaticFiles();// wwwroot klas�r�n� (CSS, JS, Resimler) d��ar�ya a�
 app.UseRouting();// Adres y�nlendirme mekanizmas�n� �al��t�r.
 app.UseSession(); // Oturum y�netimini etkinle�tirir
+app.UseAuthentication();// Kimlik doğrulama (çerezdeki kullanıcıyı çöz). UseAuthorization'dan ÖNCE olmalı.
 app.UseAuthorization();// Yetki kontrol� yap (Login olmu� mu?).
 
 // ?? SignalR Hub endpoint'ini map'le
 app.MapHub<GenerationHub>("/generationHub");
 
+//app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+        pattern: "{controller=Home}/{action=Index}");
 
 app.Run();
+
+// AJAX/API isteği mi? (cookie auth redirect davranışını belirlemek için)
+// XMLHttpRequest header'ı, JSON Accept header'ı veya korunan API path'leri API isteği sayılır.
+static bool IsApiRequest(HttpRequest request)
+{
+    return request.Headers["X-Requested-With"] == "XMLHttpRequest"
+        || request.Headers["Accept"].Any(h => h?.Contains("application/json") == true)
+        || request.Path.StartsWithSegments("/RenderNet")
+        || request.Path.StartsWithSegments("/Prompt");
+}
