@@ -1,0 +1,140 @@
+@model IReadOnlyList<SelfAI.Entities.Package>
+@{
+    ViewData["Title"] = "Paketler";
+    Layout = "_Layout";
+}
+
+<div class="min-h-screen bg-[#0A0A0A] py-12 px-4">
+    <div class="max-w-7xl mx-auto">
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-white mb-3">Paketler</h1>
+            <p class="text-gray-400 text-lg">İhtiyacınıza uygun planı seçin</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            @foreach (var pkg in Model)
+            {
+                var isBestValue = pkg.Name == "Plus";
+                var isFree = pkg.Name == "Free";
+                var cardClass = isBestValue
+                    ? "border-[#00CED1] relative"
+                    : "border-[#333]";
+
+                <div class="bg-[#1E1E1E] border-2 @cardClass rounded-2xl p-6 flex flex-col">
+                    @if (isBestValue)
+                    {
+                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#00CED1] text-black text-xs font-bold px-4 py-1 rounded-full">
+                            En Popüler
+                        </div>
+                    }
+
+                    <h2 class="text-2xl font-bold text-white mb-2">@pkg.Name</h2>
+
+                    <div class="mb-6">
+                        @if (isFree)
+                        {
+                            <div class="flex items-baseline">
+                                <span class="text-4xl font-bold text-white">₺0</span>
+                                <span class="text-gray-400 ml-2">/ ücretsiz</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="flex items-baseline">
+                                <span class="text-4xl font-bold text-white">₺@pkg.PriceTry?.ToString("0")</span>
+                                <span class="text-gray-400 ml-2">/ ay</span>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="space-y-3 mb-6 flex-1">
+                        <div class="flex items-center text-gray-300">
+                            <i class="fas fa-coins text-[#00CED1] mr-3"></i>
+                            <span><strong>@pkg.MonthlyCredits</strong> credit / ay</span>
+                        </div>
+
+                        @if (isFree)
+                        {
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-gift text-[#00CED1] mr-3"></i>
+                                <span>Kayıt bonusu (tek seferlik)</span>
+                            </div>
+                            <div class="flex items-center text-gray-500">
+                                <i class="fas fa-times text-gray-600 mr-3"></i>
+                                <span>Yenilenmez</span>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                <span>Aylık yenilenen kredi</span>
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                <span>Tüm modeller</span>
+                            </div>
+                            <div class="flex items-center text-gray-300">
+                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                <span>Character, Face Lock, Pose Lock</span>
+                            </div>
+                            @if (pkg.Name == "Plus" || pkg.Name == "Premium")
+                            {
+                                <div class="flex items-center text-gray-300">
+                                    <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                    <span>Öncelikli generation</span>
+                                </div>
+                            }
+                            @if (pkg.Name == "Premium")
+                            {
+                                <div class="flex items-center text-gray-300">
+                                    <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                    <span>Ticari kullanım</span>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    @if (isFree)
+                    {
+                        <button type="button" disabled class="w-full bg-[#2A2A2A] text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed">
+                            Kayıt Bonusu
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button"
+                                class="subscribe-btn w-full @(isBestValue ? "bg-[#00CED1] text-black hover:bg-[#00B8BC]" : "bg-white text-black hover:bg-gray-200") py-3 rounded-lg font-semibold transition-colors"
+                                data-package-id="@pkg.Id"
+                                data-package-name="@pkg.Name"
+                                data-package-price="@pkg.PriceTry">
+                            Abone Ol
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="mt-12 text-center text-gray-500 text-sm">
+            <p>Tüm fiyatlar Türk Lirası (TRY) cinsindendir. KDV dahildir.</p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        document.querySelectorAll('.subscribe-btn').forEach(btn => {
+            btn.addEventListener('click', function () {
+                const packageName = this.dataset.packageName;
+                const packagePrice = this.dataset.packagePrice;
+
+                // D.3.2'de Iyzico checkout'a yönlendirilecek
+                if (typeof Toast !== 'undefined') {
+                    Toast.info(`${packageName} paketi (₺${packagePrice}/ay) yakında satışa açılacak!`);
+                } else {
+                    alert(`${packageName} paketi yakında satışa açılacak.`);
+                }
+            });
+        });
+    </script>
+}

@@ -2,8 +2,10 @@ using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using SelfAI.BackgroundServices;
 using SelfAI.Configurations;
+using SelfAI.Data;
 using SelfAI.Hubs;
 using SelfAI.Middlewares;
 using SelfAI.Services.Concretes;
@@ -59,6 +61,27 @@ builder.Services.AddSingleton<IPromptService, PromptService>();
 
 // Firebase token doğrulama servisi (state taşımıyor, FirebaseAuth.DefaultInstance zaten singleton)
 builder.Services.AddSingleton<IFirebaseAuthService, FirebaseAuthService>();
+
+// ═══ EF Core — SQL Server (LocalDB) ═══
+// Connection string User Secrets'ten gelir (ConnectionStrings:DefaultConnection).
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+            ?? throw new InvalidOperationException("DefaultConnection User Secrets'te tanımlı değil.")
+    )
+);
+
+// Firebase login sonrası AppUser oluştur/sync eden servis (DbContext scoped olduğu için scoped).
+builder.Services.AddScoped<IUserService, UserService>();
+
+// Kredi (token) cüzdanı işlemleri: atomik düşüm, iade, bakiye sorgulama (DbContext scoped).
+builder.Services.AddScoped<ICreditService, CreditService>();
+
+// Generation audit kaydı servisi (DbContext scoped).
+builder.Services.AddScoped<IGenerationLogService, GenerationLogService>();
+
+// Paket listeleme servisi — Pricing sayfası aktif paketleri buradan çeker (DbContext scoped).
+builder.Services.AddScoped<IPackageService, PackageService>();
 
 // ═══ Cookie Authentication ═══
 // Firebase ile doğrulanan kullanıcı için server-side oturum çerezi. Endpoint'ler C.2'de bağlanacak.

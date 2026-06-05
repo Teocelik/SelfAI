@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.DTOs.AuthDtos;
 using SelfAI.Services.Interfaces;
@@ -10,13 +11,19 @@ namespace SelfAI.Controllers
     public class AccountController : Controller
     {
         private readonly IFirebaseAuthService _firebaseAuthService;
+        private readonly IUserService _userService;
+        private readonly ICreditService _creditService;
         private readonly ILogger<AccountController> _logger;
 
         public AccountController(
             IFirebaseAuthService firebaseAuthService,
+            IUserService userService,
+            ICreditService creditService,
             ILogger<AccountController> logger)
         {
             _firebaseAuthService = firebaseAuthService;
+            _userService = userService;
+            _creditService = creditService;
             _logger = logger;
         }
 
@@ -44,9 +51,20 @@ namespace SelfAI.Controllers
 
             var userInfo = result.Data;
 
+            // Token doğrulandı — iç DB'de AppUser'ı getir veya oluştur (yeni kullanıcıya 5 free credit verilir).
+            var userResult = await _userService.GetOrCreateUserAsync(userInfo);
+
+            if (!userResult.IsSuccess)
+            {
+                return StatusCode(userResult.StatusCode, new { success = false, message = userResult.Message });
+            }
+
+            var appUser = userResult.Data;
+
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, userInfo.Uid),
+                new Claim(ClaimTypes.NameIdentifier, userInfo.Uid),       // Firebase UID
+                new Claim("AppUserId", appUser.Id.ToString()),            // İç DB Id
                 new Claim(ClaimTypes.Email, userInfo.Email ?? string.Empty),
                 new Claim(ClaimTypes.Name, userInfo.Name ?? userInfo.Email ?? userInfo.Uid),
                 new Claim("Picture", userInfo.Picture ?? string.Empty),
@@ -87,6 +105,21 @@ namespace SelfAI.Controllers
             _logger.LogInformation("Kullanıcı çıkış yaptı. | Uid: {Uid}", uid ?? "anonim");
 
             return RedirectToAction("Index", "Home");
+        }
+
+        // Giriş yapmış kullanıcının güncel kredi bakiyesini döner (top bar göstergesi için).
+        [HttpGet]
+        [Authorize]
+        public async Task<IActionResult> Balance()
+        {
+            var appUserIdStr = User.FindFirst("AppUserId")?.Value;
+            if (!Guid.TryParse(appUserIdStr, out var appUserId))
+            {
+                return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+            }
+
+            var balance = await _creditService.GetBalanceAsync(appUserId);
+            return Ok(new { success = true, balance = balance });
         }
 
         [HttpGet]

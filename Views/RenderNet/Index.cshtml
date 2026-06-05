@@ -32,6 +32,18 @@
                         <h1 class="text-2xl font-semibold text-text-primary">AI Image Generation Studio</h1>
                     </div>
                     <div class="flex items-center space-x-4">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <span id="creditBalance" class="px-3 py-1 bg-[#2A2A2A] border border-[#00CED1]/30 rounded-full text-[#00CED1] text-sm font-medium">
+                                <i class="fas fa-coins mr-1"></i>
+                                <span id="creditBalanceValue">—</span> credit
+                            </span>
+                            <span class="text-text-primary text-sm">
+                                @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
+                                  ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
+                                  ?? "Kullanıcı")
+                            </span>
+                        }
                         <button class="p-2 hover:bg-surface rounded-lg transition-colors duration-200">
                             <i class="fas fa-history text-text-secondary hover:text-text-primary"></i>
                         </button>

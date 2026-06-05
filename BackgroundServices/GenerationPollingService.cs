@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using SelfAI.Entities;
 using SelfAI.Hubs;
 using SelfAI.Services.Interfaces;
 using System.Collections.Concurrent;
@@ -114,6 +115,10 @@ namespace SelfAI.BackgroundServices
                         ResultType.Timeout => "GenerationTimeout",
                         _ => "GenerationCompleted"
                     };
+
+                    // Önce DB Generation status'unu güncelle, sonra teslim et.
+                    // (Sıralama önemli: push başarısız olsa bile DB tutarlı kalır.)
+                    await UpdateGenerationStatusAsync(result.GenerationId, result.Type);
 
                     // Sadece o anda bağlanan bağlantıya teslim et (anlık reconnect teslimatı)
                     await _hubContext.Clients.Client(connectionId)
@@ -289,6 +294,10 @@ namespace SelfAI.BackgroundServices
             {
                 try
                 {
+                    // Önce DB Generation status'unu güncelle, sonra push et.
+                    // (Sıralama önemli: push başarısız olsa bile DB tutarlı kalır.)
+                    await UpdateGenerationStatusAsync(job.GenerationId, type);
+
                     await _hubContext.Clients.User(job.UserId)
                         .SendAsync(method, data);
                     delivered = true;
@@ -337,6 +346,42 @@ namespace SelfAI.BackgroundServices
                 {
                     _pendingResults.TryRemove(kvp.Key, out _);
                 }
+            }
+        }
+
+        /// <summary>
+        /// 🆕 Polling sonuçlandığında DB'deki Generation kaydının status'unu günceller.
+        /// Singleton servis olduğu için scoped IGenerationLogService'i scope açarak çözer
+        /// (mevcut CheckGenerationStatus'taki _serviceProvider.CreateScope() kalıbıyla aynı).
+        /// DB güncellemesi başarısız olursa SignalR push akışını engellemez — sadece uyarı loglanır.
+        /// </summary>
+        private async Task UpdateGenerationStatusAsync(string renderNetGenerationId, ResultType type)
+        {
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var logService = scope.ServiceProvider.GetRequiredService<IGenerationLogService>();
+
+                var status = type switch
+                {
+                    ResultType.Completed => GenerationStatus.Completed,
+                    ResultType.Failed => GenerationStatus.Failed,
+                    ResultType.Timeout => GenerationStatus.Failed,
+                    _ => GenerationStatus.Completed
+                };
+
+                await logService.UpdateStatusAsync(renderNetGenerationId, status);
+
+                _logger.LogInformation(
+                    "DB Generation status güncellendi. | GenerationId: {GenId} | Status: {Status}",
+                    renderNetGenerationId, status);
+            }
+            catch (Exception ex)
+            {
+                // DB güncellemesi başarısız olursa SignalR push'u engelleme — sadece uyarı logla.
+                _logger.LogWarning(ex,
+                    "DB Generation status güncellenemedi (SignalR push devam ediyor). | GenerationId: {GenId}",
+                    renderNetGenerationId);
             }
         }
     }

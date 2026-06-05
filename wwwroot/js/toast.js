@@ -209,6 +209,29 @@ async function apiFetch(url, options = {}) {
             return null;
         }
 
+        // 🆕 Yetersiz kredi — sunucu 402 döner.
+        // Mevcut/gerekli kredi bilgisini içeren uyarı göster, generation başlatma.
+        if (response.status === 402) {
+            let currentBalance = '?';
+            let requiredCredits = '?';
+            let message = 'Yetersiz kredi.';
+            try {
+                const data = await response.json();
+                if (data.currentBalance !== undefined) currentBalance = data.currentBalance;
+                if (data.requiredCredits !== undefined) requiredCredits = data.requiredCredits;
+                if (data.message) message = data.message;
+            } catch {
+                // JSON parse edilemezse varsayılan mesajlar kullanılır
+            }
+
+            Toast.warning(
+                `Yetersiz kredi! Mevcut: ${currentBalance}, gerekli: ${requiredCredits}. Lütfen planınızı yükseltin.`,
+                'Yetersiz Kredi'
+            );
+            console.warn(`[API 402] ${url}: ${message}`);
+            return null;
+        }
+
         // HTTP durum kodu kontrolü
         if (!response.ok) {
             // Sunucu JSON hata mesajı döndüyse oku

@@ -174,10 +174,35 @@
 
         if (result && result.generationId) {
             Toast.info('Görsel oluşturuluyor, lütfen bekleyin...', 'İşleniyor');
+            // Kredi düşüldü — top bar bakiyesini güncelle (sunucu currentBalance döndü)
+            refreshCreditBalance();
             // SignalR bildirim gönderecek, bekliyoruz...
         } else {
             ImageControls.showDefaultState();
             ImageControls.setGenerateButtonState(false);
+        }
+    }
+
+    // ═══════════════════════════════════════════════
+    // KREDİ BAKİYESİ GÖSTERGESİ (top bar)
+    // ═══════════════════════════════════════════════
+
+    // Sunucudan güncel bakiyeyi çekip top bar'daki göstergeyi günceller.
+    // Hatalar sessizce yutulur — bakiye göstergesi kritik akış değil.
+    async function refreshCreditBalance() {
+        const valueEl = document.getElementById('creditBalanceValue');
+        if (!valueEl) return; // Kullanıcı login değilse gösterge yok
+
+        try {
+            const response = await fetch('/Account/Balance');
+            if (response.ok) {
+                const data = await response.json();
+                if (data.success && data.balance !== undefined) {
+                    valueEl.textContent = data.balance;
+                }
+            }
+        } catch (err) {
+            console.error('Balance refresh hatası:', err);
         }
     }
 
@@ -254,10 +279,16 @@
     return {
         init,
         resetAll,
-        getConnectionId
+        getConnectionId,
+        refreshCreditBalance
     };
 })();
 
 document.addEventListener('DOMContentLoaded', function () {
     App.init();
+
+    // Sayfa yüklenince kredi bakiyesini çek (gösterge varsa)
+    if (document.getElementById('creditBalance')) {
+        App.refreshCreditBalance();
+    }
 });

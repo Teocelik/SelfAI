@@ -19,15 +19,19 @@ namespace SelfAI.Controllers
         private readonly IRenderNetGenerationService _renderNetGenerationService;
         private readonly IRenderNetResourcesService _renderNetResourcesService;
         private readonly IRenderNetCharacterService _renderNetCharacterService;
+        private readonly ICreditService _creditService;
+        private readonly IGenerationLogService _generationLogService;
         private readonly ILogger<RenderNetController> _logger;
         private readonly GenerationPollingService _pollingService;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, IRenderNetCharacterService renderNetCharacterService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, IRenderNetCharacterService renderNetCharacterService, ICreditService creditService, IGenerationLogService generationLogService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
             _renderNetResourcesService = renderNetResourcesService;
             _renderNetCharacterService = renderNetCharacterService;
+            _creditService = creditService;
+            _generationLogService = generationLogService;
             _logger = logger;
             _pollingService = pollingService;
         }
@@ -45,36 +49,101 @@ namespace SelfAI.Controllers
         MediaGenerationRequestDto requestDto,
         [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId)
         {
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if (string.IsNullOrEmpty(userId))
+            // 1. Auth — Firebase UID (SignalR routing için) + AppUser.Id (DB / cüzdan için)
+            var firebaseUid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var appUserIdStr = User.FindFirst("AppUserId")?.Value;
+
+            if (string.IsNullOrEmpty(firebaseUid) || !Guid.TryParse(appUserIdStr, out var appUserId))
             {
-                _logger.LogWarning("GenerateImage: Authenticated kullanıcı bulunamadı.");
+                _logger.LogWarning("GenerateImage: Authenticated kullanıcı bulunamadı veya AppUserId claim eksik.");
                 return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
             }
 
+            // 2. SignalR connectionId guard
             if (string.IsNullOrWhiteSpace(connectionId))
             {
                 _logger.LogWarning(
                     "GenerateImage isteği eksik connectionId ile geldi. | UserId: {Uid}",
-                    userId);
+                    firebaseUid);
                 return BadRequest(new { success = false, message = "SignalR bağlantı bilgisi eksik. Lütfen sayfayı yenileyin." });
             }
 
-            var result = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
+            // 3. Cost hesabı: model+style çifti sayısı, minimum 1
+            var cost = CalculateGenerationCost(requestDto);
 
-            if (!result.IsSuccess)
-                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
+            // 4. ATOMİK CREDIT DÜŞÜM
+            var deductResult = await _creditService.TryDeductAsync(
+                appUserId,
+                cost,
+                $"Generation isteği ({cost} credit)");
 
-            var generationId = result.Data.Data.GenerationId;
+            if (!deductResult.IsSuccess)
+            {
+                // 402 Payment Required — frontend bunu görüp "yetersiz kredi" gösterir
+                return StatusCode(deductResult.StatusCode, new
+                {
+                    success = false,
+                    message = deductResult.Message,
+                    currentBalance = await _creditService.GetBalanceAsync(appUserId),
+                    requiredCredits = cost
+                });
+            }
 
-            _pollingService.AddJob(generationId, userId, connectionId);
+            // 5. RenderNet API çağrısı
+            var genResult = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
+
+            if (!genResult.IsSuccess)
+            {
+                // API hatası — REFUND
+                await _creditService.RefundAsync(
+                    appUserId,
+                    cost,
+                    $"RenderNet API hatası: {genResult.Message}");
+
+                _logger.LogWarning(
+                    "RenderNet API hatası, credit iade edildi. | UserId: {Uid} | Amount: {Cost}",
+                    appUserId, cost);
+
+                return StatusCode(genResult.StatusCode, new { success = false, message = genResult.Message });
+            }
+
+            var generationId = genResult.Data.Data.GenerationId;
+
+            // 6. Generation kayıt (DB)
+            await _generationLogService.CreateAsync(
+                appUserId,
+                generationId,
+                cost,
+                requestDto.PositivePrompt);
+
+            // 7. Polling job (Firebase UID ile — SignalR routing C.3'te bu şekilde kuruldu)
+            _pollingService.AddJob(generationId, firebaseUid, connectionId);
+
+            // 8. Yeni bakiyeyi response'a ekle (frontend UI güncellemesi için)
+            var newBalance = await _creditService.GetBalanceAsync(appUserId);
 
             return Ok(new
             {
                 success = true,
-                message = result.Message,
-                generationId = generationId
+                message = genResult.Message,
+                generationId = generationId,
+                cost = cost,
+                currentBalance = newBalance
             });
+        }
+
+        // Generation maliyetini hesaplar: seçilen model/style çiftlerinin sayısı, minimum 1.
+        private static int CalculateGenerationCost(MediaGenerationRequestDto dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Model))
+                return 1;
+
+            var modelCount = dto.Model.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
+            var styleCount = string.IsNullOrWhiteSpace(dto.Style)
+                ? 0
+                : dto.Style.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
+
+            return Math.Max(Math.Max(modelCount, styleCount), 1);
         }
 
 
