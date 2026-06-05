@@ -1,0 +1,86 @@
+@{
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+    ViewData["Title"] = "Giriş Yap - SelfAI";
+    var returnUrl = ViewBag.ReturnUrl as string;
+}
+
+<div class="auth-split">
+
+    <!-- ═══════════════ SOL HERO ═══════════════ -->
+    <section class="auth-hero">
+        <div class="auth-hero-inner">
+            <div class="auth-brand">
+                <i class="fas fa-wand-magic-sparkles auth-brand-icon"></i>
+                <span class="auth-brand-name">SelfAI</span>
+            </div>
+
+            <p class="auth-tagline">Vizyonun, saniyeler içinde görsel.</p>
+
+            <div class="auth-showcase">
+                <div class="glass-card--showcase">
+                    <i class="fas fa-camera-retro"></i>
+                    <h3>Karakter Oluştur</h3>
+                </div>
+                <div class="glass-card--showcase">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <h3>AI Görsel Üret</h3>
+                </div>
+                <div class="glass-card--showcase">
+                    <i class="fas fa-star"></i>
+                    <h3>Stilini Yansıt</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════ SAĞ FORM ═══════════════ -->
+    <section class="auth-form">
+        <div class="auth-card glass-card--elevated">
+            <h1 class="auth-heading">SelfAI'a Hoş Geldin</h1>
+            <p class="auth-subtitle">
+                Hesabın yok mu? E-posta ile giriş yaparsan otomatik oluşur.
+            </p>
+
+            <!-- Google ile giriş (firebase-auth-google.js #googleLoginBtn click'ine bağlanır) -->
+            <button type="button" id="googleLoginBtn" class="glass-button-secondary google-btn">
+                <img src="https://developers.google.com/identity/images/g-logo.png"
+                     alt="" width="20" height="20" />
+                <span>Google ile Giriş Yap</span>
+            </button>
+
+            <div class="auth-divider"><span>veya</span></div>
+
+            <!-- E-posta link akışı (firebase-auth-link.js #emailLoginForm submit'ine bağlanır) -->
+            <form id="emailLoginForm" class="auth-email-form" novalidate>
+                <input type="email"
+                       id="userEmail"
+                       class="glass-input"
+                       placeholder="E-posta adresin"
+                       autocomplete="email"
+                       required />
+
+                <button type="submit" id="emailLoginBtn" class="glass-button-primary">
+                    E-posta ile Bağlantı Gönder
+                </button>
+
+                <input type="hidden" id="returnUrl" value="@returnUrl" />
+            </form>
+
+            <p class="auth-legal">
+                Giriş yaparak Kullanım Koşulları ve Gizlilik Politikası'nı kabul edersin.
+            </p>
+        </div>
+    </section>
+
+</div>
+
+@section Scripts {
+    <!-- Firebase compat SDK (firebase-init.js bunlara bağımlı) -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+
+    <script src="~/js/firebase-init.js"></script>
+    <script src="~/js/firebase-auth-google.js"></script>
+    <script src="~/js/firebase-auth-link.js"></script>
+    <script src="~/js/login.js"></script>
+}

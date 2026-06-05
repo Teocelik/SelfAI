@@ -83,12 +83,18 @@ builder.Services.AddScoped<IGenerationLogService, GenerationLogService>();
 // Paket listeleme servisi — Pricing sayfası aktif paketleri buradan çeker (DbContext scoped).
 builder.Services.AddScoped<IPackageService, PackageService>();
 
+// Abonelik yaşam döngüsü: başlatma/aktivasyon/iptal + cüzdan top-up (DbContext scoped).
+builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+
+// Iyzico CheckoutForm ödeme servisi — mevcut IyzicoOptions config'ini kullanır (D.3.2).
+builder.Services.AddScoped<IIyzicoService, IyzicoService>();
+
 // ═══ Cookie Authentication ═══
 // Firebase ile doğrulanan kullanıcı için server-side oturum çerezi. Endpoint'ler C.2'de bağlanacak.
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        options.LoginPath = "/Home/Index";
+        options.LoginPath = "/Account/Login";
         options.LogoutPath = "/Account/Logout";
         options.AccessDeniedPath = "/Account/AccessDenied";
         options.ExpireTimeSpan = TimeSpan.FromDays(30);
@@ -127,6 +133,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddSingleton<GenerationPollingService>();
 builder.Services.AddHostedService(provider =>
     provider.GetRequiredService<GenerationPollingService>());
+
+// Subscription Lifecycle Service (Hosted) — saatte bir: süresi dolan Active'leri Expired yapar,
+// stale Pending subscription/payment'ları temizler. Scoped DbContext'i scope factory ile kullanır (D.3.3).
+builder.Services.AddHostedService<SubscriptionLifecycleService>();
 
 // RenderNet API ayarlar�n� yap�land�rma(konfig�rasyon)
 builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
@@ -176,9 +186,13 @@ app.MapHub<GenerationHub>("/generationHub");
 //        name: "default",
 //        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
 
+//app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Home}/{action=Index}");
+
 app.MapControllerRoute(
         name: "default",
-        pattern: "{controller=Home}/{action=Index}");
+        pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
 

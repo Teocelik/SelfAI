@@ -32,6 +32,21 @@ namespace SelfAI.Controllers
             return View();
         }
 
+        // Dedicated full-page login (Affogato-style). Anonim kullanıcının giriş noktası.
+        [HttpGet]
+        [AllowAnonymous]
+        public IActionResult Login(string? returnUrl = null)
+        {
+            // Zaten giriş yapmış kullanıcı doğrudan studio'ya yönlendirilir.
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return Redirect(string.IsNullOrEmpty(returnUrl) ? "/RenderNet/Index" : returnUrl);
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            return View();
+        }
+
         // Frontend'den gelen Firebase ID token'ını doğrular ve başarılıysa auth çerezi kurar.
         [HttpPost]
         [IgnoreAntiforgeryToken]

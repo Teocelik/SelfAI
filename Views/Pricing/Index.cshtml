@@ -124,15 +124,53 @@
 @section Scripts {
     <script>
         document.querySelectorAll('.subscribe-btn').forEach(btn => {
-            btn.addEventListener('click', function () {
-                const packageName = this.dataset.packageName;
-                const packagePrice = this.dataset.packagePrice;
+            btn.addEventListener('click', async function () {
+                const packageId = this.dataset.packageId;
 
-                // D.3.2'de Iyzico checkout'a yönlendirilecek
-                if (typeof Toast !== 'undefined') {
-                    Toast.info(`${packageName} paketi (₺${packagePrice}/ay) yakında satışa açılacak!`);
-                } else {
-                    alert(`${packageName} paketi yakında satışa açılacak.`);
+                if (!packageId || packageId === '0') {
+                    return;
+                }
+
+                this.disabled = true;
+                this.textContent = 'Yönlendiriliyor...';
+
+                try {
+                    const response = await fetch('/Pricing/Subscribe', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ packageId: parseInt(packageId) })
+                    });
+
+                    if (response.status === 401) {
+                        // Anonim kullanıcı — login'e yönlendir
+                        const returnUrl = encodeURIComponent('/Pricing');
+                        window.location.href = `/Home/Index?returnUrl=${returnUrl}`;
+                        return;
+                    }
+
+                    const data = await response.json();
+
+                    if (response.ok && data.paymentPageUrl) {
+                        // Iyzico checkout sayfasına yönlendir
+                        window.location.href = data.paymentPageUrl;
+                    } else {
+                        if (typeof Toast !== 'undefined') {
+                            Toast.error(data.message || 'Bir hata oluştu.');
+                        } else {
+                            alert(data.message || 'Bir hata oluştu.');
+                        }
+                        this.disabled = false;
+                        this.textContent = 'Abone Ol';
+                    }
+                } catch (err) {
+                    console.error('Subscribe hatası:', err);
+                    if (typeof Toast !== 'undefined') {
+                        Toast.error('Bağlantı hatası, lütfen tekrar deneyin.');
+                    } else {
+                        alert('Bağlantı hatası, lütfen tekrar deneyin.');
+                    }
+                    this.disabled = false;
+                    this.textContent = 'Abone Ol';
                 }
             });
         });

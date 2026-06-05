@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Ödeme Başarılı";
+    Layout = "_Layout";
+}
+
+<div class="min-h-[60vh] flex items-center justify-center px-4">
+    <div class="bg-[#1E1E1E] border border-[#00CED1]/50 rounded-2xl p-8 max-w-md text-center">
+        <i class="fas fa-check-circle text-6xl text-[#00CED1] mb-4"></i>
+        <h1 class="text-2xl font-bold text-white mb-2">Ödeme Başarılı!</h1>
+        <p class="text-gray-300 mb-6">
+            @if (!string.IsNullOrEmpty(ViewBag.PackageName as string))
+            {
+                <span>@ViewBag.PackageName paketiniz aktif edildi. Hemen kullanmaya başlayabilirsiniz.</span>
+            }
+            else
+            {
+                <span>Aboneliğiniz aktif edildi.</span>
+            }
+        </p>
+        <a asp-controller="RenderNet" asp-action="Index"
+           class="inline-block bg-[#00CED1] text-black px-6 py-3 rounded-lg font-semibold hover:bg-[#00B8BC] transition-colors">
+            Üretime Başla
+        </a>
+    </div>
+</div>

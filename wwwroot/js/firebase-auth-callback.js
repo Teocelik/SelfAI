@@ -26,7 +26,7 @@ if (auth.isSignInWithEmailLink(window.location.href)) {
                 // Açık yönlendirme koruması: yalnızca site içi göreli yollara izin ver.
                 const params = new URLSearchParams(window.location.search);
                 const raw = params.get('returnUrl');
-                const returnUrl = (raw && raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/Home/Index';
+                const returnUrl = (raw && raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/RenderNet/Index';
                 window.location.href = returnUrl;
             } else {
                 return response.json().then(err => {

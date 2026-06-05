@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- ═══ CSS ═══ -->
+    <!-- main.css: derlenmiş Tailwind (utility class'lar). login.css: Liquid Glass auth tokenları + component'leri. -->
+    <link rel="stylesheet" href="~/css/main.css" />
+    <link rel="stylesheet" href="~/css/login.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          rel="stylesheet" />
+
+    <!-- Sayfaya özel CSS varsa -->
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<!--
+    Minimal auth layout: top nav YOK, credit balance YOK, user menu YOK.
+    Body viewport'u doldurur, page-bg (radial turkuaz gradient) zemini taşır.
+-->
+<body class="page-bg text-text-primary min-h-screen">
+
+    <!-- Toast container (JS bu olmazsa kendisi oluşturur) -->
+    <div id="toastContainer"></div>
+
+    <main role="main">
+        @RenderBody()
+    </main>
+
+    <!-- Minimal footer: copyright + politika linkleri -->
+    <footer class="auth-footer">
+        <span>&copy; @DateTime.Now.Year SelfAI</span>
+        <a href="#">Kullanım Koşulları</a>
+        <a href="#">Gizlilik Politikası</a>
+    </footer>
+
+    <!-- ═══ JS ═══ -->
+    <!-- toast.js diğer script'lerden önce (login.js Toast'ı kullanır) -->
+    <script src="~/js/toast.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

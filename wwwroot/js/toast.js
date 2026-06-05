@@ -204,7 +204,7 @@ async function apiFetch(url, options = {}) {
             Toast.warning('Giriş yapmanız gerekiyor, yönlendiriliyorsunuz...', 'Giriş Gerekli');
             const returnUrl = encodeURIComponent(window.location.pathname + window.location.search);
             setTimeout(() => {
-                window.location.href = `/Home/Index?returnUrl=${returnUrl}`;
+                window.location.href = `/Account/Login?returnUrl=${returnUrl}`;
             }, 1000); // kullanıcı toast'u görsün diye 1sn gecikme
             return null;
         }

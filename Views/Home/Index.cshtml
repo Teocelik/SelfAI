@@ -109,12 +109,14 @@
                     }
                     else
                     {
-                        <button id="loginRegisterBtn"
-                                class="btn gradient-btn"
-                                data-bs-toggle="modal"
-                                data-bs-target="#signupModal">
+                        @* F.2: Modal trigger yerine dedicated login sayfasına link.
+                           #signupModal HTML'i aşağıda AYNEN duruyor (F.0'da temizlenecek),
+                           sadece doğal giriş yolu artık /Account/Login. *@
+                        <a asp-controller="Account"
+                           asp-action="Login"
+                           class="btn gradient-btn">
                             Kaydol / Giriş Yap
-                        </button>
+                        </a>
                     }
                 </li>
             </ul>

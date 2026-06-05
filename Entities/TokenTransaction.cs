@@ -6,7 +6,8 @@ namespace SelfAI.Entities
         MonthlyReset = 2,      // Subscription yenilenince (D.3'te)
         GenerationDebit = 3,   // Generate harcaması (D.2'de kullanılacak)
         GenerationRefund = 4,  // Affogato hata olursa iade (D.2'de)
-        ManualAdjust = 5       // Admin tarafından elle düzeltme
+        ManualAdjust = 5,      // Admin tarafından elle düzeltme
+        SubscriptionGrant = 6  // Abonelik ödemesi sonrası kredi yüklemesi (D.3.2'de)
     }
 
     public class TokenTransaction

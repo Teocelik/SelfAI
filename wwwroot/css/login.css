@@ -1,0 +1,453 @@
+/* ============================================================
+   login.css — F.2 Dedicated Login (Liquid Glass)
+   Tüm değerler design-tokens.md PART 2'den (authoritative).
+   Self-contained: kendi token'larını tanımlar, main.css'e bağımlı değil.
+   ============================================================ */
+
+:root {
+    /* ─── Temel (opak) renkler ─── */
+    --lg-bg: #0A0A0A;
+    --lg-bg-gradient: radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%);
+
+    --lg-accent: #00CED1;
+    --lg-accent-hover: #00B8BC;
+    --lg-accent-bright: #2FE4E7;
+
+    /* ─── Metin ─── */
+    --lg-text-primary: #FAFAFA;
+    --lg-text-secondary: rgba(255, 255, 255, 0.65);
+    --lg-text-muted: rgba(255, 255, 255, 0.45);
+
+    /* ─── Cam yüzeyler (beyaz alpha — varsayılan) ─── */
+    --glass-surface-base: rgba(255, 255, 255, 0.04);
+    --glass-surface-elevated: rgba(255, 255, 255, 0.08);
+    --glass-surface-hover: rgba(255, 255, 255, 0.12);
+    --glass-surface-active: rgba(255, 255, 255, 0.16);
+
+    /* ─── Backdrop blur ölçeği ─── */
+    --blur-light: 8px;
+    --blur-medium: 16px;
+    --blur-heavy: 24px;
+
+    /* ─── Cam kenarlar ─── */
+    --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-border-medium: 1px solid rgba(255, 255, 255, 0.14);
+    --glass-border-accent: 1px solid rgba(0, 206, 209, 0.40);
+
+    /* ─── Glow ─── */
+    --glow-accent-soft: 0 0 24px rgba(0, 206, 209, 0.15);
+    --glow-accent-medium: 0 0 40px rgba(0, 206, 209, 0.25);
+    --glow-accent-intense: 0 0 60px rgba(0, 206, 209, 0.40);
+
+    /* ─── Gradient overlay'lar ─── */
+    --glass-overlay-top: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.00) 40%);
+    --glass-gradient-accent: linear-gradient(135deg, rgba(0, 206, 209, 0.25) 0%, rgba(0, 206, 209, 0.10) 100%);
+}
+
+/* ─── Page background (radial turkuaz aurora) ─── */
+.page-bg {
+    background: var(--lg-bg-gradient);
+    background-attachment: fixed;
+    color: var(--lg-text-primary);
+}
+
+/* ============================================================
+   LAYOUT — split (md+ iki kolon, mobile stack)
+   ============================================================ */
+.auth-split {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+@media (min-width: 768px) {
+    .auth-split {
+        flex-direction: row;
+    }
+}
+
+/* ─── Sol hero ─── */
+.auth-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 48px 32px;
+}
+
+@media (min-width: 768px) {
+    .auth-hero {
+        width: 50%;
+        padding: 64px 56px;
+    }
+}
+
+.auth-hero-inner {
+    width: 100%;
+    max-width: 460px;
+}
+
+.auth-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+.auth-brand-icon {
+    font-size: 32px;
+    color: var(--lg-accent);
+    filter: drop-shadow(0 0 12px rgba(0, 206, 209, 0.5));
+}
+
+.auth-brand-name {
+    font-size: 34px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--lg-text-primary);
+}
+
+.auth-tagline {
+    font-size: 20px;
+    line-height: 1.5;
+    color: var(--lg-text-secondary);
+    margin-bottom: 40px;
+}
+
+.auth-showcase {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 767px) {
+    .auth-showcase {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ─── Sağ form alanı ─── */
+.auth-form {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    padding: 32px;
+}
+
+@media (min-width: 768px) {
+    .auth-form {
+        width: 50%;
+        padding: 48px;
+    }
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 28rem; /* max-w-md */
+    padding: 40px;
+}
+
+@media (max-width: 767px) {
+    .auth-card {
+        padding: 28px 24px;
+    }
+}
+
+/* ============================================================
+   GLASS CARD — base + top-edge highlight
+   ============================================================ */
+.glass-card--elevated,
+.glass-card--showcase {
+    position: relative;
+    background-image: var(--glass-overlay-top);
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* top-edge highlight (::before mask trick) — kart/modal varsayılanı */
+.glass-card--elevated::before,
+.glass-card--showcase::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 35%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+
+/* Form kartı — yüksek elevation + blur(24px) */
+.glass-card--elevated {
+    background-color: var(--glass-surface-elevated);
+    backdrop-filter: blur(var(--blur-heavy));
+    -webkit-backdrop-filter: blur(var(--blur-heavy));
+    border: var(--glass-border-medium);
+    box-shadow: 0 24px 64px rgba(0, 0, 0, 0.55), var(--glow-accent-soft);
+}
+
+/* Showcase kartları — standart yüzey + hover lift/glow */
+.glass-card--showcase {
+    background-color: var(--glass-surface-base);
+    backdrop-filter: blur(var(--blur-medium));
+    -webkit-backdrop-filter: blur(var(--blur-medium));
+    border: var(--glass-border-medium);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 24px 14px;
+    text-align: center;
+}
+
+.glass-card--showcase i {
+    font-size: 24px;
+    color: var(--lg-accent);
+}
+
+.glass-card--showcase h3 {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--lg-text-primary);
+    margin: 0;
+}
+
+.glass-card--showcase:hover {
+    background-color: var(--glass-surface-hover);
+    border-color: rgba(0, 206, 209, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), var(--glow-accent-soft);
+    transform: translateY(-3px) scale(1.02);
+}
+
+/* ============================================================
+   FORM İÇERİĞİ
+   ============================================================ */
+.auth-heading {
+    font-size: 30px; /* text-3xl */
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--lg-text-primary);
+    margin: 0;
+}
+
+.auth-subtitle {
+    font-size: 14px;
+    color: var(--lg-text-secondary);
+    margin-top: 8px;
+    margin-bottom: 28px;
+}
+
+.auth-email-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.auth-legal {
+    font-size: 12px;
+    color: var(--lg-text-muted);
+    margin-top: 22px;
+    line-height: 1.5;
+}
+
+/* ─── Divider "veya" ─── */
+.auth-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 22px 0;
+    color: var(--lg-text-muted);
+    font-size: 13px;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.auth-divider span {
+    padding: 0 14px;
+}
+
+/* ============================================================
+   GLASS INPUT
+   ============================================================ */
+.glass-input {
+    width: 100%;
+    background: var(--glass-surface-base);
+    backdrop-filter: blur(var(--blur-light));
+    -webkit-backdrop-filter: blur(var(--blur-light));
+    border: var(--glass-border-subtle);
+    border-radius: 12px;
+    padding: 12px 16px;
+    color: var(--lg-text-primary);
+    font-size: 15px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-input::placeholder {
+    color: var(--lg-text-muted);
+}
+
+.glass-input:focus {
+    outline: none;
+    background: var(--glass-surface-hover);
+    border-color: rgba(0, 206, 209, 0.50);
+    box-shadow: var(--glow-accent-soft);
+}
+
+/* ============================================================
+   GLASS BUTTONS
+   ============================================================ */
+.glass-button-primary {
+    position: relative;
+    width: 100%;
+    background: var(--glass-gradient-accent);
+    backdrop-filter: blur(var(--blur-light));
+    -webkit-backdrop-filter: blur(var(--blur-light));
+    border: var(--glass-border-accent);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: var(--lg-text-primary);
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: var(--glow-accent-soft);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-button-primary:hover {
+    background: linear-gradient(135deg, rgba(0, 206, 209, 0.35), rgba(0, 206, 209, 0.18));
+    box-shadow: var(--glow-accent-medium);
+    transform: scale(1.02);
+}
+
+.glass-button-primary:active {
+    transform: scale(0.99);
+    box-shadow: var(--glow-accent-intense);
+}
+
+.glass-button-primary:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+}
+
+.glass-button-secondary {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: var(--glass-surface-base);
+    backdrop-filter: blur(var(--blur-light));
+    -webkit-backdrop-filter: blur(var(--blur-light));
+    border: var(--glass-border-medium);
+    border-radius: 12px;
+    padding: 12px 24px;
+    color: var(--lg-text-secondary);
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.glass-button-secondary:hover {
+    background: var(--glass-surface-hover);
+    border-color: rgba(0, 206, 209, 0.30);
+    color: var(--lg-text-primary);
+    box-shadow: var(--glow-accent-soft);
+}
+
+/* Google butonu override — beyaz zemin, siyah metin, Google logosu */
+.glass-button-secondary.google-btn {
+    background: #FFFFFF;
+    color: #1F1F1F;
+    border-color: rgba(255, 255, 255, 0.85);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+.glass-button-secondary.google-btn:hover {
+    background: #F2F2F2;
+    color: #1F1F1F;
+    border-color: #FFFFFF;
+    box-shadow: var(--glow-accent-soft);
+}
+
+.glass-button-secondary.google-btn img {
+    display: block;
+}
+
+/* ============================================================
+   FOCUS STATE (kilitli kural — :focus-visible 2px ring + glow)
+   Klavye erişilebilirliği şart; glow tek başına yetersiz.
+   ============================================================ */
+.glass-input:focus-visible,
+.glass-button-primary:focus-visible,
+.glass-button-secondary:focus-visible {
+    outline: none;
+    border-color: rgba(0, 206, 209, 0.50);
+    box-shadow:
+        0 0 0 2px rgba(0, 206, 209, 0.5),
+        var(--glow-accent-medium);
+}
+
+/* Seçilebilir showcase kart için zemin ayraçlı ring */
+.glass-card--showcase:focus-visible {
+    outline: none;
+    box-shadow:
+        0 0 0 2px rgba(10, 10, 10, 1),
+        0 0 0 4px rgba(0, 206, 209, 0.5),
+        var(--glow-accent-soft);
+}
+
+/* ============================================================
+   FOOTER (minimal)
+   ============================================================ */
+.auth-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 20px;
+    padding: 20px 32px;
+    font-size: 12px;
+    color: var(--lg-text-muted);
+}
+
+.auth-footer a {
+    color: var(--lg-text-muted);
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.auth-footer a:hover {
+    color: var(--lg-accent);
+}
+
+/* ============================================================
+   BROWSER FALLBACK — backdrop-filter desteklenmezse opak yüzey
+   ============================================================ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-card--elevated,
+    .glass-card--showcase,
+    .glass-input,
+    .glass-button-primary,
+    .glass-button-secondary {
+        background-color: #16181B;
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .glass-button-secondary.google-btn {
+        background-color: #FFFFFF;
+    }
+}
