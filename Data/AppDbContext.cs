@@ -12,6 +12,7 @@ namespace SelfAI.Data
         public DbSet<TokenWallet> TokenWallets { get; set; }
         public DbSet<TokenTransaction> TokenTransactions { get; set; }
         public DbSet<Generation> Generations { get; set; }
+        public DbSet<GenerationMedia> GenerationMediaItems { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Payment> Payments { get; set; }
 
@@ -64,6 +65,20 @@ namespace SelfAI.Data
                 e.HasOne(g => g.User)
                  .WithMany()
                  .HasForeignKey(g => g.UserId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // GenerationMedia — üretilen görsel/video URL'lerinin kalıcı kaydı (D.4)
+            mb.Entity<GenerationMedia>(e =>
+            {
+                e.HasKey(m => m.Id);
+                e.HasIndex(m => m.GenerationId);
+                e.Property(m => m.Url).IsRequired().HasMaxLength(2048);  // URL'ler uzun olabilir
+                e.Property(m => m.MediaType).IsRequired().HasMaxLength(32);
+
+                e.HasOne(m => m.Generation)
+                 .WithMany(g => g.MediaItems)
+                 .HasForeignKey(m => m.GenerationId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
 

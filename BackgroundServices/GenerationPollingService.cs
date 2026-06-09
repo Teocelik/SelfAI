@@ -119,6 +119,7 @@ namespace SelfAI.BackgroundServices
                     // Önce DB Generation status'unu güncelle, sonra teslim et.
                     // (Sıralama önemli: push başarısız olsa bile DB tutarlı kalır.)
                     await UpdateGenerationStatusAsync(result.GenerationId, result.Type);
+                    await SaveMediaItemsAsync(result.GenerationId, result.MediaUrls);
 
                     // Sadece o anda bağlanan bağlantıya teslim et (anlık reconnect teslimatı)
                     await _hubContext.Clients.Client(connectionId)
@@ -237,7 +238,13 @@ namespace SelfAI.BackgroundServices
                         }).ToList()
                     };
 
-                    await HandleJobResult(job, ResultType.Completed, completedData);
+                    // DB'ye yazılacak URL'ler — SignalR push'a giden ile aynı kaynak ve sıra.
+                    var mediaUrls = media
+                        .Select(m => m.Url)
+                        .Where(u => !string.IsNullOrWhiteSpace(u))
+                        .ToList();
+
+                    await HandleJobResult(job, ResultType.Completed, completedData, mediaUrls);
                     _activeJobs.TryRemove(job.GenerationId, out _);
                     return;
                 }
@@ -270,7 +277,7 @@ namespace SelfAI.BackgroundServices
         /// <summary>
         /// 🆕 Job sonucunu işle: SignalR ile gönder veya pending'e kaydet
         /// </summary>
-        private async Task HandleJobResult(PollingJob job, ResultType type, object data)
+        private async Task HandleJobResult(PollingJob job, ResultType type, object data, IEnumerable<string> mediaUrls = null)
         {
             string method = type switch
             {
@@ -297,6 +304,7 @@ namespace SelfAI.BackgroundServices
                     // Önce DB Generation status'unu güncelle, sonra push et.
                     // (Sıralama önemli: push başarısız olsa bile DB tutarlı kalır.)
                     await UpdateGenerationStatusAsync(job.GenerationId, type);
+                    await SaveMediaItemsAsync(job.GenerationId, mediaUrls);
 
                     await _hubContext.Clients.User(job.UserId)
                         .SendAsync(method, data);
@@ -326,6 +334,7 @@ namespace SelfAI.BackgroundServices
                     GenerationId = job.GenerationId,
                     Type = type,
                     Data = data,
+                    MediaUrls = mediaUrls?.ToList(),   // reconnect'te DB'ye yazmak için sakla
                     CompletedAt = DateTime.UtcNow
                 });
             }
@@ -384,6 +393,39 @@ namespace SelfAI.BackgroundServices
                     renderNetGenerationId);
             }
         }
+
+        /// <summary>
+        /// 🆕 (D.4) Üretilen görsel/video URL'lerini DB'ye kalıcı olarak yazar.
+        /// UpdateGenerationStatusAsync ile aynı kalıp: singleton servis olduğu için scope açar.
+        /// Idempotency GenerationLogService tarafında — bu yüzden reconnect/race'te duplicate olmaz.
+        /// DB hatası SignalR push akışını engellemez (eventually-consistent) — sadece loglanır.
+        /// </summary>
+        private async Task SaveMediaItemsAsync(string renderNetGenerationId, IEnumerable<string> urls)
+        {
+            if (urls == null || !urls.Any()) return;
+
+            try
+            {
+                using var scope = _serviceProvider.CreateScope();
+                var logService = scope.ServiceProvider.GetRequiredService<IGenerationLogService>();
+
+                var result = await logService.SaveMediaItemsAsync(renderNetGenerationId, urls, "image");
+
+                if (!result.IsSuccess)
+                {
+                    _logger.LogWarning(
+                        "Media kaydedilemedi. | GenerationId: {GenId} | Reason: {Reason}",
+                        renderNetGenerationId, result.Message);
+                }
+            }
+            catch (Exception ex)
+            {
+                // DB hatası SignalR push'unu engellemesin
+                _logger.LogError(ex,
+                    "Media kaydetme istisnası. | GenerationId: {GenId}",
+                    renderNetGenerationId);
+            }
+        }
     }
 
     // ═══ MODELLER ═══
@@ -402,6 +444,7 @@ namespace SelfAI.BackgroundServices
         public string GenerationId { get; set; }
         public ResultType Type { get; set; }
         public object Data { get; set; }
+        public List<string> MediaUrls { get; set; }   // 🆕 (D.4) reconnect'te DB'ye yazılacak URL'ler
         public DateTime CompletedAt { get; set; }
     }
 

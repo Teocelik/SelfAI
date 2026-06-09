@@ -21,5 +21,6 @@ namespace SelfAI.Entities
 
         // Navigation
         public AppUser User { get; set; }
+        public ICollection<GenerationMedia> MediaItems { get; set; } = new List<GenerationMedia>();
     }
 }

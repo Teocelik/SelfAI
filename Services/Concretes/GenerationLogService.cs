@@ -50,5 +50,73 @@ namespace SelfAI.Services.Concretes
 
             return ServiceResult<int>.Success(rowsAffected, $"Status güncellendi: {status}");
         }
+
+        public async Task<ServiceResult<int>> SaveMediaItemsAsync(
+            string renderNetGenerationId,
+            IEnumerable<string> urls,
+            string mediaType = "image")
+        {
+            if (string.IsNullOrWhiteSpace(renderNetGenerationId))
+            {
+                return ServiceResult<int>.Failure("Generation ID geçersiz.", 400);
+            }
+
+            if (urls == null || !urls.Any())
+            {
+                return ServiceResult<int>.Failure("URL listesi boş.", 400);
+            }
+
+            // Generation kaydını bul
+            var generation = await _db.Generations
+                .FirstOrDefaultAsync(g => g.RenderNetGenerationId == renderNetGenerationId);
+
+            if (generation == null)
+            {
+                _logger.LogWarning(
+                    "Media kaydedilemedi — Generation bulunamadı. | RenderNetId: {RenderNetId}",
+                    renderNetGenerationId);
+                return ServiceResult<int>.Failure("Generation bulunamadı.", 404);
+            }
+
+            // Idempotency: aynı generation için zaten media kaydı varsa tekrar yazma.
+            // D.2.5'te HandleJobResult ve DeliverPendingResults iki ayrı noktadan
+            // tetiklenebilir (reconnect/race), duplicate kayıt olmamalı.
+            var existingCount = await _db.GenerationMediaItems
+                .CountAsync(m => m.GenerationId == generation.Id);
+
+            if (existingCount > 0)
+            {
+                _logger.LogInformation(
+                    "Media zaten kaydedilmiş, atlanıyor. | GenId: {GenId} | ExistingCount: {Count}",
+                    generation.Id, existingCount);
+                return ServiceResult<int>.Success(existingCount, "Media zaten mevcut.");
+            }
+
+            // Media item'ları sırayla kaydet (Order ile multi-model sıralaması korunur)
+            var urlList = urls.ToList();
+            var mediaItems = new List<GenerationMedia>();
+
+            for (int i = 0; i < urlList.Count; i++)
+            {
+                mediaItems.Add(new GenerationMedia
+                {
+                    Id = Guid.NewGuid(),
+                    GenerationId = generation.Id,
+                    Url = urlList[i],
+                    MediaType = mediaType,
+                    Order = i,
+                    CreatedAt = DateTime.UtcNow
+                });
+            }
+
+            _db.GenerationMediaItems.AddRange(mediaItems);
+            await _db.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Media kayıtları oluşturuldu. | GenId: {GenId} | Count: {Count}",
+                generation.Id, mediaItems.Count);
+
+            return ServiceResult<int>.Success(mediaItems.Count, $"{mediaItems.Count} media kaydedildi.");
+        }
     }
 }

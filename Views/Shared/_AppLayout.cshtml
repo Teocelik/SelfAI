@@ -1,0 +1,100 @@
+@using System.Security.Claims
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+
+    <!-- ═══ CSS Dosyaları ═══ -->
+    <link rel="stylesheet" href="~/css/main.css" />
+    <link rel="stylesheet" href="~/css/toast.css" />
+    <link rel="stylesheet" href="~/css/app-nav.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+          rel="stylesheet" />
+
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+
+<body class="bg-background text-text-primary min-h-screen">
+
+    <!-- ═══ Paylaşılan Üst Navigasyon (Liquid Glass) ═══ -->
+    <nav class="app-nav">
+        <div class="app-nav__container">
+            <a href="/" class="app-nav__logo">
+                SelfAI
+            </a>
+
+            <div class="app-nav__links" id="appNavLinks">
+                <a asp-controller="RenderNet" asp-action="Index"
+                   class="app-nav__link @(currentController == "RenderNet" ? "app-nav__link--active" : "")">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    <span>Studio</span>
+                </a>
+                <a asp-controller="Pricing" asp-action="Index"
+                   class="app-nav__link @(currentController == "Pricing" ? "app-nav__link--active" : "")">
+                    <i class="fas fa-tag"></i>
+                    <span>Paketler</span>
+                </a>
+                @* F.3 yapılınca History buraya eklenir *@
+                @* F.6 yapılınca Characters buraya eklenir *@
+            </div>
+
+            <div class="app-nav__utilities">
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <div class="app-nav__credit-pill" id="creditBalance">
+                        <i class="fas fa-coins"></i>
+                        <span id="creditBalanceValue">—</span>
+                        <span class="app-nav__credit-label">credit</span>
+                    </div>
+
+                    <div class="app-nav__user">
+                        @(User.FindFirst(ClaimTypes.Name)?.Value
+                          ?? User.FindFirst(ClaimTypes.Email)?.Value
+                          ?? "Kullanıcı")
+                    </div>
+
+                    <form asp-controller="Account" asp-action="Logout" method="post" class="app-nav__logout-form">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="app-nav__logout" aria-label="Çıkış Yap">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </button>
+                    </form>
+                }
+                else
+                {
+                    <a asp-controller="Account" asp-action="Login" class="app-nav__login-cta">
+                        Giriş Yap
+                    </a>
+                }
+            </div>
+
+            <button class="app-nav__hamburger" id="appNavHamburger" type="button" aria-label="Menü">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <main class="app-main">
+        @RenderBody()
+    </main>
+
+    <!-- ═══ Toast Container (tüm app sayfalarında çalışır) ═══ -->
+    <div id="toastContainer"></div>
+
+    <!-- ═══ JavaScript Dosyaları ═══ -->
+    <!-- SignalR Client (app.js generation bildirimleri için bağımlılık) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+
+    <!-- Toast JS — diğer tüm script'lerden ÖNCE (apiFetch/Toast bağımlılığı) -->
+    <script src="~/js/toast.js"></script>
+    <script src="~/js/app-nav.js"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

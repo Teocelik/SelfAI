@@ -1,0 +1,258 @@
+/* ═══════════════════════════════════════════════════════════
+   App Top Navigation — Liquid Glass (F.4.4)
+   Studio + ileride History/Characters için paylaşılan üst nav.
+   design-tokens.md PART 2 (sticky glass, accent #00CED1) referansı.
+   ═══════════════════════════════════════════════════════════ */
+
+.app-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 14px 0;
+}
+
+.app-nav__container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    align-items: center;
+    gap: 32px;
+}
+
+.app-nav__logo {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: white;
+    text-decoration: none;
+    letter-spacing: -0.02em;
+    transition: opacity 200ms;
+    flex-shrink: 0;
+}
+
+.app-nav__logo:hover {
+    opacity: 0.8;
+}
+
+.app-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+}
+
+.app-nav__link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 16px;
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.7);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: all 200ms ease;
+    border: 1px solid transparent;
+}
+
+.app-nav__link i {
+    font-size: 0.95rem;
+}
+
+.app-nav__link:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.app-nav__link--active {
+    color: #00CED1;
+    background: rgba(0, 206, 209, 0.1);
+    border-color: rgba(0, 206, 209, 0.3);
+    box-shadow: 0 0 16px rgba(0, 206, 209, 0.1);
+}
+
+.app-nav__link:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.app-nav__utilities {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.app-nav__credit-pill {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(0, 206, 209, 0.1);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(0, 206, 209, 0.3);
+    padding: 6px 16px;
+    border-radius: 999px;
+    color: #00CED1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 0 16px rgba(0, 206, 209, 0.1);
+}
+
+.app-nav__credit-pill i {
+    font-size: 0.85rem;
+}
+
+.app-nav__credit-label {
+    opacity: 0.85;
+    font-weight: 500;
+}
+
+.app-nav__user {
+    color: rgba(255, 255, 255, 0.85);
+    font-weight: 500;
+    font-size: 0.95rem;
+    padding: 0 8px;
+}
+
+.app-nav__logout-form {
+    margin: 0;
+}
+
+.app-nav__logout {
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.7);
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 200ms;
+}
+
+.app-nav__logout:hover {
+    background: rgba(255, 255, 255, 0.1);
+    color: white;
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.app-nav__logout:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.app-nav__login-cta {
+    background: rgba(0, 206, 209, 0.15);
+    border: 1px solid rgba(0, 206, 209, 0.4);
+    color: #00CED1;
+    padding: 8px 20px;
+    border-radius: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    transition: all 200ms;
+}
+
+.app-nav__login-cta:hover {
+    background: rgba(0, 206, 209, 0.25);
+    border-color: rgba(0, 206, 209, 0.6);
+    box-shadow: 0 0 24px rgba(0, 206, 209, 0.2);
+}
+
+.app-nav__login-cta:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.app-nav__hamburger {
+    display: none;
+    background: rgba(255, 255, 255, 0.05);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+}
+
+.app-nav__hamburger:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.app-main {
+    min-height: calc(100vh - 70px);
+}
+
+/* ═══ Mobile (768px altı) — hamburger menü ═══ */
+@media (max-width: 767px) {
+    .app-nav__container {
+        gap: 16px;
+        padding: 0 16px;
+    }
+
+    .app-nav__links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: rgba(10, 10, 10, 0.95);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
+        padding: 16px;
+        gap: 4px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .app-nav.is-open .app-nav__links {
+        display: flex;
+    }
+
+    .app-nav__link {
+        width: 100%;
+        padding: 12px 16px;
+    }
+
+    .app-nav__user {
+        display: none; /* mobile'da kullanıcı adını gizle, alan kazanılır */
+    }
+
+    .app-nav__credit-pill {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .app-nav__credit-label {
+        display: none; /* sadece sayıyı göster */
+    }
+
+    .app-nav__hamburger {
+        display: flex;
+    }
+}
+
+/* ═══ Tablet (768px - 1023px) — sadece ikon ═══ */
+@media (min-width: 768px) and (max-width: 1023px) {
+    .app-nav__container {
+        gap: 16px;
+    }
+
+    .app-nav__link span {
+        display: none; /* tablet'te sadece ikon göster, alan kazanılır */
+    }
+}

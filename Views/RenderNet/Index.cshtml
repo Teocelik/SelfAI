@@ -13,8 +13,8 @@
 
 
 @{
-    ViewData["Title"] = "AI Image Generation Studio";
-    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewData["Title"] = "Studio - SelfAI";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
 }
 
 
@@ -22,37 +22,8 @@
     <div class="studio-page flex h-screen w-full">
         <!-- Main Canvas Area -->
         <div class="flex-1 p-6 overflow-hidden order-1 transition-all duration-300 ease-out" id="mainCanvas">
-            <!-- Header -->
-            <header class="studio-header mb-6">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-3">
-                        <div class="logo-badge w-8 h-8 rounded-lg flex items-center justify-center">
-                            <i class="fas fa-magic text-white text-sm"></i>
-                        </div>
-                        <h1 class="text-2xl font-semibold text-text-primary">AI Image Generation Studio</h1>
-                    </div>
-                    <div class="flex items-center space-x-4">
-                        @if (User.Identity?.IsAuthenticated == true)
-                        {
-                            <span id="creditBalance" class="credit-pill text-sm">
-                                <i class="fas fa-coins mr-1"></i>
-                                <span id="creditBalanceValue">—</span> credit
-                            </span>
-                            <span class="text-text-primary text-sm">
-                                @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
-                                  ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
-                                  ?? "Kullanıcı")
-                            </span>
-                        }
-                        <button class="glass-icon-btn">
-                            <i class="fas fa-history text-text-secondary hover:text-text-primary"></i>
-                        </button>
-                        <button class="glass-icon-btn">
-                            <i class="fas fa-cog text-text-secondary hover:text-text-primary"></i>
-                        </button>
-                    </div>
-                </div>
-            </header>
+            @* F.4.4: Studio'nun kendi <header>'ı kaldırıldı. Logo, credit pill,
+               kullanıcı adı ve logout artık _AppLayout'taki paylaşılan üst nav'da. *@
 
             <!-- Canvas Area -->
             <div class="glass-canvas p-8 h-full max-h-[calc(100vh-140px)] flex items-center justify-center relative overflow-hidden">
