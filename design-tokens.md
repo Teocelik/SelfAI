@@ -232,10 +232,15 @@ text, status) + **(2) translucent cam katmanı** (yüzeyler alpha + blur ile).
 ```css
 :root {
     /* ─── Temel (opak) renkler ─── */
-    --lg-bg: #0A0A0A;                  /* Sayfa zemini (en koyu) — TEK background */
+    --lg-bg: #0A0A0A;                  /* Sayfa zemini (en koyu) — TEK background base */
     --lg-bg-raised: #121212;           /* Hafif yükseltilmiş zemin (opsiyonel) */
-    /* Page-level background gradient (bkz. Page-Level Background bölümü) */
-    --lg-bg-gradient: radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%);
+    /* Page-level aurora mesh (bkz. Page-Level Background bölümü) — F.4.3b */
+    --aurora-bg:
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0, 206, 209, 0.15), transparent 60%),
+        radial-gradient(ellipse 70% 50% at 80% 25%, rgba(56, 189, 248, 0.10), transparent 60%),
+        radial-gradient(ellipse 100% 60% at 50% 90%, rgba(0, 206, 209, 0.08), transparent 70%),
+        radial-gradient(ellipse 50% 40% at 95% 60%, rgba(34, 211, 238, 0.07), transparent 60%),
+        #0A0A0A;
 
     --lg-accent: #00CED1;              /* Marka turkuaz — TEK accent */
     --lg-accent-hover: #00B8BC;        /* Koyu turkuaz (hover/pressed) */
@@ -397,21 +402,50 @@ Cam yüzey üzerinde üstten alta hafif aydınlanma — camın "hacmini" verir.
 }
 ```
 
-## Page-Level Background (kilitli)
+## Page-Level Background (kilitli — F.4.3b aurora mesh)
 
-**Karar: `#0A0A0A` + tepeden çok hafif turkuaz radial gradient.** Düz tek-renk
-siyah zeminde `backdrop-filter: blur` yapacak görünür içerik olmadığı için cam
-efekti zayıf kalır. Tepeden dışa doğru çok hafif turkuaz aydınlanma, blur'a
-"yakalayacak" içerik verir ve derinlik hissi yaratır. Tek `--lg-bg` background
-standardı (bkz. PART 1 → Refactor #2: `_Layout` body `#1a1a1a` → `#0A0A0A`).
+**Karar: `#0A0A0A` + çok katmanlı "aurora mesh" radial gradient (buz-tonu).**
+Tek minimal radial gradient, glass yüzeylerin arkasında yeterli renk çeşitliliği
+sağlamıyordu — `backdrop-filter: blur` boşa harcanıyor, oval kenarlardaki
+refraksiyon (cam büyüteç etkisi) görünmüyordu. Çözüm: birden çok radial katmanı
+farklı konum/boyutta üst üste bindiren bir mesh. Palette **yalnızca buz-tonu**:
+turkuaz `#00CED1` + sky-blue `#38BDF8` + cyan `#22D3EE`. **İndigo/mor/sıcak ton
+YOK.** Statik (animasyon yok, CPU dostu).
+
+`--lg-bg` (`#0A0A0A`) base rengi olarak mesh'in en altında kalır. Tüm sayfalar
+zemini **body'den** alır (tek doğruluk kaynağı): `_Layout` → `body.bg-background`,
+`_AuthLayout` → `body.page-bg`. Page wrapper'ların (`.studio-page`, `.pricing-page`,
+landing body bg, login `.page-bg`) kendi zemini **kaldırıldı** — body sağlar.
 
 ```css
-body {
-    background: radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%);
-    background-attachment: fixed; /* scroll'da gradient sabit kalır */
+:root {
+    --aurora-bg:
+        /* Sol-üst: ana turkuaz parlaması */
+        radial-gradient(ellipse 80% 60% at 20% 30%, rgba(0, 206, 209, 0.15), transparent 60%),
+        /* Sağ-üst: buz mavisi (sky-blue) */
+        radial-gradient(ellipse 70% 50% at 80% 25%, rgba(56, 189, 248, 0.10), transparent 60%),
+        /* Alt-orta: yumuşak turkuaz devamı */
+        radial-gradient(ellipse 100% 60% at 50% 90%, rgba(0, 206, 209, 0.08), transparent 70%),
+        /* Sağ-orta: derin cyan vurgu */
+        radial-gradient(ellipse 50% 40% at 95% 60%, rgba(34, 211, 238, 0.07), transparent 60%),
+        /* Base */
+        #0A0A0A;
 }
-/* veya token ile: background: var(--lg-bg-gradient); */
+
+body.bg-background,
+body.page-bg {
+    background: var(--aurora-bg);
+    /* Scroll'da aurora viewport'a sabit → glass kartlar farklı renk bölgeleri
+       üzerinden geçerek kenarlarda refraksiyon (cam büyüteç) gösterir. */
+    background-attachment: fixed;
+    min-height: 100vh;
+}
 ```
+
+> Eski tek katmanlı `--lg-bg-gradient`
+> (`radial-gradient(ellipse at top, rgba(0,206,209,0.05), #0A0A0A 60%)`) F.4.3b ile
+> emekliye ayrıldı; yerini `--aurora-bg` aldı. (landing.css/login.css hâlâ kendi
+> `--lg-bg-gradient` token'ını tanımlıyor ama artık kullanmıyor — zemini body verir.)
 
 ## Tipografi (büyük ölçüde korunur)
 

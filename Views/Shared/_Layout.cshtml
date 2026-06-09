@@ -42,7 +42,9 @@
 
     <!-- ═══ JavaScript Dosyaları ═══ -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    @* Bootstrap JS bundle F.0'da kaldırıldı: tek tüketicisi Home/Index signup
+       modal'ıydı, o da landing page yeniden yazımıyla silindi. Başka hiçbir
+       view Bootstrap component'i (data-bs-*, modal, dropdown) kullanmıyor. *@
 
     <!-- 🆕 SignalR Client Library (CDN) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>

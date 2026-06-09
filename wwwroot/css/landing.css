@@ -1,0 +1,547 @@
+/* ============================================================
+   landing.css — F.0 Landing Page (Liquid Glass)
+   Tüm değerler design-tokens.md PART 2'den (authoritative).
+   Self-contained: kendi token'larını tanımlar, main.css'e bağımlı değil.
+   Yalnızca Home/Index'te yüklenir (@section Styles) — global etki yok.
+   ============================================================ */
+
+:root {
+    /* ─── Temel (opak) renkler ─── */
+    --lg-bg: #0A0A0A;
+    --lg-bg-gradient: radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%);
+
+    --lg-accent: #00CED1;
+    --lg-accent-hover: #00B8BC;
+    --lg-accent-bright: #2FE4E7;
+
+    /* ─── Metin ─── */
+    --lg-text-primary: #FAFAFA;
+    --lg-text-secondary: rgba(255, 255, 255, 0.65);
+    --lg-text-muted: rgba(255, 255, 255, 0.45);
+
+    /* ─── Cam yüzeyler (beyaz alpha — varsayılan) ─── */
+    --glass-surface-base: rgba(255, 255, 255, 0.04);
+    --glass-surface-elevated: rgba(255, 255, 255, 0.08);
+    --glass-surface-hover: rgba(255, 255, 255, 0.12);
+    --glass-surface-active: rgba(255, 255, 255, 0.16);
+
+    /* ─── Backdrop blur ölçeği ─── */
+    --blur-light: 8px;
+    --blur-medium: 16px;
+    --blur-heavy: 24px;
+
+    /* ─── Cam kenarlar ─── */
+    --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
+    --glass-border-medium: 1px solid rgba(255, 255, 255, 0.14);
+    --glass-border-accent: 1px solid rgba(0, 206, 209, 0.40);
+
+    /* ─── Glow ─── */
+    --glow-accent-soft: 0 0 24px rgba(0, 206, 209, 0.15);
+    --glow-accent-medium: 0 0 40px rgba(0, 206, 209, 0.25);
+    --glow-accent-intense: 0 0 60px rgba(0, 206, 209, 0.40);
+
+    /* ─── Gradient overlay'lar ─── */
+    --glass-overlay-top: linear-gradient(180deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.00) 40%);
+    --glass-gradient-accent: linear-gradient(135deg, rgba(0, 206, 209, 0.25) 0%, rgba(0, 206, 209, 0.10) 100%);
+}
+
+/* ============================================================
+   PAGE BACKGROUND
+   landing.css yalnızca bu sayfada yüklendiği için body'yi güvenle
+   override ederiz. body.bg-background (_Layout) seçicisi Tailwind'in
+   .bg-background (#1a1a1a) class'ından daha spesifik → kazanır.
+   ============================================================ */
+/* F.4.3b: sayfa zemini main.css body aurora mesh'inden gelir; burada yalnızca metin rengi. */
+body.bg-background {
+    color: var(--lg-text-primary);
+}
+
+/* ============================================================
+   NAV — sticky glass (landing'e özel; _Layout'a dokunulmadı)
+   ============================================================ */
+.landing-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(10, 10, 10, 0.7);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 16px 0;
+    transition: background 0.3s ease;
+}
+
+.landing-nav__container {
+    max-width: 80rem; /* max-w-7xl */
+    margin: 0 auto;
+    padding: 0 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.landing-nav__logo {
+    font-size: 1.5rem; /* text-2xl */
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--lg-text-primary);
+    text-decoration: none;
+    transition: opacity 0.2s ease;
+}
+
+.landing-nav__logo:hover {
+    opacity: 0.8;
+}
+
+.landing-nav__links {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+}
+
+.landing-nav__link {
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.95rem;
+    font-weight: 500;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.landing-nav__link:hover {
+    color: var(--lg-text-primary);
+}
+
+.landing-nav__link:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 4px;
+    border-radius: 4px;
+}
+
+/* CTA — glass-button-primary'nin küçük varyantı */
+.landing-nav__cta {
+    padding: 8px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--lg-accent);
+    background: rgba(0, 206, 209, 0.15);
+    border: 1px solid rgba(0, 206, 209, 0.40);
+    border-radius: 10px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.landing-nav__cta:hover {
+    background: rgba(0, 206, 209, 0.25);
+    border-color: rgba(0, 206, 209, 0.60);
+    box-shadow: 0 0 24px rgba(0, 206, 209, 0.15);
+}
+
+.landing-nav__cta:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+/* Nav mobile (<768) — daha sıkı padding/gap, küçük yazı */
+@media (max-width: 767px) {
+    .landing-nav__container {
+        padding: 0 16px;
+    }
+
+    .landing-nav__links {
+        gap: 12px;
+    }
+
+    .landing-nav__link {
+        font-size: 0.85rem;
+    }
+
+    .landing-nav__cta {
+        padding: 6px 14px;
+        font-size: 0.85rem;
+    }
+}
+
+/* ============================================================
+   HERO
+   ============================================================ */
+.landing-hero {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 80px 24px;
+    text-align: center;
+}
+
+.landing-hero__container {
+    width: 100%;
+    max-width: 56rem; /* max-w-4xl */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.landing-hero__headline {
+    margin: 0;
+    max-width: 56rem;
+    font-size: 2.5rem; /* mobil (<768) — text-5xl'den küçültülmüş */
+    line-height: 1.1;
+    font-weight: 700; /* Inter 700 import edildi */
+    letter-spacing: -0.02em;
+    color: var(--lg-text-primary);
+}
+
+.landing-hero__subline {
+    margin: 24px 0 0;
+    max-width: 40rem;
+    font-size: 1.125rem; /* text-lg */
+    line-height: 1.6;
+    color: var(--lg-text-secondary);
+}
+
+.landing-hero__trust {
+    margin: 16px 0 0;
+    font-size: 0.875rem; /* text-sm */
+    color: var(--lg-text-muted);
+}
+
+/* ─── CTA (glass-button-primary base, boyut büyütülmüş) ─── */
+.landing-cta {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 40px;
+    padding: 16px 32px; /* px-8 py-4 */
+    font-size: 1.125rem; /* text-lg */
+    font-weight: 600;
+    text-decoration: none;
+    color: var(--lg-text-primary);
+    background: var(--glass-gradient-accent);
+    backdrop-filter: blur(var(--blur-light));
+    -webkit-backdrop-filter: blur(var(--blur-light));
+    border: var(--glass-border-accent);
+    border-radius: 12px;
+    box-shadow: var(--glow-accent-soft);
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-cta i {
+    font-size: 0.9em;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-cta:hover {
+    background: linear-gradient(135deg, rgba(0, 206, 209, 0.35), rgba(0, 206, 209, 0.18));
+    box-shadow: var(--glow-accent-medium);
+    transform: scale(1.03);
+}
+
+.landing-cta:hover i {
+    transform: translateX(4px);
+}
+
+.landing-cta:active {
+    transform: scale(0.99);
+    box-shadow: var(--glow-accent-intense);
+}
+
+.landing-cta:focus-visible {
+    outline: none;
+    border-color: rgba(0, 206, 209, 0.50);
+    box-shadow:
+        0 0 0 2px rgba(0, 206, 209, 0.5),
+        var(--glow-accent-medium);
+}
+
+/* ============================================================
+   SHOWCASE — 6 gradient cam kart (dikey 3/4 oran)
+   ============================================================ */
+.landing-showcase {
+    padding: 80px 0;
+    background: transparent; /* sabit body gradient'i görünür kalır */
+}
+
+.landing-showcase__grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* mobil: 2 kolon */
+    gap: 16px;
+    max-width: 80rem; /* max-w-7xl */
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+.showcase-card {
+    position: relative;
+    aspect-ratio: 3 / 4; /* Affogato dikey kart oranı */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end; /* icon + label alt kısımda */
+    gap: 8px;
+    padding: 16px;
+    border-radius: 16px;
+    border: var(--glass-border-medium);
+    backdrop-filter: blur(var(--blur-medium));
+    -webkit-backdrop-filter: blur(var(--blur-medium));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
+    overflow: hidden;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* top-edge highlight (mask trick) — kart varsayılanı */
+.showcase-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 35%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+
+.showcase-card i {
+    font-size: 1.875rem; /* text-3xl */
+    color: rgba(255, 255, 255, 0.80);
+    margin-bottom: 8px;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.showcase-card span {
+    font-size: 0.875rem; /* text-sm */
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.90);
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+.showcase-card:hover {
+    border-color: rgba(0, 206, 209, 0.30);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), var(--glow-accent-soft);
+    transform: scale(1.05);
+}
+
+/* ─── 6 renk teması — cam alpha üzerinde subtle gradient blend ─── */
+/* Beyaz cam yüzey (base) + renkli gradient overlay birlikte layered */
+.showcase-card--portrait {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(244, 114, 90, 0.30), rgba(217, 70, 110, 0.20)),
+        var(--glass-surface-base);
+}
+
+.showcase-card--nature {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(34, 197, 94, 0.28), rgba(14, 165, 165, 0.22)),
+        var(--glass-surface-base);
+}
+
+.showcase-card--product {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(234, 179, 8, 0.28), rgba(180, 120, 30, 0.20)),
+        var(--glass-surface-base);
+}
+
+.showcase-card--scene {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(59, 130, 246, 0.28), rgba(124, 92, 246, 0.22)),
+        var(--glass-surface-base);
+}
+
+.showcase-card--character {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(139, 92, 246, 0.30), rgba(91, 70, 200, 0.20)),
+        var(--glass-surface-base);
+}
+
+.showcase-card--abstract {
+    background:
+        var(--glass-overlay-top),
+        linear-gradient(135deg, rgba(0, 206, 209, 0.25), rgba(168, 85, 247, 0.22), rgba(244, 114, 90, 0.20)),
+        var(--glass-surface-base);
+}
+
+/* ============================================================
+   FEATURES — 3 cam kart
+   ============================================================ */
+.landing-features {
+    padding: 80px 24px;
+    max-width: 80rem; /* max-w-7xl */
+    margin: 0 auto;
+}
+
+.landing-features__title {
+    margin: 0 0 48px;
+    text-align: center;
+    font-size: 1.875rem; /* text-3xl (mobil) */
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    color: var(--lg-text-primary);
+}
+
+.landing-features__grid {
+    display: grid;
+    grid-template-columns: 1fr; /* mobil: 1 kolon */
+    gap: 24px;
+}
+
+.feature-card {
+    position: relative;
+    padding: 32px; /* p-8 */
+    border-radius: 16px;
+    background-color: var(--glass-surface-base);
+    background-image: var(--glass-overlay-top);
+    border: var(--glass-border-medium);
+    backdrop-filter: blur(var(--blur-medium));
+    -webkit-backdrop-filter: blur(var(--blur-medium));
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.feature-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.18) 0%, rgba(255, 255, 255, 0.02) 35%, transparent 100%);
+    -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+            mask-composite: exclude;
+    pointer-events: none;
+}
+
+.feature-card i {
+    font-size: 2.25rem; /* text-4xl */
+    color: var(--lg-accent);
+    margin-bottom: 16px;
+    filter: drop-shadow(0 0 12px rgba(0, 206, 209, 0.4));
+}
+
+.feature-card h3 {
+    margin: 0 0 12px;
+    font-size: 1.25rem; /* text-xl */
+    font-weight: 600;
+    color: var(--lg-text-primary);
+}
+
+.feature-card p {
+    margin: 0;
+    font-size: 0.875rem; /* text-sm */
+    line-height: 1.7;
+    color: var(--lg-text-secondary);
+}
+
+.feature-card:hover {
+    background-color: var(--glass-surface-hover);
+    border-color: rgba(0, 206, 209, 0.25);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.40), var(--glow-accent-soft);
+    transform: translateY(-2px);
+}
+
+/* ============================================================
+   SCROLL REVEAL (landing.js — progressive enhancement)
+   JS yoksa/desteklenmiyorsa öğeler doğal görünür kalır.
+   ============================================================ */
+.landing-reveal {
+    opacity: 0;
+    transform: translateY(24px);
+    transition: opacity 0.6s cubic-bezier(0.16, 1, 0.3, 1),
+                transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.landing-reveal.is-visible {
+    opacity: 1;
+    transform: none;
+}
+
+/* ============================================================
+   RESPONSIVE — md (≥768px) ve lg (≥1024px)
+   ============================================================ */
+@media (min-width: 768px) {
+    .landing-hero {
+        padding: 128px 24px; /* md:py-32 */
+    }
+
+    .landing-hero__headline {
+        font-size: 3rem; /* text-5xl */
+    }
+
+    .landing-hero__subline {
+        font-size: 1.25rem; /* md:text-xl */
+    }
+
+    .landing-showcase {
+        padding: 128px 0;
+    }
+
+    .landing-showcase__grid {
+        grid-template-columns: repeat(3, 1fr); /* md: 3 kolon */
+    }
+
+    .landing-features__title {
+        font-size: 2.25rem; /* md:text-4xl */
+    }
+
+    .landing-features__grid {
+        grid-template-columns: repeat(3, 1fr); /* md: 3 kolon */
+    }
+}
+
+@media (min-width: 1024px) {
+    .landing-hero__headline {
+        font-size: 4.5rem; /* lg → text-7xl */
+    }
+
+    .landing-showcase__grid {
+        grid-template-columns: repeat(6, 1fr); /* lg: 6 kolon */
+    }
+}
+
+/* ============================================================
+   REDUCED MOTION — animasyon/transform sadeleştir
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+    .landing-reveal {
+        opacity: 1;
+        transform: none;
+        transition: none;
+    }
+
+    .landing-cta,
+    .showcase-card,
+    .feature-card,
+    .landing-cta i {
+        transition: none;
+    }
+
+    .landing-cta:hover,
+    .showcase-card:hover,
+    .feature-card:hover {
+        transform: none;
+    }
+}
+
+/* ============================================================
+   BROWSER FALLBACK — backdrop-filter desteklenmezse opak yüzey
+   ============================================================ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .landing-cta,
+    .feature-card {
+        background-color: #16181B;
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .showcase-card {
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+}

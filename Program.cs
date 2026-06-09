@@ -182,17 +182,17 @@ app.UseAuthorization();// Yetki kontrol� yap (Login olmu� mu?).
 // ?? SignalR Hub endpoint'ini map'le
 app.MapHub<GenerationHub>("/generationHub");
 
-//app.MapControllerRoute(
-//        name: "default",
-//        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
 
 //app.MapControllerRoute(
 //        name: "default",
 //        pattern: "{controller=Home}/{action=Index}");
 
-app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=Account}/{action=Login}/{id?}");
+//app.MapControllerRoute(
+//        name: "default",
+//        pattern: "{controller=Account}/{action=Login}/{id?}");
 
 app.Run();
 

@@ -1,205 +1,121 @@
 @{
-    ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "SelfAI - AI Görsel Stüdyosu";
+    Layout = "_Layout";
 }
 
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-    <meta charset="utf-8" />
-    <title>@ViewData["Title"]</title>
+@section Styles {
+    <link rel="stylesheet" href="~/css/landing.css" />
+}
 
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
-          rel="stylesheet"
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM"
-          crossorigin="anonymous" />
+@* ═══════════════════════ NAV (sticky glass) ═══════════════════════ *@
+<nav class="landing-nav">
+    <div class="landing-nav__container">
+        <a href="/" class="landing-nav__logo">SelfAI</a>
 
-    <style>
-        /* Küçük özelleştirmeler */
-        .modal-content {
-            border-radius: 1rem;
-            overflow: hidden;
-        }
+        <div class="landing-nav__links">
+            <a asp-controller="Pricing" asp-action="Index" class="landing-nav__link">
+                Paketler
+            </a>
 
-        .gradient-btn {
-            background: linear-gradient(90deg, #794fff, #2cb0ff);
-            color: white;
-        }
-
-            .gradient-btn:hover {
-                opacity: .9;
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <a asp-controller="RenderNet" asp-action="Index" class="landing-nav__cta">
+                    Stüdyoya Dön
+                </a>
             }
-
-        .separator {
-            display: flex;
-            align-items: center;
-            text-align: center;
-            margin: 1rem 0;
-        }
-
-            .separator::before,
-            .separator::after {
-                content: "";
-                flex: 1;
-                border-bottom: 1px solid #ccc;
+            else
+            {
+                <a asp-controller="Account" asp-action="Login" class="landing-nav__cta">
+                    Giriş Yap
+                </a>
             }
-
-            .separator::before {
-                margin-right: .5em;
-            }
-
-            .separator::after {
-                margin-left: .5em;
-            }
-
-        .navbar-nav .nav-link {
-            margin-left: 1rem;
-        }
-
-        .modal-content.bg-dark .text-muted {
-            color: #d1d1d1 !important;
-        }
-
-        .modal-content.bg-dark .form-label {
-            color: #ffffff !important;
-        }
-
-        .modal-content.bg-dark .form-control {
-            background-color: #333;
-            color: #ffffff;
-            border-color: #555;
-        }
-
-            .modal-content.bg-dark .form-control::placeholder {
-                color: #aaaaaa;
-            }
-
-        .modal-content.bg-dark .btn-light {
-            background-color: #ffffff;
-            color: #333;
-        }
-    </style>
-</head>
-<body class="d-flex flex-column min-vh-100">
-
-    <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <div class="container">
-            <ul class="navbar-nav ms-auto">
-                <li class="nav-item d-flex align-items-center">
-                    <a asp-controller="Pricing" asp-action="Index" class="nav-link text-dark me-3">
-                        Paketler
-                    </a>
-                </li>
-                <li class="nav-item">
-                    @if (User.Identity?.IsAuthenticated == true)
-                    {
-                        <div class="d-flex align-items-center gap-3">
-                            <span class="text-dark small">
-                                @(User.FindFirst(System.Security.Claims.ClaimTypes.Name)?.Value
-                                  ?? User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value
-                                  ?? "Kullanıcı")
-                            </span>
-                            <form asp-controller="Account" asp-action="Logout" method="post" class="d-inline">
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    Çıkış Yap
-                                </button>
-                            </form>
-                        </div>
-                    }
-                    else
-                    {
-                        @* F.2: Modal trigger yerine dedicated login sayfasına link.
-                           #signupModal HTML'i aşağıda AYNEN duruyor (F.0'da temizlenecek),
-                           sadece doğal giriş yolu artık /Account/Login. *@
-                        <a asp-controller="Account"
-                           asp-action="Login"
-                           class="btn gradient-btn">
-                            Kaydol / Giriş Yap
-                        </a>
-                    }
-                </li>
-            </ul>
-        </div>
-    </nav>
-
-    <!-- İçerik -->
-    <div class="flex-grow-1"></div>
-
-    <!-- Signup Modal -->
-    <div class="modal fade"
-         id="signupModal"
-         tabindex="-1"
-         aria-labelledby="signupModalLabel"
-         aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content bg-dark text-white p-4">
-                <div class="modal-header border-0 pb-0">
-                    <h5 class="modal-title" id="signupModalLabel">Kaydol veya Giriş Yap</h5>
-                    <button type="button"
-                            class="btn-close btn-close-white"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form id="emailLoginForm" class="mb-3">
-                        <div class="mb-3">
-                            <label for="userEmail" class="form-label small">E-posta adresiniz</label>
-                            <input type="email"
-                                   id="userEmail"
-                                   class="form-control form-control-lg"
-                                   placeholder="E-postanızı girin…"
-                                   required />
-                        </div>
-                        <button type="submit"
-                                class="btn gradient-btn btn-lg w-100 mb-2">
-                            E-posta ile Bağlantı Gönder
-                        </button>
-
-                        <div class="text-center text-muted small mb-2">
-                            📧 İlk kez kaydoluyorsanız, size bir giriş bağlantısı göndereceğiz!
-                        </div>
-
-                        <div class="separator text-muted small">veya</div>
-
-                        <button type="button"
-                                class="btn btn-light btn-lg w-100"
-                                id="googleLoginBtn">
-                            <img src="https://developers.google.com/identity/images/g-logo.png"
-                                 width="20"
-                                 class="me-2" />
-                            Google ile Giriş Yap
-                        </button>
-                    </form>
-                </div>
-            </div>
         </div>
     </div>
+</nav>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-geWF76RCwLtnZ8qwWowPQNguL3RmwHVBC9FhGdlKrxdiJJigb/j/68SIy3Te4Bkz"
-            crossorigin="anonymous"></script>
+@* ═══════════════════════ HERO ═══════════════════════ *@
+<section class="landing-hero">
+    <div class="landing-hero__container">
+        <h1 class="landing-hero__headline">
+            Vizyonunu Saniyeler İçinde Görsele Çevir.
+        </h1>
+        <p class="landing-hero__subline">
+            AI ile profesyonel kalitede görseller. Karakter tutarlılığı,
+            sahne kontrolü, sınırsız stil.
+        </p>
 
-    @section Scripts {
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-        <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
-        <script src="~/js/firebase-init.js"></script>
-        <script src="~/js/firebase-auth-link.js"></script>
-        <script src="~/js/firebase-auth-google.js"></script>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <a asp-controller="RenderNet" asp-action="Index" class="landing-cta">
+                Stüdyoya Dön
+                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+        }
+        else
+        {
+            <a asp-controller="Account" asp-action="Login" class="landing-cta">
+                Hemen Başla
+                <i class="fas fa-arrow-right" aria-hidden="true"></i>
+            </a>
+            <p class="landing-hero__trust">
+                Ücretsiz hesabınla 5 credit kazanırsın
+            </p>
+        }
+    </div>
+</section>
 
-        <script>
-            // 401 sonrası returnUrl ile yönlendirildiyse, login modal'ını otomatik aç.
-            // Kullanıcı zaten giriş yapmak için geldi; ekstra tıklamaya gerek kalmaz.
-            document.addEventListener('DOMContentLoaded', function () {
-                const params = new URLSearchParams(window.location.search);
-                if (params.has('returnUrl')) {
-                    const loginBtn = document.getElementById('loginRegisterBtn')
-                        || document.querySelector('[data-bs-target="#signupModal"]');
-                    if (loginBtn) loginBtn.click();
-                }
-            });
-        </script>
-    }
-</body>
-</html>
+@* ═══════════════════════ SHOWCASE ═══════════════════════ *@
+<section class="landing-showcase">
+    <div class="landing-showcase__grid">
+        <div class="showcase-card showcase-card--portrait">
+            <i class="fas fa-user-tie" aria-hidden="true"></i>
+            <span>Portre</span>
+        </div>
+        <div class="showcase-card showcase-card--nature">
+            <i class="fas fa-tree" aria-hidden="true"></i>
+            <span>Doğa</span>
+        </div>
+        <div class="showcase-card showcase-card--product">
+            <i class="fas fa-box-open" aria-hidden="true"></i>
+            <span>Ürün</span>
+        </div>
+        <div class="showcase-card showcase-card--scene">
+            <i class="fas fa-mountain" aria-hidden="true"></i>
+            <span>Sahne</span>
+        </div>
+        <div class="showcase-card showcase-card--character">
+            <i class="fas fa-mask" aria-hidden="true"></i>
+            <span>Karakter</span>
+        </div>
+        <div class="showcase-card showcase-card--abstract">
+            <i class="fas fa-palette" aria-hidden="true"></i>
+            <span>Soyut</span>
+        </div>
+    </div>
+</section>
+
+@* ═══════════════════════ FEATURES ═══════════════════════ *@
+<section class="landing-features">
+    <h2 class="landing-features__title">Neler Yapabilirsin?</h2>
+    <div class="landing-features__grid">
+        <div class="feature-card">
+            <i class="fas fa-user-friends" aria-hidden="true"></i>
+            <h3>Karakter Tutarlılığı</h3>
+            <p>Aynı karakteri farklı sahnelerde, farklı stillerde üret.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-lock" aria-hidden="true"></i>
+            <h3>Face &amp; Pose Lock</h3>
+            <p>Yüz ifadesini ve pozisyonu referans görselden kilitle.</p>
+        </div>
+        <div class="feature-card">
+            <i class="fas fa-layer-group" aria-hidden="true"></i>
+            <h3>Multi-Model</h3>
+            <p>Tek prompt'la birden fazla model ve stilde paralel üret.</p>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script src="~/js/landing.js" asp-append-version="true"></script>
+}

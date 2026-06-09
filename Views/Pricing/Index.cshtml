@@ -4,175 +4,121 @@
     Layout = "_Layout";
 }
 
-<div class="min-h-screen bg-[#0A0A0A] py-12 px-4">
-    <div class="max-w-7xl mx-auto">
-        <div class="text-center mb-12">
-            <h1 class="text-4xl font-bold text-white mb-3">Paketler</h1>
-            <p class="text-gray-400 text-lg">İhtiyacınıza uygun planı seçin</p>
-        </div>
+@section Styles {
+    <link rel="stylesheet" href="~/css/pricing.css" />
+}
 
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="pricing-page">
+    <div class="pricing-page__container">
+        <header class="pricing-header">
+            <h1 class="pricing-header__title">Paketler</h1>
+            <p class="pricing-header__subtitle">İhtiyacına uygun planı seç</p>
+        </header>
+
+        <div class="pricing-grid">
             @foreach (var pkg in Model)
             {
                 var isBestValue = pkg.Name == "Plus";
                 var isFree = pkg.Name == "Free";
-                var cardClass = isBestValue
-                    ? "border-[#00CED1] relative"
-                    : "border-[#333]";
+                var cardClass = isBestValue ? "pricing-card pricing-card--highlighted" : "pricing-card";
 
-                <div class="bg-[#1E1E1E] border-2 @cardClass rounded-2xl p-6 flex flex-col">
+                <article class="@cardClass">
                     @if (isBestValue)
                     {
-                        <div class="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#00CED1] text-black text-xs font-bold px-4 py-1 rounded-full">
-                            En Popüler
-                        </div>
+                        <div class="pricing-card__badge">En Popüler</div>
                     }
 
-                    <h2 class="text-2xl font-bold text-white mb-2">@pkg.Name</h2>
-
-                    <div class="mb-6">
-                        @if (isFree)
-                        {
-                            <div class="flex items-baseline">
-                                <span class="text-4xl font-bold text-white">₺0</span>
-                                <span class="text-gray-400 ml-2">/ ücretsiz</span>
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="flex items-baseline">
-                                <span class="text-4xl font-bold text-white">₺@pkg.PriceTry?.ToString("0")</span>
-                                <span class="text-gray-400 ml-2">/ ay</span>
-                            </div>
-                        }
-                    </div>
-
-                    <div class="space-y-3 mb-6 flex-1">
-                        <div class="flex items-center text-gray-300">
-                            <i class="fas fa-coins text-[#00CED1] mr-3"></i>
-                            <span><strong>@pkg.MonthlyCredits</strong> credit / ay</span>
+                    <header class="pricing-card__header">
+                        <h2 class="pricing-card__name">@pkg.Name</h2>
+                        <div class="pricing-card__price">
+                            @if (isFree)
+                            {
+                                <span class="pricing-card__price-amount">₺0</span>
+                                <span class="pricing-card__price-period">/ ücretsiz</span>
+                            }
+                            else
+                            {
+                                <span class="pricing-card__price-amount">₺@pkg.PriceTry?.ToString("0")</span>
+                                <span class="pricing-card__price-period">/ ay</span>
+                            }
                         </div>
+                    </header>
+
+                    <ul class="pricing-card__features">
+                        <li class="pricing-feature">
+                            <i class="fas fa-coins pricing-feature__icon"></i>
+                            <span><strong>@pkg.MonthlyCredits</strong> credit / ay</span>
+                        </li>
 
                         @if (isFree)
                         {
-                            <div class="flex items-center text-gray-300">
-                                <i class="fas fa-gift text-[#00CED1] mr-3"></i>
+                            <li class="pricing-feature">
+                                <i class="fas fa-gift pricing-feature__icon"></i>
                                 <span>Kayıt bonusu (tek seferlik)</span>
-                            </div>
-                            <div class="flex items-center text-gray-500">
-                                <i class="fas fa-times text-gray-600 mr-3"></i>
+                            </li>
+                            <li class="pricing-feature pricing-feature--muted">
+                                <i class="fas fa-times pricing-feature__icon--off"></i>
                                 <span>Yenilenmez</span>
-                            </div>
+                            </li>
                         }
                         else
                         {
-                            <div class="flex items-center text-gray-300">
-                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                            <li class="pricing-feature">
+                                <i class="fas fa-check pricing-feature__icon"></i>
                                 <span>Aylık yenilenen kredi</span>
-                            </div>
-                            <div class="flex items-center text-gray-300">
-                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                            </li>
+                            <li class="pricing-feature">
+                                <i class="fas fa-check pricing-feature__icon"></i>
                                 <span>Tüm modeller</span>
-                            </div>
-                            <div class="flex items-center text-gray-300">
-                                <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                            </li>
+                            <li class="pricing-feature">
+                                <i class="fas fa-check pricing-feature__icon"></i>
                                 <span>Character, Face Lock, Pose Lock</span>
-                            </div>
+                            </li>
                             @if (pkg.Name == "Plus" || pkg.Name == "Premium")
                             {
-                                <div class="flex items-center text-gray-300">
-                                    <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                <li class="pricing-feature">
+                                    <i class="fas fa-check pricing-feature__icon"></i>
                                     <span>Öncelikli generation</span>
-                                </div>
+                                </li>
                             }
                             @if (pkg.Name == "Premium")
                             {
-                                <div class="flex items-center text-gray-300">
-                                    <i class="fas fa-check text-[#00CED1] mr-3"></i>
+                                <li class="pricing-feature">
+                                    <i class="fas fa-check pricing-feature__icon"></i>
                                     <span>Ticari kullanım</span>
-                                </div>
+                                </li>
                             }
                         }
-                    </div>
+                    </ul>
 
                     @if (isFree)
                     {
-                        <button type="button" disabled class="w-full bg-[#2A2A2A] text-gray-500 py-3 rounded-lg font-semibold cursor-not-allowed">
+                        <button type="button" disabled
+                                class="pricing-card__cta pricing-card__cta--disabled">
                             Kayıt Bonusu
                         </button>
                     }
                     else
                     {
                         <button type="button"
-                                class="subscribe-btn w-full @(isBestValue ? "bg-[#00CED1] text-black hover:bg-[#00B8BC]" : "bg-white text-black hover:bg-gray-200") py-3 rounded-lg font-semibold transition-colors"
+                                class="pricing-card__cta pricing-card__cta--primary subscribe-btn"
                                 data-package-id="@pkg.Id"
                                 data-package-name="@pkg.Name"
                                 data-package-price="@pkg.PriceTry">
                             Abone Ol
                         </button>
                     }
-                </div>
+                </article>
             }
         </div>
 
-        <div class="mt-12 text-center text-gray-500 text-sm">
+        <footer class="pricing-footer">
             <p>Tüm fiyatlar Türk Lirası (TRY) cinsindendir. KDV dahildir.</p>
-        </div>
+        </footer>
     </div>
 </div>
 
 @section Scripts {
-    <script>
-        document.querySelectorAll('.subscribe-btn').forEach(btn => {
-            btn.addEventListener('click', async function () {
-                const packageId = this.dataset.packageId;
-
-                if (!packageId || packageId === '0') {
-                    return;
-                }
-
-                this.disabled = true;
-                this.textContent = 'Yönlendiriliyor...';
-
-                try {
-                    const response = await fetch('/Pricing/Subscribe', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ packageId: parseInt(packageId) })
-                    });
-
-                    if (response.status === 401) {
-                        // Anonim kullanıcı — login'e yönlendir
-                        const returnUrl = encodeURIComponent('/Pricing');
-                        window.location.href = `/Home/Index?returnUrl=${returnUrl}`;
-                        return;
-                    }
-
-                    const data = await response.json();
-
-                    if (response.ok && data.paymentPageUrl) {
-                        // Iyzico checkout sayfasına yönlendir
-                        window.location.href = data.paymentPageUrl;
-                    } else {
-                        if (typeof Toast !== 'undefined') {
-                            Toast.error(data.message || 'Bir hata oluştu.');
-                        } else {
-                            alert(data.message || 'Bir hata oluştu.');
-                        }
-                        this.disabled = false;
-                        this.textContent = 'Abone Ol';
-                    }
-                } catch (err) {
-                    console.error('Subscribe hatası:', err);
-                    if (typeof Toast !== 'undefined') {
-                        Toast.error('Bağlantı hatası, lütfen tekrar deneyin.');
-                    } else {
-                        alert('Bağlantı hatası, lütfen tekrar deneyin.');
-                    }
-                    this.disabled = false;
-                    this.textContent = 'Abone Ol';
-                }
-            });
-        });
-    </script>
+    <script src="~/js/pricing.js"></script>
 }

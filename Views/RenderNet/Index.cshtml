@@ -19,14 +19,14 @@
 
 
     <!-- Main Container -->
-    <div class="flex h-screen w-full">
+    <div class="studio-page flex h-screen w-full">
         <!-- Main Canvas Area -->
         <div class="flex-1 p-6 overflow-hidden order-1 transition-all duration-300 ease-out" id="mainCanvas">
             <!-- Header -->
-            <header class="mb-6">
+            <header class="studio-header mb-6">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
-                        <div class="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+                        <div class="logo-badge w-8 h-8 rounded-lg flex items-center justify-center">
                             <i class="fas fa-magic text-white text-sm"></i>
                         </div>
                         <h1 class="text-2xl font-semibold text-text-primary">AI Image Generation Studio</h1>
@@ -34,7 +34,7 @@
                     <div class="flex items-center space-x-4">
                         @if (User.Identity?.IsAuthenticated == true)
                         {
-                            <span id="creditBalance" class="px-3 py-1 bg-[#2A2A2A] border border-[#00CED1]/30 rounded-full text-[#00CED1] text-sm font-medium">
+                            <span id="creditBalance" class="credit-pill text-sm">
                                 <i class="fas fa-coins mr-1"></i>
                                 <span id="creditBalanceValue">—</span> credit
                             </span>
@@ -44,10 +44,10 @@
                                   ?? "Kullanıcı")
                             </span>
                         }
-                        <button class="p-2 hover:bg-surface rounded-lg transition-colors duration-200">
+                        <button class="glass-icon-btn">
                             <i class="fas fa-history text-text-secondary hover:text-text-primary"></i>
                         </button>
-                        <button class="p-2 hover:bg-surface rounded-lg transition-colors duration-200">
+                        <button class="glass-icon-btn">
                             <i class="fas fa-cog text-text-secondary hover:text-text-primary"></i>
                         </button>
                     </div>
@@ -55,7 +55,7 @@
             </header>
 
             <!-- Canvas Area -->
-            <div class="bg-surface rounded-xl border border-border p-8 h-full max-h-[calc(100vh-140px)] flex items-center justify-center relative overflow-hidden">
+            <div class="glass-canvas p-8 h-full max-h-[calc(100vh-140px)] flex items-center justify-center relative overflow-hidden">
                 <!-- Default State -->
                 <div id="defaultState" class="text-center">
                     <div class="w-24 h-24 bg-surface-elevated rounded-full flex items-center justify-center mb-6 mx-auto">
@@ -71,23 +71,23 @@
 
                 <!-- Loading State (Hidden by default) -->
                 <div id="loadingState" class="text-center hidden">
-                    <div class="w-16 h-16 border-4 border-surface-elevated border-t-primary rounded-full animate-spin mb-6 mx-auto"></div>
+                    <div class="w-16 h-16 border-4 border-surface-elevated spinner-accent rounded-full animate-spin mb-6 mx-auto"></div>
                     <h3 class="text-xl font-medium text-text-primary mb-2">Generating Your Image</h3>
                     <p class="text-text-secondary mb-4">This may take a few moments...</p>
                     <div class="w-64 bg-surface-elevated rounded-full h-2 mx-auto">
-                        <div class="bg-gradient-to-r from-primary to-secondary h-2 rounded-full animate-pulse" style="width: 45%"></div>
+                        <div class="loading-bar-accent h-2 rounded-full animate-pulse" style="width: 45%"></div>
                     </div>
                 </div>
 
                 <!-- Generated Image Container (Hidden by default) -->
                 <div id="imageContainer" class="hidden w-full h-full flex items-center justify-center">
-                    <div class="relative max-w-full max-h-full">
+                    <div class="glass-image-card relative max-w-full max-h-full">
                         <img id="generatedImage"  alt="Generated AI Image" class="max-w-full max-h-full object-contain rounded-lg shadow-lg" />
                         <div class="absolute top-4 right-4 flex space-x-2">
-                            <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
+                            <button class="glass-overlay-btn p-2 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-download text-text-primary"></i>
                             </button>
-                            <button class="bg-surface/80 backdrop-blur-sm p-2 rounded-lg hover:bg-surface transition-colors duration-200">
+                            <button class="glass-overlay-btn p-2 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-share text-text-primary"></i>
                             </button>
                         </div>
@@ -112,7 +112,7 @@
                 <div class="flex-1 overflow-y-auto custom-scrollbar">
                     <!-- Upload Section -->
                     <div class="px-4 py-3 border-b border-border">
-                        <div class="flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-border rounded-lg hover:border-primary/50 transition-colors duration-200 cursor-pointer" id="styleUploadArea">
+                        <div class="flex items-center justify-center space-x-2 py-3 border-2 border-dashed border-border rounded-lg transition-colors duration-200 cursor-pointer" id="styleUploadArea">
                             <input type="file" id="styleImageInput" name="StyleImage" accept="image/*" class="hidden" />
                             <div id="styleUploadContent" class="flex items-center space-x-2">
                                 <i class="fas fa-cloud-upload-alt text-text-secondary"></i>
@@ -212,14 +212,14 @@
 
         
         <!-- Model Selection Panel - Compact Side Panel -->
-        <div id="modelPanel" class="fixed top-[100px] h-[520px] w-[550px] bg-surface border border-border rounded-xl shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px;">
-            <div class="h-full flex rounded-xl overflow-hidden">
+        <div id="modelPanel" class="glass-panel fixed top-[100px] h-[520px] w-[550px] transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px;">
+            <div class="h-full flex rounded-[20px] overflow-hidden">
                 <!-- Left Sidebar - Model Categories -->
-                <div class="w-32 bg-background border-r border-border flex flex-col flex-shrink-0">
+                <div class="w-32 border-r glass-divider flex flex-col flex-shrink-0">
                     <!-- Panel Header -->
-                    <div class="p-3 border-b border-border">
+                    <div class="p-3 border-b glass-divider">
                         <div class="flex items-center space-x-2">
-                            <i class="fas fa-camera text-primary text-sm"></i>
+                            <i class="fas fa-camera text-[#00CED1] text-sm"></i>
                             <span class="text-sm font-semibold text-text-primary">Model</span>
                         </div>
                     </div>
@@ -246,7 +246,7 @@
                 </div>
 
                 <!-- Right Content - Model Options (SCROLL BURADA) -->
-                <div class="flex-1 overflow-y-auto custom-scrollbar bg-surface">
+                <div class="flex-1 overflow-y-auto custom-scrollbar">
                     <!-- Flux Models Content -->
                     <div id="flux-content" class="model-content p-4">
                         <div class="mb-4">
@@ -489,10 +489,10 @@
         <!-- Model selection slidebar end -->
 
         <!-- Face Lock Panel - Floating Side Panel -->
-        <div id="faceLockPanel" class="fixed top-[80px] bg-[#1E1E1E] border border-[#333] rounded-[10px] shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px; width: 260px;">
-            <div class="flex flex-col rounded-[10px] overflow-hidden">
+        <div id="faceLockPanel" class="glass-panel fixed top-[80px] z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px; width: 260px;">
+            <div class="flex flex-col rounded-[20px] overflow-hidden">
                 <!-- Panel Header -->
-                <div class="px-4 py-3 border-b border-[#333]">
+                <div class="px-4 py-3 border-b glass-divider">
                     <div class="flex items-center justify-between mb-1">
                         <div class="flex items-center space-x-2">
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -515,19 +515,19 @@
                 </div>
 
                 <!-- Usage Guidelines Link -->
-                <div class="px-4 py-2 border-b border-[#333]">
+                <div class="px-4 py-2 border-b glass-divider">
                     <a href="#" class="text-xs text-[#00CED1] hover:underline">Usage Guidelines</a>
                 </div>
 
                 <!-- Upload Section -->
                 <div class="px-4 py-3">
                     <p class="text-xs text-white mb-3">Upload reference photo</p>
-                    <div class="border-2 border-dashed border-[#00CED1]/60 rounded-lg p-4 transition-colors duration-200 cursor-pointer hover:border-[#00CED1] hover:bg-[#00CED1]/5" id="faceLockPanelUploadArea">
+                    <div class="glass-upload transition-colors duration-200" id="faceLockPanelUploadArea">
                         <input type="file" id="faceLockPanelImage" name="AssetFile" accept="image/*" class="hidden" />
 
                         <!-- Upload Placeholder -->
                         <div id="faceLockPanelUploadContent" class="flex flex-col items-center">
-                            <div class="w-[90px] h-[110px] rounded-lg overflow-hidden mb-3 relative border border-[#444]">
+                            <div class="w-[90px] h-[110px] rounded-lg overflow-hidden mb-3 relative border glass-divider">
                                 <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=90&h=110&fit=crop&crop=face"
                                      alt="Upload placeholder"
                                      class="w-full h-full object-cover" />
@@ -551,7 +551,7 @@
                 </div>
 
                 <!-- Guide Section -->
-                <div class="px-4 py-3 border-t border-[#333]">
+                <div class="px-4 py-3 border-t glass-divider">
                     <p class="text-xs font-medium text-white mb-2">Face Lock guide</p>
                     <p class="text-[10px] text-[#888] leading-relaxed">
                         Upload a close-up photo of ONE person with their face clearly visible.
@@ -566,22 +566,22 @@
 
         <!-- Character Panel - Floating Side Panel (Face Lock paneliyle aynı tasarım dili) -->
     <div id="characterPanel"
-         class="fixed top-[80px] bg-[#1E1E1E] border border-[#333] rounded-[10px] shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
+         class="glass-panel fixed top-[80px] z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
          style="right: 400px; width: 440px; max-height: calc(100vh - 120px);">
-        <div class="flex-shrink-0 flex flex-col rounded-[10px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
+        <div class="flex-shrink-0 flex flex-col rounded-[20px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
                 <!-- Panel Header -->
-                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#333]">
+                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b glass-divider">
                     <div>
                         <h3 class="text-white text-sm font-semibold">Characters</h3>
                         <p class="text-gray-400 text-xs mt-1">Select a character to generate their images</p>
                     </div>
-                    <button type="button" id="closeCharacterPanel" class="text-gray-400 hover:text-white transition-colors">
+                    <button type="button" id="closeCharacterPanel" class="glass-panel__close text-gray-400 hover:text-white transition-colors">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
                 <!-- Mode Selector (always visible) -->
-                <div class="p-4 border-b border-[#333]">
+                <div class="p-4 border-b glass-divider">
                     <p class="text-xs text-white mb-2">Character Effect</p>
                     <div class="flex gap-2" id="characterModeButtons">
                         <button type="button" data-mode="flexible" class="character-mode-btn flex-1 px-3 py-1.5 rounded-md text-xs bg-[#2A2A2A] text-gray-400 hover:bg-[#333] transition-colors">Flexible</button>
@@ -606,12 +606,12 @@
 
         <!-- Pose Lock Panel - Floating Side Panel (Face Lock paneliyle aynı tasarım dili) -->
         <div id="poseLockPanel"
-             class="fixed top-[80px] bg-[#1E1E1E] border border-[#333] rounded-[10px] shadow-2xl z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
+             class="glass-panel fixed top-[80px] z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
              style="right: 400px; width: 320px; max-height: calc(100vh - 120px);">
-            <div class="flex flex-col rounded-[10px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
+            <div class="flex flex-col rounded-[20px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
 
                 <!-- Panel Header -->
-                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b border-[#333]">
+                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b glass-divider">
                     <div class="flex items-center">
                         <i class="fas fa-running text-[#00CED1] mr-2"></i>
                         <div>
@@ -619,14 +619,14 @@
                             <p class="text-gray-400 text-xs mt-1">Use Pose Lock to get the same pose and composition.</p>
                         </div>
                     </div>
-                    <button type="button" id="closePoseLockPanel" class="text-gray-400 hover:text-white transition-colors">
+                    <button type="button" id="closePoseLockPanel" class="glass-panel__close text-gray-400 hover:text-white transition-colors">
                         <i class="fas fa-times"></i>
                     </button>
                 </div>
 
                 <!-- Upload Area -->
                 <div class="flex-1 overflow-y-auto scrollbar-thin p-4">
-                    <div class="border-2 border-dashed border-[#00CED1]/60 rounded-lg p-4 transition-colors duration-200 cursor-pointer hover:border-[#00CED1] hover:bg-[#00CED1]/5" id="poseLockPanelUploadArea">
+                    <div class="glass-upload transition-colors duration-200" id="poseLockPanelUploadArea">
                         <input type="file" id="poseLockPanelImage" accept="image/*" class="hidden" />
 
                         <!-- Upload Placeholder -->
@@ -646,7 +646,7 @@
                     </div>
 
                     <!-- Flux Settings Info -->
-                    <div class="mt-4 p-3 border border-[#333] rounded-lg bg-[#2A2A2A]/50">
+                    <div class="glass-info mt-4 p-3">
                         <h4 class="text-xs text-white font-semibold mb-1">Flux settings</h4>
                         <p class="text-xs text-gray-400">Map type used for selected Flux models. The aspect ratio of the final image will be same as the image used with Pose Lock.</p>
                     </div>
@@ -664,25 +664,25 @@
                     <div class="space-y-3 mb-6">
                         <label class="block text-sm font-medium text-text-primary">Consistency Controls</label>
                         <div class="flex space-x-3">
-                            <button type="button" id="characterBtn" class="relative flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
+                            <button type="button" id="characterBtn" class="relative flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
-                                    <i class="fas fa-user text-xl text-text-secondary group-hover:text-primary"></i>
-                                    <span class="text-sm text-text-secondary group-hover:text-primary">Character</span>
+                                    <i class="fas fa-user text-xl text-text-secondary group-hover-accent"></i>
+                                    <span class="text-sm text-text-secondary group-hover-accent">Character</span>
                                 </div>
                                 <!-- Karakter aktif göstergesi (turkuaz dot) -->
                                 <div id="characterActiveDot" class="hidden absolute bottom-1 left-1/2 -translate-x-1/2 w-2 h-2 bg-[#00CED1] rounded-full"></div>
                             </button>
-                            <button type="button" id="faceLockBtn" name="AssetFile" class="flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
+                            <button type="button" id="faceLockBtn" name="AssetFile" class="flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
-                                    <i class="fas fa-user-lock text-xl text-text-secondary group-hover:text-primary"></i>
-                                    <span class="text-sm text-text-secondary group-hover:text-primary">Face Lock</span>
+                                    <i class="fas fa-user-lock text-xl text-text-secondary group-hover-accent"></i>
+                                    <span class="text-sm text-text-secondary group-hover-accent">Face Lock</span>
                                 </div>
                             </button>
                             
-                            <button type="button" id="poseLockBtn" class="flex-1 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg p-4 text-center transition-all duration-200 group">
+                            <button type="button" id="poseLockBtn" class="flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
-                                    <i class="fas fa-running text-xl text-text-secondary group-hover:text-primary"></i>
-                                    <span class="text-sm text-text-secondary group-hover:text-primary">Pose Lock</span>
+                                    <i class="fas fa-running text-xl text-text-secondary group-hover-accent"></i>
+                                    <span class="text-sm text-text-secondary group-hover-accent">Pose Lock</span>
                                 </div>
                             </button>
                         </div>
@@ -692,10 +692,10 @@
                     <!-- Prompt Section -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Image Prompt</label>
-                        <div class="relative">
-                            <textarea id="promptInput" name="PositivePrompt" translate="no" placeholder="Describe the image you want to create... Be as detailed as possible for better results. Example: A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution" class="w-full h-32 bg-background border border-border rounded-lg px-4 py-3 pr-12 text-text-primary placeholder-text-muted resize-none focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200"></textarea>
-                            <button type="button" id="randomPromptBtn" class="absolute bottom-3 right-3 w-8 h-8 bg-surface-elevated hover:bg-primary/10 border border-border hover:border-primary rounded-lg flex items-center justify-center transition-all duration-200 group" title="Get random prompt">
-                                <i class="fas fa-dice text-text-secondary group-hover:text-primary text-sm"></i>
+                        <div class="prompt-container relative">
+                            <textarea id="promptInput" name="PositivePrompt" translate="no" placeholder="Describe the image you want to create... Be as detailed as possible for better results. Example: A majestic dragon soaring through a sunset sky with golden clouds, fantasy art style, highly detailed, 4K resolution" class="w-full h-32 px-4 py-3 pr-12 resize-none prompt-textarea transition-all duration-200"></textarea>
+                            <button type="button" id="randomPromptBtn" class="absolute bottom-3 right-3 w-8 h-8 glass-control-btn rounded-lg flex items-center justify-center transition-all duration-200 group" title="Get random prompt">
+                                <i class="fas fa-dice text-text-secondary group-hover-accent text-sm"></i>
                             </button>
                         </div>
                         <div class="flex justify-between items-center text-xs text-text-muted">
@@ -705,7 +705,7 @@
                     </div>
 
                     <!-- Generate Button -->
-                    <button type="submit" id="generateBtn" class="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary-600 hover:to-secondary-600 text-white font-medium py-3 px-6 rounded-lg transition-all duration-200 shadow-floating hover:shadow-lg transform hover:-translate-y-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none">
+                    <button type="submit" id="generateBtn" class="w-full generate-btn">
                         <i class="fas fa-magic mr-2"></i>
                         Generate Image
                     </button>
@@ -720,15 +720,15 @@
                         <input type="hidden" id="selectedModelValue" name="Model" value="" />
                         <input type="hidden" id="selectedModelBaseModel" name="StyleDetail.BaseModel" value="" />
                         <input type="hidden" id="selectedModelName" name="StyleDetail.Name" value="" />
-                        <button type="button" id="modelSelectBtn" class="w-full flex items-center justify-between bg-surface-elevated hover:bg-surface-hover border border-border hover:border-primary rounded-lg p-4 text-left transition-all duration-200 group">
+                        <button type="button" id="modelSelectBtn" class="w-full flex items-center justify-between glass-control-btn rounded-lg p-4 text-left transition-all duration-200 group">
                             <div class="flex items-center space-x-3">
-                                <i class="fas fa-camera text-text-secondary group-hover:text-primary"></i>
+                                <i class="fas fa-camera text-text-secondary group-hover-accent"></i>
                                 <div>
                                     <h3 class="text-sm font-medium text-text-primary">Model</h3>
                                     <p id="selectedModelText" class="text-xs text-text-secondary">Select a model to start generating images</p>
                                 </div>
                             </div>
-                            <i id="modelArrow" class="fas fa-chevron-right text-text-secondary group-hover:text-primary transition-transform duration-200"></i>
+                            <i id="modelArrow" class="fas fa-chevron-right text-text-secondary group-hover-accent transition-transform duration-200"></i>
                         </button>
 
                         <!-- Selected Models Tags Container -->
@@ -749,9 +749,9 @@
 
                         <!-- Seçim Yapılmadan Önceki Görünüm -->
                         <div id="fluxStyleDefault" class="block">
-                            <button type="button" id="fluxImageStyleBtn" class="w-full flex items-center justify-between bg-surface-elevated hover:bg-surface-hover border border-border hover:border-primary rounded-lg p-4 text-left transition-all duration-200 group">
+                            <button type="button" id="fluxImageStyleBtn" class="w-full flex items-center justify-between glass-control-btn rounded-lg p-4 text-left transition-all duration-200 group">
                                 <div class="flex items-center space-x-3">
-                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-text-secondary group-hover:text-primary">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-text-secondary group-hover-accent">
                                         <path d="M10 5.5C10 5.30222 10.0586 5.10888 10.1685 4.94443C10.2784 4.77998 10.4346 4.65181 10.6173 4.57612C10.8 4.50043 11.0011 4.48063 11.1951 4.51921C11.3891 4.5578 11.5673 4.65304 11.7071 4.79289C11.847 4.93275 11.9422 5.11093 11.9808 5.30491C12.0194 5.49889 11.9996 5.69996 11.9239 5.88268C11.8482 6.06541 11.72 6.22159 11.5556 6.33147C11.3911 6.44135 11.1978 6.5 11 6.5C10.7348 6.5 10.4804 6.39464 10.2929 6.20711C10.1054 6.01957 10 5.76522 10 5.5ZM14.75 3.5V10C14.75 10.3315 14.6183 10.6495 14.3839 10.8839C14.1495 11.1183 13.8315 11.25 13.5 11.25H12.75V12.5C12.75 12.8315 12.6183 13.1495 12.3839 13.3839C12.1495 13.6183 11.8315 13.75 11.5 13.75H2.5C2.16848 13.75 1.85054 13.6183 1.61612 13.3839C1.3817 13.1495 1.25 12.8315 1.25 12.5V5.5C1.25 5.16848 1.3817 4.85054 1.61612 4.61612C1.85054 4.3817 2.16848 4.25 2.5 4.25H3.75V3.5C3.75 3.16848 3.8817 2.85054 4.11612 2.61612C4.35054 2.3817 4.66848 2.25 5 2.25H13.5C13.8315 2.25 14.1495 2.3817 14.3839 2.61612C14.6183 2.85054 14.75 3.16848 14.75 3.5ZM11.25 11.25H5C4.66848 11.25 4.35054 11.1183 4.11612 10.8839C3.8817 10.6495 3.75 10.3315 3.75 10V5.75H2.75V12.25H11.25V11.25ZM9.89625 9.75L7.75 7.60375L5.60375 9.75H9.89625ZM13.25 3.75H5.25V7.9825L6.86625 6.36625C7.10066 6.13191 7.41854 6.00027 7.75 6.00027C8.08146 6.00027 8.39934 6.13191 8.63375 6.36625L12.0175 9.75H13.25V3.75Z" fill="currentColor" />
                                     </svg>
                                     <div>
@@ -768,7 +768,7 @@
                         <!-- Seçim Yapıldıktan Sonraki Görünüm (Affogato tarzı) -->
                         <div id="fluxStyleSelected" class="hidden">
                             <!-- Header - Tıklanabilir -->
-                            <button type="button" id="fluxStyleSelectedBtn" class="w-full flex items-center justify-between bg-surface-elevated border border-border rounded-t-lg p-4 text-left transition-all duration-200 hover:bg-surface-hover group">
+                            <button type="button" id="fluxStyleSelectedBtn" class="w-full flex items-center justify-between glass-control-btn rounded-t-lg p-4 text-left transition-all duration-200 group">
                                 <div class="flex items-center space-x-3">
                                     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="text-text-secondary">
                                         <path d="M10 5.5C10 5.30222 10.0586 5.10888 10.1685 4.94443C10.2784 4.77998 10.4346 4.65181 10.6173 4.57612C10.8 4.50043 11.0011 4.48063 11.1951 4.51921C11.3891 4.5578 11.5673 4.65304 11.7071 4.79289C11.847 4.93275 11.9422 5.11093 11.9808 5.30491C12.0194 5.49889 11.9996 5.69996 11.9239 5.88268C11.8482 6.06541 11.72 6.22159 11.5556 6.33147C11.3911 6.44135 11.1978 6.5 11 6.5C10.7348 6.5 10.4804 6.39464 10.2929 6.20711C10.1054 6.01957 10 5.76522 10 5.5ZM14.75 3.5V10C14.75 10.3315 14.6183 10.6495 14.3839 10.8839C14.1495 11.1183 13.8315 11.25 13.5 11.25H12.75V12.5C12.75 12.8315 12.6183 13.1495 12.3839 13.3839C12.1495 13.6183 11.8315 13.75 11.5 13.75H2.5C2.16848 13.75 1.85054 13.6183 1.61612 13.3839C1.3817 13.1495 1.25 12.8315 1.25 12.5V5.5C1.25 5.16848 1.3817 4.85054 1.61612 4.61612C1.85054 4.3817 2.16848 4.25 2.5 4.25H3.75V3.5C3.75 3.16848 3.8817 2.85054 4.11612 2.61612C4.35054 2.3817 4.66848 2.25 5 2.25H13.5C13.8315 2.25 14.1495 2.3817 14.3839 2.61612C14.6183 2.85054 14.75 3.16848 14.75 3.5ZM11.25 11.25H5C4.66848 11.25 4.35054 11.1183 4.11612 10.8839C3.8817 10.6495 3.75 10.3315 3.75 10V5.75H2.75V12.25H11.25V11.25ZM9.89625 9.75L7.75 7.60375L5.60375 9.75H9.89625ZM13.25 3.75H5.25V7.9825L6.86625 6.36625C7.10066 6.13191 7.41854 6.00027 7.75 6.00027C8.08146 6.00027 8.39934 6.13191 8.63375 6.36625L12.0175 9.75H13.25V3.75Z" fill="currentColor" />
@@ -819,7 +819,7 @@
                     <!-- Aspect Ratio -->
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Aspect Ratio</label>
-                        <select name="AspectRatio" class="w-full bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200">
+                        <select name="AspectRatio" class="w-full glass-input rounded-lg px-4 py-3 transition-all duration-200">
                             <option value="4:5" selected>4:5 (Portrait)</option>
                             <option value="1:1">1:1 (Square)</option>
                             <option value="16:9">16:9 (Landscape)</option>
@@ -833,11 +833,11 @@
                     <div class="space-y-3">
                         <label class="block text-sm font-medium text-text-primary">Number of Images</label>
                         <div class="flex items-center space-x-3">
-                            <button type="button" id="decreaseCount" name="BatchSize" class="w-10 h-10 bg-background border border-border rounded-lg flex items-center justify-center hover:border-primary transition-colors duration-200">
+                            <button type="button" id="decreaseCount" name="BatchSize" class="w-10 h-10 glass-control-btn rounded-lg flex items-center justify-center transition-colors duration-200">
                                 <i class="fas fa-minus text-text-secondary"></i>
                             </button>
-                            <input type="number" id="imageCount" name="BatchSize" value="1" min="1" max="4" class="flex-1 bg-background border border-border rounded-lg px-4 py-2 text-center text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200" />
-                            <button type="button" id="increaseCount" class="w-10 h-10 bg-background border border-border rounded-lg flex items-center justify-center hover:border-primary transition-colors duration-200">
+                            <input type="number" id="imageCount" name="BatchSize" value="1" min="1" max="4" class="flex-1 glass-input rounded-lg px-4 py-2 text-center transition-all duration-200" />
+                            <button type="button" id="increaseCount" class="w-10 h-10 glass-control-btn rounded-lg flex items-center justify-center transition-colors duration-200">
                                 <i class="fas fa-plus text-text-secondary"></i>
                             </button>
                         </div>
@@ -850,11 +850,11 @@
                         <!-- Phase 2 TODO: Custom Seed UX (input görünür/gizli, dice butonu JS) eklenecek. Şimdilik 0 = random olarak gönderiliyor. -->
                         <input type="hidden" name="Seed" value="0" id="seedHiddenInput" />
                         <div class="flex space-x-2">
-                            <select id="seedModeSelect" class="flex-1 bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200">
+                            <select id="seedModeSelect" class="flex-1 glass-input rounded-lg px-4 py-3 transition-all duration-200">
                                 <option value="random" selected>Random</option>
                                 <option value="custom">Custom Seed</option>
                             </select>
-                            <button type="button" id="diceBtn" class="px-4 py-3 bg-background border border-border rounded-lg hover:border-primary transition-colors duration-200">
+                            <button type="button" id="diceBtn" class="px-4 py-3 glass-control-btn rounded-lg transition-colors duration-200">
                                 <i class="fas fa-dice text-text-secondary"></i>
                             </button>
                         </div>
@@ -865,7 +865,7 @@
                                min="0"
                                max="2147483647"
                                placeholder="Enter seed value"
-                               class="hidden w-full bg-background border border-border rounded-lg px-4 py-3 text-text-primary focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none transition-all duration-200" />
+                               class="hidden w-full glass-input rounded-lg px-4 py-3 transition-all duration-200" />
                     </div>
 
                     <!-- Clear All Button -->

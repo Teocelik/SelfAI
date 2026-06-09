@@ -1,0 +1,279 @@
+/* ═══════════════════════════════════════════════════════════════
+   Pricing Page — Liquid Glass
+   design-tokens.md PART 2 ile uyumlu. Sadece bu sayfaya özel.
+   _Layout @RenderSection("Styles") üzerinden bağlanır.
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ─── Sayfa zemini ─── */
+.pricing-page {
+    min-height: 100vh;
+    padding: 80px 0;
+    /* F.4.3b: zemin main.css body aurora mesh'inden gelir; wrapper saydam kalır. */
+}
+
+.pricing-page__container {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 0 24px;
+}
+
+/* ─── Başlık ─── */
+.pricing-header {
+    text-align: center;
+    margin-bottom: 64px;
+}
+
+.pricing-header__title {
+    font-size: 3rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+}
+
+.pricing-header__subtitle {
+    font-size: 1.125rem;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Grid ─── */
+.pricing-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 24px;
+}
+
+/* ─── Cam kart ─── */
+.pricing-card {
+    position: relative;
+    background: rgba(255, 255, 255, 0.04);          /* glass-surface-base */
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 24px;
+    padding: 32px;
+    display: flex;
+    flex-direction: column;
+    transition: all 300ms ease;
+    overflow: hidden;                                /* ::before highlight için */
+}
+
+/* Üst kenar ışık şeridi (refraktif kenar) */
+.pricing-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+    pointer-events: none;
+}
+
+.pricing-card:hover {
+    transform: translateY(-4px);
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 32px rgba(0, 206, 209, 0.08);
+}
+
+/* Vurgulu kart (Plus — "En Popüler") */
+.pricing-card--highlighted {
+    border: 1.5px solid rgba(0, 206, 209, 0.5);
+    background: rgba(0, 206, 209, 0.06);             /* hafif accent tint */
+    box-shadow: 0 0 40px rgba(0, 206, 209, 0.15);
+}
+
+.pricing-card--highlighted::before {
+    background: linear-gradient(90deg, transparent, rgba(0, 206, 209, 0.4), transparent);
+}
+
+.pricing-card--highlighted:hover {
+    box-shadow: 0 0 60px rgba(0, 206, 209, 0.25);
+    transform: translateY(-6px);
+}
+
+/* ─── Rozet ─── */
+.pricing-card__badge {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(135deg, #00CED1, #00B8BC);
+    color: #000000;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 6px 16px;
+    border-radius: 999px;
+    box-shadow: 0 4px 16px rgba(0, 206, 209, 0.4);
+}
+
+/* ─── Header / fiyat ─── */
+.pricing-card__header {
+    margin-bottom: 24px;
+}
+
+.pricing-card__name {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    margin-bottom: 12px;
+}
+
+.pricing-card__price {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.pricing-card__price-amount {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: -0.02em;
+}
+
+.pricing-card__price-period {
+    font-size: 0.95rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+/* ─── Özellik listesi ─── */
+.pricing-card__features {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 32px 0;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.pricing-feature {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 0.95rem;
+}
+
+.pricing-feature--muted {
+    color: rgba(255, 255, 255, 0.4);
+}
+
+.pricing-feature__icon {
+    color: #00CED1;
+    width: 16px;
+    flex-shrink: 0;
+}
+
+.pricing-feature__icon--off {
+    color: rgba(255, 255, 255, 0.3);
+    width: 16px;
+    flex-shrink: 0;
+}
+
+/* ─── CTA buton (temel) ─── */
+.pricing-card__cta {
+    width: 100%;
+    padding: 14px 24px;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 200ms ease;
+    border: none;
+    text-align: center;
+}
+
+/* CTA — primary (standart paket) */
+.pricing-card__cta--primary {
+    background: rgba(0, 206, 209, 0.15);
+    color: #00CED1;
+    border: 1px solid rgba(0, 206, 209, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+.pricing-card__cta--primary:hover {
+    background: rgba(0, 206, 209, 0.25);
+    border-color: rgba(0, 206, 209, 0.7);
+    box-shadow: 0 0 24px rgba(0, 206, 209, 0.2);
+}
+
+.pricing-card__cta--primary:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.pricing-card__cta--primary:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+/* CTA — vurgulu kart içindeki primary (dolu turkuaz) */
+.pricing-card--highlighted .pricing-card__cta--primary {
+    background: #00CED1;
+    color: #000000;
+    border-color: #00CED1;
+}
+
+.pricing-card--highlighted .pricing-card__cta--primary:hover {
+    background: #00B8BC;
+    box-shadow: 0 0 32px rgba(0, 206, 209, 0.4);
+}
+
+/* CTA — disabled (Free paket) */
+.pricing-card__cta--disabled {
+    background: rgba(255, 255, 255, 0.05);
+    color: rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: not-allowed;
+}
+
+/* ─── Footer ─── */
+.pricing-footer {
+    margin-top: 64px;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.4);
+    font-size: 0.875rem;
+}
+
+/* ═══ Responsive ═══ */
+@media (max-width: 1023px) {
+    .pricing-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .pricing-header__title {
+        font-size: 2.5rem;
+    }
+}
+
+@media (max-width: 639px) {
+    .pricing-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .pricing-card {
+        padding: 24px;
+    }
+
+    .pricing-header__title {
+        font-size: 2rem;
+    }
+}
+
+/* ═══ Fallback — backdrop-filter desteklenmezse cam okunaksız kalmasın ═══ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .pricing-card {
+        background: #16181B;
+        border-color: rgba(255, 255, 255, 0.12);
+    }
+
+    .pricing-card--highlighted {
+        background: #14201F;
+    }
+}
