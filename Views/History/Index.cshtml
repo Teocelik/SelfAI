@@ -1,0 +1,160 @@
+@using System.Text.Json
+@using SelfAI.Entities
+@model SelfAI.ViewModels.HistoryViewModel
+@{
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+    ViewData["Title"] = "Geçmiş - SelfAI";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/history.css" />
+}
+
+<div class="history-page">
+    <div class="history-page__container">
+        <header class="history-page__header">
+            <h1 class="history-page__title">Geçmiş Üretimlerim</h1>
+            <p class="history-page__subtitle">
+                @if (Model.TotalCount > 0)
+                {
+                    <span>Toplam @Model.TotalCount üretim</span>
+                }
+                else
+                {
+                    <span>Henüz üretim yok</span>
+                }
+            </p>
+        </header>
+
+        @if (Model.Generations.Count == 0)
+        {
+            <div class="history-empty">
+                <i class="fas fa-image history-empty__icon"></i>
+                <h2 class="history-empty__title">Henüz görsel üretmedin</h2>
+                <p class="history-empty__text">
+                    Stüdyoya giderek ilk AI görselini oluşturmaya başla.
+                </p>
+                <a asp-controller="RenderNet" asp-action="Index" class="history-empty__cta">
+                    <i class="fas fa-wand-magic-sparkles"></i>
+                    Stüdyoya Git
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="history-grid">
+                @foreach (var gen in Model.Generations)
+                {
+                    var mediaUrls = gen.MediaItems.OrderBy(m => m.Order).Select(m => m.Url).ToList();
+                    var firstUrl = mediaUrls.FirstOrDefault();
+                    var statusClass = gen.Status switch
+                    {
+                        GenerationStatus.Completed => "history-card--completed",
+                        GenerationStatus.Failed => "history-card--failed",
+                        GenerationStatus.Refunded => "history-card--refunded",
+                        _ => "history-card--pending"
+                    };
+                    var statusLabel = gen.Status switch
+                    {
+                        GenerationStatus.Completed => "Tamamlandı",
+                        GenerationStatus.Failed => "Başarısız",
+                        GenerationStatus.Refunded => "İade edildi",
+                        _ => "Bekleniyor"
+                    };
+
+                    <article class="history-card @statusClass"
+                             data-history-card
+                             data-media-urls='@Html.Raw(JsonSerializer.Serialize(mediaUrls))'
+                             tabindex="0"
+                             role="button"
+                             aria-label="Üretim detayını görüntüle">
+
+                        <div class="history-card__image">
+                            @if (!string.IsNullOrEmpty(firstUrl))
+                            {
+                                <img src="@firstUrl" alt="Üretim önizleme" loading="lazy" />
+                                @if (mediaUrls.Count > 1)
+                                {
+                                    <div class="history-card__count">
+                                        <i class="fas fa-images"></i>
+                                        <span>+@(mediaUrls.Count - 1)</span>
+                                    </div>
+                                }
+                            }
+                            else
+                            {
+                                <div class="history-card__placeholder">
+                                    <i class="fas fa-image"></i>
+                                </div>
+                            }
+
+                            <div class="history-card__status">@statusLabel</div>
+                        </div>
+
+                        <div class="history-card__body">
+                            @if (!string.IsNullOrEmpty(gen.PromptSnapshot))
+                            {
+                                <p class="history-card__prompt">
+                                    @(gen.PromptSnapshot.Length > 120
+                                        ? gen.PromptSnapshot.Substring(0, 120) + "..."
+                                        : gen.PromptSnapshot)
+                                </p>
+                            }
+
+                            <div class="history-card__meta">
+                                <span class="history-card__date">
+                                    <i class="fas fa-clock"></i>
+                                    @gen.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")
+                                </span>
+                                <span class="history-card__cost">
+                                    <i class="fas fa-coins"></i>
+                                    @gen.Cost
+                                </span>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+
+            @if (Model.TotalPages > 1)
+            {
+                <nav class="history-pagination" aria-label="Sayfa navigasyonu">
+                    @if (Model.HasPrevious)
+                    {
+                        <a asp-controller="History" asp-action="Index"
+                           asp-route-page="@(Model.CurrentPage - 1)"
+                           class="history-pagination__btn"
+                           aria-label="Önceki sayfa">
+                            <i class="fas fa-chevron-left"></i>
+                            <span>Önceki</span>
+                        </a>
+                    }
+
+                    <div class="history-pagination__pages">
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <a asp-controller="History" asp-action="Index"
+                               asp-route-page="@i"
+                               class="history-pagination__page @(i == Model.CurrentPage ? "history-pagination__page--active" : "")"
+                               aria-label="Sayfa @i"
+                               aria-current="@(i == Model.CurrentPage ? "page" : null)">
+                                @i
+                            </a>
+                        }
+                    </div>
+
+                    @if (Model.HasNext)
+                    {
+                        <a asp-controller="History" asp-action="Index"
+                           asp-route-page="@(Model.CurrentPage + 1)"
+                           class="history-pagination__btn"
+                           aria-label="Sonraki sayfa">
+                            <span>Sonraki</span>
+                            <i class="fas fa-chevron-right"></i>
+                        </a>
+                    }
+                </nav>
+            }
+        }
+    </div>
+</div>

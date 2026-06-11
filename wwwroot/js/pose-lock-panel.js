@@ -127,7 +127,11 @@ const PoseLockPanel = (function () {
      * Dosyayı /RenderNet/GetAssetId'e yükle, başarılıysa preview + thumbnail + hidden input güncelle.
      * Face Lock'un uploadAssetAndGetId akışıyla birebir (multipart 'formFile' alanı).
      */
-    async function uploadAndApply(file) {
+    async function uploadAndApply(file, options) {
+        // silentToast: dış API (preset akışı) kendi Toast'unu gösterdiği için
+        // buradaki başarı Toast'u bastırılabilir. Varsayılan davranış DEĞİŞMEZ.
+        const silentToast = !!(options && options.silentToast);
+
         if (!validateFile(file)) {
             if (fileInput) fileInput.value = '';
             return;
@@ -164,7 +168,9 @@ const PoseLockPanel = (function () {
                 // Buton thumbnail swap
                 updatePoseLockBtnThumbnail(dataUrl);
 
-                Toast.success('Poz görseli başarıyla yüklendi!', 'Pose Lock');
+                if (!silentToast) {
+                    Toast.success('Poz görseli başarıyla yüklendi!', 'Pose Lock');
+                }
                 console.log('[PoseLockPanel] Asset ID alındı: %s', result.assetId);
             } else {
                 throw new Error(result.message || 'Asset ID alınamadı.');
@@ -356,6 +362,49 @@ const PoseLockPanel = (function () {
     }
 
     /**
+     * PUBLIC: Bir URL'deki görseli (örn. preset şablon) mevcut upload akışına sokar.
+     * Görsel blob olarak indirilir, File'a çevrilir ve MEVCUT uploadAndApply akışı
+     * (validasyon → /RenderNet/GetAssetId → preview + hidden input + buton thumbnail)
+     * yeniden kullanılır. Tek fark: başarı Toast'u bastırılır (çağıran taraf gösterir).
+     *
+     * @param {string} presetUrl - İndirilecek görselin URL'si
+     * @param {string} presetName - Kullanıcıya gösterilecek poz adı (loglama için)
+     * @returns {Promise<{success: boolean, error?: string}>}
+     */
+    async function uploadFromUrl(presetUrl, presetName) {
+        if (!presetUrl) {
+            return { success: false, error: 'Geçersiz preset adresi.' };
+        }
+        if (isUploading) {
+            return { success: false, error: 'Şu anda başka bir yükleme devam ediyor.' };
+        }
+
+        try {
+            const response = await fetch(presetUrl);
+            if (!response.ok) {
+                throw new Error('Preset görsel bulunamadı.');
+            }
+
+            const blob = await response.blob();
+            const fileName = presetUrl.split('/').pop() || 'preset.jpg';
+            const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
+
+            // MEVCUT akışı yeniden kullan (preview, hidden input, thumbnail hepsi içeride).
+            await uploadAndApply(file, { silentToast: true });
+
+            // uploadAndApply başarıda currentAssetId set eder, hatada temizler.
+            if (currentAssetId) {
+                console.log('[PoseLockPanel] Preset uygulandı: %s', presetName);
+                return { success: true };
+            }
+            return { success: false, error: 'Asset ID alınamadı.' };
+        } catch (error) {
+            console.error('[PoseLockPanel] Preset yükleme hatası:', error);
+            return { success: false, error: error.message };
+        }
+    }
+
+    /**
      * PUBLIC: Yüklü asset_id'yi döndür (debug / dış kontrol için)
      */
     function getCurrentAssetId() {
@@ -370,12 +419,19 @@ const PoseLockPanel = (function () {
     return {
         init,
         updatePoseLockBtnThumbnail,
+        uploadFromUrl,
         getCurrentAssetId,
         isOpen,
         close: closePanel,
         clearImage
     };
 })();
+
+// pose-presets.js gibi dış modüllerin erişebilmesi için window'a expose et
+// (const top-level olduğu için window'a otomatik bağlanmaz).
+if (typeof window !== 'undefined') {
+    window.PoseLockPanel = PoseLockPanel;
+}
 
 // Modül sistemleri için export
 if (typeof module !== 'undefined' && module.exports) {

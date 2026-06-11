@@ -432,10 +432,14 @@ const ImageControls = (function () {
 
         const grid = document.createElement('div');
         grid.className = `grid ${gridColsClass} gap-4 w-full h-full overflow-auto p-2`;
+        // 🆕 F.7: lightbox event delegation bu container'dan generation görsellerini toplar
+        grid.setAttribute('data-output-gallery', '');
 
         urls.forEach((url, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'relative flex items-center justify-center';
+            // 🆕 F.7: kart tıklaması lightbox açar (markup/oluşturma mantığı aynı, sadece attribute)
+            wrapper.setAttribute('data-output-card', '');
 
             const img = document.createElement('img');
             img.src = url;

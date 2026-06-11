@@ -14,6 +14,7 @@
     <link rel="stylesheet" href="~/css/main.css" />
     <link rel="stylesheet" href="~/css/toast.css" />
     <link rel="stylesheet" href="~/css/app-nav.css" />
+    <link rel="stylesheet" href="~/css/lightbox.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           rel="stylesheet" />
 
@@ -40,7 +41,11 @@
                     <i class="fas fa-tag"></i>
                     <span>Paketler</span>
                 </a>
-                @* F.3 yapılınca History buraya eklenir *@
+                <a asp-controller="History" asp-action="Index"
+                   class="app-nav__link @(currentController == "History" ? "app-nav__link--active" : "")">
+                    <i class="fas fa-clock-rotate-left"></i>
+                    <span>Geçmiş</span>
+                </a>
                 @* F.6 yapılınca Characters buraya eklenir *@
             </div>
 
@@ -94,6 +99,9 @@
     <!-- Toast JS — diğer tüm script'lerden ÖNCE (apiFetch/Toast bağımlılığı) -->
     <script src="~/js/toast.js"></script>
     <script src="~/js/app-nav.js"></script>
+
+    <!-- Lightbox — output gallery etkileşimi (büyüt/indir/paylaş). Toast'tan sonra (Toast bağımlılığı). -->
+    <script src="~/js/lightbox.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

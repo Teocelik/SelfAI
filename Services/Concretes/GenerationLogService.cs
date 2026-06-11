@@ -118,5 +118,28 @@ namespace SelfAI.Services.Concretes
 
             return ServiceResult<int>.Success(mediaItems.Count, $"{mediaItems.Count} media kaydedildi.");
         }
+
+        public async Task<ServiceResult<(IReadOnlyList<Generation> Items, int TotalCount)>> GetUserGenerationsAsync(
+            Guid userId, int page = 1, int pageSize = 12)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 50) pageSize = 12;
+
+            var query = _db.Generations
+                .Where(g => g.UserId == userId)
+                .Include(g => g.MediaItems.OrderBy(m => m.Order))
+                .OrderByDescending(g => g.CreatedAt);
+
+            var totalCount = await query.CountAsync();
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return ServiceResult<(IReadOnlyList<Generation>, int)>.Success(
+                (items.AsReadOnly(), totalCount),
+                $"{items.Count} kayıt getirildi.");
+        }
     }
 }
