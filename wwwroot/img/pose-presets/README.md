@@ -1,18 +1,15 @@
-# Pose Lock Preset Görselleri
+# Pose Lock Şablon Görselleri
 
-Bu klasöre 6 adet pose referans görseli ekle. İsimler aşağıdaki gibi olmalı:
+Bu klasöre **20-30 adet pose referans görseli** ekle. İsimlendirme:
 
-- standing.jpg — Ayakta düz duruş
-- sitting.jpg — Oturmuş, doğal poz
-- walking.jpg — Yürüme/hareket
-- arms-crossed.jpg — Kollar çapraz
-- looking-back.jpg — Geriye bakış
-- greeting.jpg — Selam/eli kalkık
+pose-01.jpg, pose-02.jpg, pose-03.jpg, ... pose-30.jpg
 
 Görsel önerileri:
-- Tek figür, sade arka plan
-- Pose net görünür olmalı (full body veya 3/4)
-- Tercihen 512x512 veya 768x768 boyutunda
-- JPG veya PNG, 200KB-1MB arası dosya boyutu
+- Tek figür, sade arka plan VEYA doğal setting (Affogato gibi varyasyon)
+- Pose net görünür (full body veya 3/4)
+- Farklı aspect ratio'lar (dikey, kare, yatay) — masonry layout için ideal
+- Farklı pose tarzları (ayakta, oturma, hareket, dramatic, dynamic)
+- JPG/PNG/WebP, 200KB-1.5MB arası dosya boyutu
 
-Görseller yoksa kart placeholder gösterilir, eklenince otomatik aktif olur.
+NOT: Var olmayan dosyalar otomatik gizlenir (broken-image handler kartı tamamen
+gizler). Önce 5-10 görselle test edebilirsin, sonra kademeli ekle.

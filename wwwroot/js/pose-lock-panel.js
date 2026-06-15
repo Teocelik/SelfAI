@@ -1,47 +1,43 @@
 /**
- * Pose Lock Panel Module
- * Poz referans görseli yükleme panelini yönetir: panel aç/kapat, görsel upload
- * (/RenderNet/GetAssetId), preview ve buton thumbnail swap.
+ * Pose Lock Panel Module (F.5b — Full-Screen Modal)
+ * Poz referans görseli seçimini yönetir. F.5b'de sidebar slide-in panel,
+ * full-screen modal'a (#poseLockModal) dönüştürüldü:
+ *   - Studio'daki Pose Lock butonu (#poseLockBtn) modal'ı açar.
+ *   - Kapatma: X butonu / backdrop (data-pose-modal-close) / ESC.
+ *   - Body scroll lock (.is-pose-modal-open) modal açıkken.
  *
- * Face Lock paneliyle aynı görsel dili ve aynı .open/.hidden geçiş mantığını kullanır.
+ * ASSET UPLOAD AKIŞI DEĞİŞMEDİ:
+ *   dosya → /RenderNet/GetAssetId → asset_id → hidden input (#poseLockAssetId)
+ *   + Studio butonu thumbnail swap. Aynı dosya input ID'si (#poseLockPanelImage)
+ *   korundu; manuel upload ve preset (uploadFromUrl) akışları aynı.
  *
  * ORTHOGONAL: Pose Lock, Character ↔ Face Lock mutual exclusivity'sine DOKUNMAZ.
  * Pose görseli seçili olsa bile diğer iki buton/panel durumunu değiştirmez; üçü
  * birlikte aktif olabilir (backend control_net'i facelock/character ile birlikte gönderir).
- * Aynı anda yalnızca tek panelin açık kalması, mevcut panellerin (Face Lock, Character)
- * kendi handleOutsideClick handler'ları sayesinde otomatik sağlanır: Pose Lock butonuna
- * tıklanınca o panellerin dışına tıklanmış olur ve kendiliğinden kapanırlar.
  */
 
 const PoseLockPanel = (function () {
     'use strict';
 
     // ─── DOM Referansları ───
-    let poseLockBtn = null;
-    let poseLockPanel = null;
-    let closeBtn = null;
-    let uploadArea = null;
-    let fileInput = null;
-    let uploadContent = null;
-    let preview = null;
-    let previewImg = null;
-    let changeBtn = null;
-    let assetIdInput = null;
+    let poseLockBtn = null;   // Studio'daki tool button (Consistency Controls)
+    let modal = null;         // #poseLockModal (full-screen)
+    let fileInput = null;     // #poseLockPanelImage (modal içinde, ID korundu)
+    let uploadZone = null;    // .pose-modal__upload-zone (spinner overlay için)
 
     // ─── Modül State ───
     let currentAssetId = null;   // yüklenmiş görselin asset_id'si (string|null)
-    let isPanelOpen = false;
     let isUploading = false;
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (Face Lock ile aynı sınır)
 
     /**
-     * Modülü başlat
+     * Modülü başlat (App.js → initPoseLockPanel çağırır)
      */
     function init() {
         cacheElements();
         bindEvents();
-        console.log('[PoseLockPanel] initialized');
+        console.log('[PoseLockPanel] initialized (modal)');
     }
 
     /**
@@ -49,41 +45,73 @@ const PoseLockPanel = (function () {
      */
     function cacheElements() {
         poseLockBtn = document.getElementById('poseLockBtn');
-        poseLockPanel = document.getElementById('poseLockPanel');
-        closeBtn = document.getElementById('closePoseLockPanel');
-        uploadArea = document.getElementById('poseLockPanelUploadArea');
+        modal = document.getElementById('poseLockModal');
         fileInput = document.getElementById('poseLockPanelImage');
-        uploadContent = document.getElementById('poseLockPanelUploadContent');
-        preview = document.getElementById('poseLockPanelPreview');
-        previewImg = document.getElementById('poseLockPanelPreviewImg');
-        changeBtn = document.getElementById('changePoseLockImage');
-        assetIdInput = document.getElementById('poseLockAssetId');
+        uploadZone = modal ? modal.querySelector('.pose-modal__upload-zone') : null;
     }
 
     /**
      * Event listener'ları bağla
      */
     function bindEvents() {
+        // Studio'daki Pose Lock butonu → modal aç
         if (poseLockBtn) {
             poseLockBtn.addEventListener('click', handleBtnClick);
         }
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closePanel);
+
+        // Modal kapatma elemanları (X butonu + backdrop)
+        if (modal) {
+            modal.querySelectorAll('[data-pose-modal-close]').forEach(function (el) {
+                el.addEventListener('click', closePoseModal);
+            });
         }
-        if (uploadArea) {
-            uploadArea.addEventListener('click', handleUploadAreaClick);
-        }
+
+        // Dosya seçimi (manuel upload)
         if (fileInput) {
             fileInput.addEventListener('change', handleFileSelect);
         }
-        if (changeBtn) {
-            changeBtn.addEventListener('click', handleChangeImage);
-        }
 
-        // Panel dışına tıklayınca kapat
-        document.addEventListener('click', handleOutsideClick);
-        // Escape ile kapat
+        // ESC ile kapat
         document.addEventListener('keydown', handleEscapeKey);
+    }
+
+    // ═══════════════════════════════════════════════
+    // MODAL AÇ / KAPAT
+    // ═══════════════════════════════════════════════
+
+    function handleBtnClick(e) {
+        e.preventDefault();
+        openPoseModal();
+    }
+
+    function openPoseModal() {
+        if (!modal) return;
+        modal.classList.add('is-open');
+        modal.setAttribute('aria-hidden', 'false');
+        document.body.classList.add('is-pose-modal-open');
+
+        // Focus management — kapat butonuna odaklan
+        setTimeout(function () {
+            const closeBtn = modal.querySelector('.pose-modal__close');
+            if (closeBtn) closeBtn.focus();
+        }, 100);
+    }
+
+    function closePoseModal() {
+        if (!modal) return;
+        modal.classList.remove('is-open');
+        modal.setAttribute('aria-hidden', 'true');
+        document.body.classList.remove('is-pose-modal-open');
+    }
+
+    function handleEscapeKey(e) {
+        if (e.key === 'Escape' && isOpen()) {
+            closePoseModal();
+        }
+    }
+
+    function isOpen() {
+        return !!(modal && modal.classList.contains('is-open'));
     }
 
     // ═══════════════════════════════════════════════
@@ -91,21 +119,18 @@ const PoseLockPanel = (function () {
     // ═══════════════════════════════════════════════
 
     /**
-     * Upload alanına tıklama — dosya seçiciyi aç (Change butonu ve yükleme sırasında hariç)
+     * Dosya seçildiğinde — yükle, başarılıysa modal'ı kapat.
      */
-    function handleUploadAreaClick(e) {
-        if (e.target.closest('#changePoseLockImage')) return;
-        if (isUploading) return;
-        if (fileInput) fileInput.click();
-    }
-
-    /**
-     * Dosya seçildiğinde
-     */
-    function handleFileSelect(e) {
+    async function handleFileSelect(e) {
         const file = e.target.files && e.target.files[0];
         if (!file || isUploading) return;
-        uploadAndApply(file);
+
+        await uploadAndApply(file);
+
+        // Modal içinde preview alanı yok; başarılı seçimden sonra modal kapanır.
+        if (currentAssetId) {
+            closePoseModal();
+        }
     }
 
     /**
@@ -124,8 +149,8 @@ const PoseLockPanel = (function () {
     }
 
     /**
-     * Dosyayı /RenderNet/GetAssetId'e yükle, başarılıysa preview + thumbnail + hidden input güncelle.
-     * Face Lock'un uploadAssetAndGetId akışıyla birebir (multipart 'formFile' alanı).
+     * Dosyayı /RenderNet/GetAssetId'e yükle, başarılıysa hidden input + buton
+     * thumbnail güncelle. Face Lock'un akışıyla birebir (multipart 'formFile' alanı).
      */
     async function uploadAndApply(file, options) {
         // silentToast: dış API (preset akışı) kendi Toast'unu gösterdiği için
@@ -159,13 +184,8 @@ const PoseLockPanel = (function () {
                 currentAssetId = result.assetId;
                 setHiddenValue('poseLockAssetId', result.assetId);
 
-                // Preview için dosyayı data URL'e çevir
+                // Preview için dosyayı data URL'e çevir → buton thumbnail swap
                 const dataUrl = await readFileAsDataUrl(file);
-                if (previewImg) previewImg.src = dataUrl;
-                if (uploadContent) uploadContent.classList.add('hidden');
-                if (preview) preview.classList.remove('hidden');
-
-                // Buton thumbnail swap
                 updatePoseLockBtnThumbnail(dataUrl);
 
                 if (!silentToast) {
@@ -200,16 +220,16 @@ const PoseLockPanel = (function () {
     }
 
     /**
-     * Yükleme sırasında upload alanına spinner overlay göster (Face Lock stili)
+     * Yükleme sırasında upload zone'a spinner overlay göster (Face Lock stili)
      */
     function showUploadingState(uploading) {
-        if (!uploadArea) return;
+        if (!uploadZone) return;
 
         if (uploading) {
-            uploadArea.style.pointerEvents = 'none';
-            uploadArea.style.position = 'relative';
+            uploadZone.style.pointerEvents = 'none';
+            uploadZone.style.position = 'relative';
 
-            let spinner = uploadArea.querySelector('.upload-spinner');
+            let spinner = uploadZone.querySelector('.upload-spinner');
             if (!spinner) {
                 spinner = document.createElement('div');
                 spinner.className = 'upload-spinner';
@@ -221,37 +241,22 @@ const PoseLockPanel = (function () {
                         </div>
                     </div>
                 `;
-                uploadArea.appendChild(spinner);
+                uploadZone.appendChild(spinner);
             }
         } else {
-            uploadArea.style.pointerEvents = '';
-            const spinner = uploadArea.querySelector('.upload-spinner');
+            uploadZone.style.pointerEvents = '';
+            const spinner = uploadZone.querySelector('.upload-spinner');
             if (spinner) spinner.remove();
         }
     }
 
     /**
-     * Change Image — mevcut seçimi temizle ve yeniden dosya seçiciyi aç
-     */
-    function handleChangeImage(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        clearImage();
-        if (fileInput) fileInput.click();
-    }
-
-    /**
-     * Seçili poz görselini temizle: state, hidden input, preview ve buton icon'una dön.
+     * Seçili poz görselini temizle: state, hidden input ve buton icon'una dön.
      */
     function clearImage() {
         currentAssetId = null;
         setHiddenValue('poseLockAssetId', '');
-
-        if (preview) preview.classList.add('hidden');
-        if (uploadContent) uploadContent.classList.remove('hidden');
-        if (previewImg) previewImg.src = '';
         if (fileInput) fileInput.value = '';
-
         updatePoseLockBtnThumbnail(null);
     }
 
@@ -294,65 +299,6 @@ const PoseLockPanel = (function () {
     }
 
     // ═══════════════════════════════════════════════
-    // PANEL AÇ / KAPAT (Face Lock + Character paneliyle aynı mantık)
-    // ═══════════════════════════════════════════════
-
-    function handleBtnClick(e) {
-        e.preventDefault();
-        togglePanel();
-    }
-
-    function togglePanel() {
-        if (isPanelOpen) {
-            closePanel();
-        } else {
-            openPanel();
-        }
-    }
-
-    function openPanel() {
-        if (isPanelOpen || !poseLockPanel) return;
-        isPanelOpen = true;
-
-        poseLockPanel.classList.remove('hidden');
-        if (poseLockBtn) poseLockBtn.classList.add('active');
-
-        setTimeout(() => {
-            poseLockPanel.classList.add('open');
-        }, 10);
-    }
-
-    function closePanel() {
-        if (!isPanelOpen || !poseLockPanel) return;
-        isPanelOpen = false;
-
-        poseLockPanel.classList.remove('open');
-        if (poseLockBtn) poseLockBtn.classList.remove('active');
-
-        setTimeout(() => {
-            poseLockPanel.classList.add('hidden');
-        }, 300);
-    }
-
-    function handleOutsideClick(e) {
-        if (
-            isPanelOpen &&
-            poseLockPanel &&
-            !poseLockPanel.contains(e.target) &&
-            poseLockBtn &&
-            !poseLockBtn.contains(e.target)
-        ) {
-            closePanel();
-        }
-    }
-
-    function handleEscapeKey(e) {
-        if (e.key === 'Escape' && isPanelOpen) {
-            closePanel();
-        }
-    }
-
-    // ═══════════════════════════════════════════════
     // YARDIMCILAR
     // ═══════════════════════════════════════════════
 
@@ -364,7 +310,7 @@ const PoseLockPanel = (function () {
     /**
      * PUBLIC: Bir URL'deki görseli (örn. preset şablon) mevcut upload akışına sokar.
      * Görsel blob olarak indirilir, File'a çevrilir ve MEVCUT uploadAndApply akışı
-     * (validasyon → /RenderNet/GetAssetId → preview + hidden input + buton thumbnail)
+     * (validasyon → /RenderNet/GetAssetId → hidden input + buton thumbnail)
      * yeniden kullanılır. Tek fark: başarı Toast'u bastırılır (çağıran taraf gösterir).
      *
      * @param {string} presetUrl - İndirilecek görselin URL'si
@@ -389,7 +335,7 @@ const PoseLockPanel = (function () {
             const fileName = presetUrl.split('/').pop() || 'preset.jpg';
             const file = new File([blob], fileName, { type: blob.type || 'image/jpeg' });
 
-            // MEVCUT akışı yeniden kullan (preview, hidden input, thumbnail hepsi içeride).
+            // MEVCUT akışı yeniden kullan (hidden input, thumbnail hepsi içeride).
             await uploadAndApply(file, { silentToast: true });
 
             // uploadAndApply başarıda currentAssetId set eder, hatada temizler.
@@ -411,10 +357,6 @@ const PoseLockPanel = (function () {
         return currentAssetId;
     }
 
-    function isOpen() {
-        return isPanelOpen;
-    }
-
     // Public API
     return {
         init,
@@ -422,7 +364,8 @@ const PoseLockPanel = (function () {
         uploadFromUrl,
         getCurrentAssetId,
         isOpen,
-        close: closePanel,
+        open: openPoseModal,
+        close: closePoseModal,
         clearImage
     };
 })();

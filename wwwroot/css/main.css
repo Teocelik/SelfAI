@@ -2845,23 +2845,171 @@ END FACE LOCK PANEL STYLES
     box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5), 0 0 24px rgba(0, 206, 209, 0.15);
 }
 
-/* Cam kontrol butonu (consistency, model/flux trigger, count, dice, random) */
+/* ─── Sağ Studio sidebar — solid Studio Dark yüzey ───
+   Consistency Controls + Image Prompt + Model vb. bölümleri içeren ana
+   sağ kolon. Markup'taki Tailwind bg-surface'i override eder (ID > class).
+   Düz solid dark istendiği için backdrop-filter / box-shadow eklenmez;
+   arkadaki aurora mesh body background'a DOKUNULMAZ, sadece çok az sızar. */
+#rightSidebar {
+    background: rgba(13, 13, 16, 0.96);
+}
+
+/* Cam kontrol butonu (consistency, model/flux trigger, count, dice, random)
+   — Studio Dark aesthetic (WWDC25 Liquid Glass'tan sadeleştirildi).
+   Solid dark panel hissi: minimal blur, tek subtle border, tek katman
+   gölge; refraktif highlight / ::before sweep YOK. Accent (#00CED1)
+   yalnızca selected state'te subtle kullanılır. */
 .glass-control-btn {
-    background: rgba(255, 255, 255, 0.04);
+    /* Daha solid dark — dark studio paneli hissi */
+    background: rgba(22, 22, 26, 0.65);
+    /* Minimal blur — dark on dark, güçlü blur'a gerek yok */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: all 0.2s ease;
+    /* Tek subtle border */
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    /* Kart radius (pill değil). Büyük consistency butonları kendi 22px
+       override'ını, random prompt butonu kendi 10px override'ını korur. */
+    border-radius: 14px;
+    /* Tek katmanlı subtle shadow — depth için minimal */
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    /* Sade transition */
+    transition:
+        background 200ms ease,
+        border-color 200ms ease,
+        transform 200ms ease;
+    position: relative;
+    /* Thumbnail (face/pose) kırpma için korunuyor */
+    overflow: hidden;
+    cursor: pointer;
 }
 .glass-control-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 206, 209, 0.4);
-    box-shadow: 0 0 16px rgba(0, 206, 209, 0.12);
+    background: rgba(30, 30, 35, 0.75);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: none; /* Y translate yok — sade brighten */
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-control-btn:active {
+    background: rgba(18, 18, 22, 0.75);
+    transition-duration: 80ms;
 }
 .glass-control-btn:focus-visible {
-    outline: none;
-    border-color: rgba(0, 206, 209, 0.5);
-    box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5), 0 0 24px rgba(0, 206, 209, 0.15);
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+/* Selected state — turkuaz accent korunur ama daha subtle */
+.glass-control-btn.is-selected,
+.glass-control-btn[data-has-asset="true"] {
+    background: rgba(0, 206, 209, 0.07);
+    border-color: rgba(0, 206, 209, 0.3);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(0, 206, 209, 0.15);
+}
+.glass-control-btn.is-selected:hover,
+.glass-control-btn[data-has-asset="true"]:hover {
+    background: rgba(0, 206, 209, 0.1);
+    border-color: rgba(0, 206, 209, 0.4);
+}
+
+/* ─── Consistency Controls — dış glass KALDIRILDI ───
+   Önceki WWDC25 bar konteyneri (background/blur/border/radius/shadow +
+   ::before/::after pseudo'lar) tamamen kaldırıldı. Buton satırı artık
+   yalnızca markup'taki Tailwind 'flex space-x-3' ile şeffaf bir layout
+   wrapper; cam efekti SADECE butonların kendisinde kalır. Satırın kendi
+   pozisyon/hizalama ihtiyacı yok (absolute child'lar butona göreceli). */
+
+/* Consistency tool butonları (Character / Face Lock / Pose Lock) — FLAT,
+   bar'la entegre, eşit kare. Studio Dark dili: blur/box-shadow/pseudo YOK.
+   Paylaşılan .glass-control-btn'e DOKUNULMAZ; sabit boyut + flat dil yalnız
+   bu 3 ID'ye uygulanır (aksi halde w-full model-select / 32px random/count/
+   dice butonları bozulurdu). Sabit 116px ~288px konteyneri taşırdığı için
+   responsive eşit kare seçildi: flex:1 ile eşit genişlik + aspect-ratio:1
+   ile otomatik kare. align-self:center, parent'ın stretch'ini iptal edip
+   aspect-ratio'nun kareyi vermesini sağlar (markup/parent'a dokunmadan). */
+#characterBtn,
+#faceLockBtn,
+#poseLockBtn {
+    /* Flat yüzey — minimal lift, glass yok */
+    background: rgba(255, 255, 255, 0.025);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    box-shadow: none;
+    /* Responsive eşit kare */
+    flex: 1 1 0%;
+    align-self: center;
+    aspect-ratio: 1 / 1;
+    /* İçerik (icon + label) ortalansın */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    /* Sade transition — transform yok, flat kalır */
+    transition:
+        background 180ms ease,
+        border-color 180ms ease;
+    position: relative;
+    cursor: pointer;
+}
+/* Bu 3 butonda pseudo-element kalıntısı olmasın — flat dili koru */
+#characterBtn::before, #characterBtn::after,
+#faceLockBtn::before, #faceLockBtn::after,
+#poseLockBtn::before, #poseLockBtn::after {
+    content: none;
+}
+#characterBtn:hover,
+#faceLockBtn:hover,
+#poseLockBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+#characterBtn:active,
+#faceLockBtn:active,
+#poseLockBtn:active {
+    background: rgba(255, 255, 255, 0.02);
+    transition-duration: 80ms;
+}
+#characterBtn:focus-visible,
+#faceLockBtn:focus-visible,
+#poseLockBtn:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+/* Selected — asset seçili: subtle turkuaz tint, glow/shadow YOK */
+#characterBtn.is-selected, #characterBtn[data-has-asset="true"],
+#faceLockBtn.is-selected, #faceLockBtn[data-has-asset="true"],
+#poseLockBtn.is-selected, #poseLockBtn[data-has-asset="true"] {
+    background: rgba(0, 206, 209, 0.06);
+    border-color: rgba(0, 206, 209, 0.25);
+}
+#characterBtn.is-selected:hover, #characterBtn[data-has-asset="true"]:hover,
+#faceLockBtn.is-selected:hover, #faceLockBtn[data-has-asset="true"]:hover,
+#poseLockBtn.is-selected:hover, #poseLockBtn[data-has-asset="true"]:hover {
+    background: rgba(0, 206, 209, 0.09);
+    border-color: rgba(0, 206, 209, 0.35);
+}
+
+/* Random prompt butonu — Image Prompt textarea köşesindeki küçük (32px)
+   ikon butonu. .glass-control-btn'in 18px radius + ağır drop shadow'u bu
+   küçük butonda "kayık/şişkin" görünüyordu; köşe butonuna uygun değerlere
+   çekilir (küçük radius, hafif gölge, hover'da lift YOK). Tıklama işlevi
+   JS'te; markup'a/JS'e dokunulmadı. */
+#randomPromptBtn {
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+#randomPromptBtn:hover {
+    transform: none;
+    box-shadow:
+        0 0 12px rgba(0, 206, 209, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 /* group-hover turkuaz (eski group-hover:text-primary yerine) */
 .group:hover .group-hover-accent {

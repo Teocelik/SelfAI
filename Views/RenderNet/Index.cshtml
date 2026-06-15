@@ -575,110 +575,9 @@
         </div>
         <!-- Character Panel End -->
 
-        <!-- Pose Lock Panel - Floating Side Panel (Face Lock paneliyle aynı tasarım dili) -->
-        <div id="poseLockPanel"
-             class="glass-panel fixed top-[80px] z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden"
-             style="right: 400px; width: 320px; max-height: calc(100vh - 120px);">
-            <div class="flex flex-col rounded-[20px] overflow-hidden h-full" style="max-height: calc(100vh - 120px);">
-
-                <!-- Panel Header -->
-                <div class="flex-shrink-0 flex items-center justify-between p-4 border-b glass-divider">
-                    <div class="flex items-center">
-                        <i class="fas fa-running text-[#00CED1] mr-2"></i>
-                        <div>
-                            <h3 class="text-white text-sm font-semibold">Pose Lock <span class="text-gray-500 text-xs">(ControlNet)</span></h3>
-                            <p class="text-gray-400 text-xs mt-1">Use Pose Lock to get the same pose and composition.</p>
-                        </div>
-                    </div>
-                    <button type="button" id="closePoseLockPanel" class="glass-panel__close text-gray-400 hover:text-white transition-colors">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-
-                <!-- Upload Area -->
-                <div class="flex-1 overflow-y-auto scrollbar-thin p-4">
-
-                    <!-- Hızlı Şablonlar (preset pose grid) -->
-                    <div class="pose-presets">
-                        <h3 class="glass-panel__section-title">Hızlı Şablonlar</h3>
-                        <div class="pose-presets__grid">
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/standing.jpg" data-preset-name="Ayakta">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/standing.jpg" alt="Ayakta" loading="lazy" />
-                                    <i class="fas fa-person-walking pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Ayakta</span>
-                            </button>
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/sitting.jpg" data-preset-name="Oturarak">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/sitting.jpg" alt="Oturarak" loading="lazy" />
-                                    <i class="fas fa-chair pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Oturarak</span>
-                            </button>
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/walking.jpg" data-preset-name="Yürüyüş">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/walking.jpg" alt="Yürüyüş" loading="lazy" />
-                                    <i class="fas fa-person-running pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Yürüyüş</span>
-                            </button>
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/arms-crossed.jpg" data-preset-name="Kollar Çapraz">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/arms-crossed.jpg" alt="Kollar Çapraz" loading="lazy" />
-                                    <i class="fas fa-user-tie pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Kollar Çapraz</span>
-                            </button>
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/looking-back.jpg" data-preset-name="Geriye Bakış">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/looking-back.jpg" alt="Geriye Bakış" loading="lazy" />
-                                    <i class="fas fa-eye pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Geriye Bakış</span>
-                            </button>
-                            <button type="button" class="pose-preset" data-preset-url="/img/pose-presets/greeting.jpg" data-preset-name="Selam">
-                                <div class="pose-preset__image">
-                                    <img src="/img/pose-presets/greeting.jpg" alt="Selam" loading="lazy" />
-                                    <i class="fas fa-hand pose-preset__placeholder"></i>
-                                </div>
-                                <span class="pose-preset__label">Selam</span>
-                            </button>
-                        </div>
-
-                        <div class="pose-presets__divider">
-                            <span>veya kendi referansını yükle</span>
-                        </div>
-                    </div>
-
-                    <div class="glass-upload transition-colors duration-200" id="poseLockPanelUploadArea">
-                        <input type="file" id="poseLockPanelImage" accept="image/*" class="hidden" />
-
-                        <!-- Upload Placeholder -->
-                        <div id="poseLockPanelUploadContent" class="flex flex-col items-center py-6">
-                            <i class="fas fa-cloud-upload-alt text-3xl text-[#00CED1] mb-2"></i>
-                            <p class="text-sm text-white">Upload photo</p>
-                            <p class="text-xs text-gray-400 mt-1">Click to select an image</p>
-                        </div>
-
-                        <!-- Image Preview -->
-                        <div id="poseLockPanelPreview" class="hidden flex flex-col items-center">
-                            <img id="poseLockPanelPreviewImg" src="" alt="Pose Lock Preview" class="w-full max-h-[200px] object-contain rounded-lg border border-[#00CED1]" />
-                            <button type="button" id="changePoseLockImage" class="mt-3 text-xs text-[#00CED1] hover:text-white transition-colors flex items-center">
-                                <i class="fas fa-sync-alt mr-1 text-[10px]"></i>Change Image
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Flux Settings Info -->
-                    <div class="glass-info mt-4 p-3">
-                        <h4 class="text-xs text-white font-semibold mb-1">Flux settings</h4>
-                        <p class="text-xs text-gray-400">Map type used for selected Flux models. The aspect ratio of the final image will be same as the image used with Pose Lock.</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Pose Lock Panel End -->
+        @* F.5b: Pose Lock side panel'i kaldırıldı; yerine full-screen modal geldi
+           (bkz. view sonundaki #poseLockModal). Studio'daki Pose Lock BUTONU
+           (#poseLockBtn, Consistency Controls içinde) aynen yerinde kalır. *@
 
         <!-- Right Sidebar -->
         <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar order-3 flex-shrink-0 transition-all duration-300 ease-out" id="rightSidebar">
@@ -902,6 +801,70 @@
 
         </div>
     </div>
+
+    @* ═══ F.5b: Pose Lock Full-Screen Modal ═══
+       Studio'daki Pose Lock butonu (#poseLockBtn) tıklanınca JS bu modal'ı açar.
+       Başlangıçta gizli (.pose-modal display:none); .is-open ile gösterilir.
+       Şablon görselleri /img/pose-presets/pose-XX.jpg; var olmayan görselleri
+       pose-presets.js broken-image handler'ı gizler. *@
+    @{
+        var poseTemplates = Enumerable.Range(1, 30).Select(i => new {
+            Url = $"/img/pose-presets/pose-{i:D2}.jpg",
+            Name = $"Pose {i}"
+        }).ToList();
+    }
+
+    <div class="pose-modal" id="poseLockModal" role="dialog" aria-modal="true" aria-labelledby="poseLockModalTitle" aria-hidden="true">
+        <div class="pose-modal__backdrop" data-pose-modal-close></div>
+
+        <div class="pose-modal__container">
+            <button type="button" class="pose-modal__close" data-pose-modal-close aria-label="Kapat">
+                <i class="fas fa-times"></i>
+            </button>
+
+            <header class="pose-modal__header">
+                <h2 class="pose-modal__title" id="poseLockModalTitle">Pose Lock</h2>
+                <p class="pose-modal__subtitle">
+                    Kendi referansını yükle veya bir şablon seç — pozu üretimi yönlendirir.
+                </p>
+            </header>
+
+            <div class="pose-modal__upload">
+                @* ID korunuyor: pose-lock-panel.js dosya input'una #poseLockPanelImage
+                   ile bağlı. Modal içine taşındı ama ID aynı kaldı. *@
+                <label class="pose-modal__upload-zone" for="poseLockPanelImage">
+                    <i class="fas fa-upload pose-modal__upload-icon"></i>
+                    <div class="pose-modal__upload-text">
+                        <strong>Bir görsel yükle veya assets'lerinden seç</strong>
+                        <span>PNG / JPG / WebP, en fazla 10MB</span>
+                    </div>
+                </label>
+                <input type="file" id="poseLockPanelImage" accept="image/*" hidden />
+            </div>
+
+            <div class="pose-modal__scroll">
+                <section class="pose-modal__templates">
+                    <h3 class="pose-modal__templates-title">ŞABLONLAR</h3>
+                    <div class="pose-modal__grid">
+                        @foreach (var template in poseTemplates)
+                        {
+                            <button type="button"
+                                    class="pose-template"
+                                    data-preset-url="@template.Url"
+                                    data-preset-name="@template.Name">
+                                <img src="@template.Url" alt="@template.Name" loading="lazy" />
+                            </button>
+                        }
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    @section Styles {
+        <link rel="stylesheet" href="~/css/pose-modal.css" />
+    }
+
     <!-- JavaScript Files -->
     @section Scripts {
     <script src="~/js/prompt-handler.js"></script>

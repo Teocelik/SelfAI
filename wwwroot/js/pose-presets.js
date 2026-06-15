@@ -1,31 +1,35 @@
 /**
- * Pose Presets Module
- * Pose Lock panelindeki "Hızlı Şablonlar" preset kartlarını yönetir.
+ * Pose Presets Module (F.5b — Modal Masonry Şablonlar)
+ * Pose Lock modal'ındaki masonry şablon kartlarını (.pose-template) yönetir.
  * Bir karta tıklanınca ilgili görsel, pose-lock-panel.js'in expose ettiği
  * window.PoseLockPanel.uploadFromUrl API'si ile mevcut upload akışına sokulur
  * (görsel → /RenderNet/GetAssetId → asset_id → hidden input + buton thumbnail).
  *
- * Backend değişikliği YOK. Görsel yoksa broken-image handler placeholder gösterir.
+ * Backend değişikliği YOK. Var olmayan görseller broken-image handler ile
+ * TAMAMEN GİZLENİR (sadece gerçek şablonlar görünür — Affogato davranışı).
  */
 (function () {
     'use strict';
 
     document.addEventListener('DOMContentLoaded', function () {
-        const presets = document.querySelectorAll('.pose-preset');
-        presets.forEach(function (preset) {
-            preset.addEventListener('click', handlePresetClick);
+        const templates = document.querySelectorAll('.pose-template');
+        templates.forEach(function (template) {
+            template.addEventListener('click', handleTemplateClick);
         });
 
-        // Broken image handler — görsel yoksa placeholder göster
-        const images = document.querySelectorAll('.pose-preset__image img');
+        // Broken image handler — görsel yoksa kartı tamamen gizle
+        const images = document.querySelectorAll('.pose-template img');
         images.forEach(function (img) {
             img.addEventListener('error', function () {
-                img.classList.add('is-broken');
+                const template = img.closest('.pose-template');
+                if (template) {
+                    template.classList.add('is-hidden');
+                }
             });
         });
     });
 
-    async function handlePresetClick(event) {
+    async function handleTemplateClick(event) {
         const btn = event.currentTarget;
         const presetUrl = btn.dataset.presetUrl;
         const presetName = btn.dataset.presetName;
@@ -35,8 +39,8 @@
         // Loading state
         btn.classList.add('is-loading');
 
-        // Diğer presetlerin selected state'ini temizle
-        document.querySelectorAll('.pose-preset.is-selected').forEach(function (el) {
+        // Diğer şablonların selected state'ini temizle
+        document.querySelectorAll('.pose-template.is-selected').forEach(function (el) {
             el.classList.remove('is-selected');
         });
 
@@ -53,15 +57,19 @@
                 if (typeof Toast !== 'undefined' && Toast.success) {
                     Toast.success('"' + presetName + '" pozu seçildi.');
                 }
+                // Kullanıcı seçim yaptı → modal'ı kapat
+                if (window.PoseLockPanel && typeof window.PoseLockPanel.close === 'function') {
+                    window.PoseLockPanel.close();
+                }
             } else {
                 if (typeof Toast !== 'undefined' && Toast.error) {
-                    Toast.error('Preset yüklenemedi: ' + (result.error || 'Bilinmeyen hata'));
+                    Toast.error('Şablon yüklenemedi: ' + (result.error || 'Bilinmeyen hata'));
                 }
             }
         } catch (error) {
-            console.error('Preset click hatası:', error);
+            console.error('Şablon click hatası:', error);
             if (typeof Toast !== 'undefined' && Toast.error) {
-                Toast.error('Preset yüklenirken hata oluştu.');
+                Toast.error('Şablon yüklenirken hata oluştu.');
             }
         } finally {
             btn.classList.remove('is-loading');
