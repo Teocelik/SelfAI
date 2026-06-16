@@ -22,7 +22,6 @@ const CharacterPanel = (function () {
     let characters = [];                 // API'den gelen karakter listesi
     let selectedCharacter = null;        // { id, name } veya null
     let selectedMode = 'balanced';       // "flexible" | "balanced" | "strong"
-    let isPanelOpen = false;
 
     // Karakter görseli henüz API'den dönmüyor; Face Lock'taki gibi placeholder kullan
     const PLACEHOLDER_AVATAR =
@@ -40,7 +39,11 @@ const CharacterPanel = (function () {
     function init() {
         cacheElements();
         bindEvents();
-        loadCharactersFromBackend();
+        // F.5c: Karakter listesi artık full-screen modal'daki statik (mock) Razor
+        // kartlarından geliyor. Gerçek API entegrasyonu (loadCharactersFromBackend →
+        // /RenderNet/GetCharacters) F.6'da yeniden bağlanacak. Bu task'ta çağrı YOK:
+        // aksi halde renderGrid() modal'daki mock kartları silerdi (ikisi de #characterGrid).
+        // loadCharactersFromBackend();
         console.log('[CharacterPanel] initialized');
     }
 
@@ -61,20 +64,11 @@ const CharacterPanel = (function () {
      * Event listener'ları bağla
      */
     function bindEvents() {
-        if (characterBtn) {
-            characterBtn.addEventListener('click', handleBtnClick);
-        }
-        if (closeBtn) {
-            closeBtn.addEventListener('click', closePanel);
-        }
-        if (modeButtonsContainer) {
-            modeButtonsContainer.addEventListener('click', handleModeContainerClick);
-        }
-
-        // Panel dışına tıklayınca kapat
-        document.addEventListener('click', handleOutsideClick);
-        // Escape ile kapat
-        document.addEventListener('keydown', handleEscapeKey);
+        // F.5c: Eski sidebar paneli kaldırıldı. Aç/kapat, dışına tıklama ve ESC
+        // mantığı artık full-screen modal'da (character-modal.js) yaşıyor.
+        // Karakter seçimi ve mode değişimi character-modal.js'ten public API ile
+        // (CharacterPanel.selectCharacter / CharacterPanel.setMode) tetiklenir,
+        // bu yüzden burada bağlanacak sidebar event'i kalmadı.
     }
 
     // ═══════════════════════════════════════════════
@@ -399,14 +393,12 @@ const CharacterPanel = (function () {
     // ═══════════════════════════════════════════════
 
     /**
-     * Mode buton container'ında tıklama (event delegation)
+     * PUBLIC: Mode'u ayarla — full-screen modal'daki mode toggle (character-modal.js)
+     * bunu çağırır. Mevcut mode set mantığını kullanır (yeniden yazım yok).
+     * @param {('flexible'|'balanced'|'strong')} mode
      */
-    function handleModeContainerClick(e) {
-        const btn = e.target.closest('.character-mode-btn');
-        if (!btn) return;
-        const mode = btn.dataset.mode;
+    function setMode(mode) {
         if (!mode) return;
-
         selectedMode = mode;
         setHiddenValue('characterMode', mode);
         applyModeStyles(mode);
@@ -426,65 +418,6 @@ const CharacterPanel = (function () {
 
         if (modeDescription && MODE_DESCRIPTIONS[mode]) {
             modeDescription.textContent = MODE_DESCRIPTIONS[mode];
-        }
-    }
-
-    // ═══════════════════════════════════════════════
-    // PANEL AÇ / KAPAT (Face Lock paneliyle aynı mantık)
-    // ═══════════════════════════════════════════════
-
-    function handleBtnClick(e) {
-        e.preventDefault();
-        togglePanel();
-    }
-
-    function togglePanel() {
-        if (isPanelOpen) {
-            closePanel();
-        } else {
-            openPanel();
-        }
-    }
-
-    function openPanel() {
-        if (isPanelOpen || !characterPanel) return;
-        isPanelOpen = true;
-
-        characterPanel.classList.remove('hidden');
-        if (characterBtn) characterBtn.classList.add('active');
-
-        setTimeout(() => {
-            characterPanel.classList.add('open');
-        }, 10);
-    }
-
-    function closePanel() {
-        if (!isPanelOpen || !characterPanel) return;
-        isPanelOpen = false;
-
-        characterPanel.classList.remove('open');
-        if (characterBtn) characterBtn.classList.remove('active');
-
-        setTimeout(() => {
-            characterPanel.classList.add('hidden');
-        }, 300);
-    }
-
-    function handleOutsideClick(e) {
-        if (
-            isPanelOpen &&
-            characterPanel &&
-            !characterPanel.contains(e.target) &&
-            characterBtn &&
-            !characterBtn.contains(e.target)
-        ) {
-            closePanel();
-        }
-    }
-
-    function handleEscapeKey(e) {
-        if (e.key === 'Escape' && isPanelOpen) {
-            closePanel();
         }
     }
 
@@ -525,9 +458,24 @@ const CharacterPanel = (function () {
     return {
         init,
         transformPromptForSubmit,
-        isCharacterActive
+        isCharacterActive,
+        // F.5c: full-screen modal (character-modal.js) bu API'yi kullanır.
+        // selectCharacter, characterData = { id, name, imageUrl } kabul eder;
+        // imageUrl yok sayılır (thumbnail mevcut mantıkta kart DOM'undan türetilir).
+        selectCharacter,
+        setMode,
+        // Re-click to deselect: modal'daki seçili karta tekrar tıklayınca çağrılır.
+        // Mevcut deselectCharacter akışını (hidden input sıfırla, Face Lock'u geri aç,
+        // prompt'tan @Name çıkar, mode reset, thumbnail kaldır) yeniden yazmadan çağırır.
+        clearCharacter: deselectCharacter
     };
 })();
+
+// F.5c: character-modal.js modüle window.CharacterPanel üzerinden erişir
+// (top-level const window'a otomatik bağlanmaz).
+if (typeof window !== 'undefined') {
+    window.CharacterPanel = CharacterPanel;
+}
 
 // Modül sistemleri için export
 if (typeof module !== 'undefined' && module.exports) {

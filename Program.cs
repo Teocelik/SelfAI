@@ -86,6 +86,9 @@ builder.Services.AddScoped<IPackageService, PackageService>();
 // Abonelik yaşam döngüsü: başlatma/aktivasyon/iptal + cüzdan top-up (DbContext scoped).
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
+// Karakter yönetimi business servisi — DB + Affogato API orkestrasyonu (F.6.1, DbContext scoped).
+builder.Services.AddScoped<ICharacterService, CharacterService>();
+
 // Iyzico CheckoutForm ödeme servisi — mevcut IyzicoOptions config'ini kullanır (D.3.2).
 builder.Services.AddScoped<IIyzicoService, IyzicoService>();
 
@@ -203,5 +206,6 @@ static bool IsApiRequest(HttpRequest request)
     return request.Headers["X-Requested-With"] == "XMLHttpRequest"
         || request.Headers["Accept"].Any(h => h?.Contains("application/json") == true)
         || request.Path.StartsWithSegments("/RenderNet")
-        || request.Path.StartsWithSegments("/Prompt");
+        || request.Path.StartsWithSegments("/Prompt")
+        || request.Path.StartsWithSegments("/Characters");
 }

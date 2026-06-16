@@ -15,6 +15,7 @@ namespace SelfAI.Data
         public DbSet<GenerationMedia> GenerationMediaItems { get; set; }
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Payment> Payments { get; set; }
+        public DbSet<Character> Characters { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -142,6 +143,27 @@ namespace SelfAI.Data
                 e.HasOne(p => p.Subscription)
                  .WithMany(s => s.Payments)
                  .HasForeignKey(p => p.SubscriptionId)
+                 .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Character — kullanıcının oluşturduğu karakterler (F.6.1)
+            mb.Entity<Character>(e =>
+            {
+                e.HasKey(c => c.Id);
+                e.HasIndex(c => c.UserId);
+                e.HasIndex(c => c.AffogatoCharacterId);
+                e.HasIndex(c => new { c.UserId, c.Status });  // List query için
+
+                e.Property(c => c.AffogatoCharacterId).IsRequired().HasMaxLength(128);
+                e.Property(c => c.AffogatoCharacterName).IsRequired().HasMaxLength(128);
+                e.Property(c => c.Name).IsRequired().HasMaxLength(100);
+                e.Property(c => c.Prompt).IsRequired().HasMaxLength(2000);
+                e.Property(c => c.ThumbnailUrl).HasMaxLength(2048);
+
+                // AppUser'da Characters navigation property YOK — WithMany() boş bırakıldı.
+                e.HasOne(c => c.User)
+                 .WithMany()
+                 .HasForeignKey(c => c.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
             });
         }

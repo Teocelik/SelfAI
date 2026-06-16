@@ -6,70 +6,124 @@
 
 :root {
     /* Primary Colors */
-    --color-primary: #6366f1; /* indigo-500 */
-    --color-primary-50: #eef2ff; /* indigo-50 */
-    --color-primary-100: #e0e7ff; /* indigo-100 */
-    --color-primary-200: #c7d2fe; /* indigo-200 */
-    --color-primary-300: #a5b4fc; /* indigo-300 */
-    --color-primary-400: #818cf8; /* indigo-400 */
-    --color-primary-500: #6366f1; /* indigo-500 */
-    --color-primary-600: #4f46e5; /* indigo-600 */
-    --color-primary-700: #4338ca; /* indigo-700 */
-    --color-primary-800: #3730a3; /* indigo-800 */
-    --color-primary-900: #312e81; /* indigo-900 */
+    --color-primary: #6366f1;
+    /* indigo-500 */
+    --color-primary-50: #eef2ff;
+    /* indigo-50 */
+    --color-primary-100: #e0e7ff;
+    /* indigo-100 */
+    --color-primary-200: #c7d2fe;
+    /* indigo-200 */
+    --color-primary-300: #a5b4fc;
+    /* indigo-300 */
+    --color-primary-400: #818cf8;
+    /* indigo-400 */
+    --color-primary-500: #6366f1;
+    /* indigo-500 */
+    --color-primary-600: #4f46e5;
+    /* indigo-600 */
+    --color-primary-700: #4338ca;
+    /* indigo-700 */
+    --color-primary-800: #3730a3;
+    /* indigo-800 */
+    --color-primary-900: #312e81;
+    /* indigo-900 */
     /* Secondary Colors */
-    --color-secondary: #8b5cf6; /* violet-500 */
-    --color-secondary-50: #f5f3ff; /* violet-50 */
-    --color-secondary-100: #ede9fe; /* violet-100 */
-    --color-secondary-200: #ddd6fe; /* violet-200 */
-    --color-secondary-300: #c4b5fd; /* violet-300 */
-    --color-secondary-400: #a78bfa; /* violet-400 */
-    --color-secondary-500: #8b5cf6; /* violet-500 */
-    --color-secondary-600: #7c3aed; /* violet-600 */
-    --color-secondary-700: #6d28d9; /* violet-700 */
-    --color-secondary-800: #5b21b6; /* violet-800 */
-    --color-secondary-900: #4c1d95; /* violet-900 */
+    --color-secondary: #8b5cf6;
+    /* violet-500 */
+    --color-secondary-50: #f5f3ff;
+    /* violet-50 */
+    --color-secondary-100: #ede9fe;
+    /* violet-100 */
+    --color-secondary-200: #ddd6fe;
+    /* violet-200 */
+    --color-secondary-300: #c4b5fd;
+    /* violet-300 */
+    --color-secondary-400: #a78bfa;
+    /* violet-400 */
+    --color-secondary-500: #8b5cf6;
+    /* violet-500 */
+    --color-secondary-600: #7c3aed;
+    /* violet-600 */
+    --color-secondary-700: #6d28d9;
+    /* violet-700 */
+    --color-secondary-800: #5b21b6;
+    /* violet-800 */
+    --color-secondary-900: #4c1d95;
+    /* violet-900 */
     /* Accent Colors */
-    --color-accent: #06b6d4; /* cyan-500 */
-    --color-accent-50: #ecfeff; /* cyan-50 */
-    --color-accent-100: #cffafe; /* cyan-100 */
-    --color-accent-200: #a5f3fc; /* cyan-200 */
-    --color-accent-300: #67e8f9; /* cyan-300 */
-    --color-accent-400: #22d3ee; /* cyan-400 */
-    --color-accent-500: #06b6d4; /* cyan-500 */
-    --color-accent-600: #0891b2; /* cyan-600 */
-    --color-accent-700: #0e7490; /* cyan-700 */
-    --color-accent-800: #155e75; /* cyan-800 */
-    --color-accent-900: #164e63; /* cyan-900 */
+    --color-accent: #06b6d4;
+    /* cyan-500 */
+    --color-accent-50: #ecfeff;
+    /* cyan-50 */
+    --color-accent-100: #cffafe;
+    /* cyan-100 */
+    --color-accent-200: #a5f3fc;
+    /* cyan-200 */
+    --color-accent-300: #67e8f9;
+    /* cyan-300 */
+    --color-accent-400: #22d3ee;
+    /* cyan-400 */
+    --color-accent-500: #06b6d4;
+    /* cyan-500 */
+    --color-accent-600: #0891b2;
+    /* cyan-600 */
+    --color-accent-700: #0e7490;
+    /* cyan-700 */
+    --color-accent-800: #155e75;
+    /* cyan-800 */
+    --color-accent-900: #164e63;
+    /* cyan-900 */
     /* Background Colors */
-    --color-background: #1a1a1a; /* neutral-900 */
-    --color-surface: #2a2a2a; /* neutral-800 */
-    --color-surface-elevated: #333333; /* neutral-700 */
+    --color-background: #1a1a1a;
+    /* neutral-900 */
+    --color-surface: #2a2a2a;
+    /* neutral-800 */
+    --color-surface-elevated: #333333;
+    /* neutral-700 */
     /* Text Colors */
-    --color-text-primary: #f8fafc; /* slate-50 */
-    --color-text-secondary: #94a3b8; /* slate-400 */
-    --color-text-muted: #64748b; /* slate-500 */
+    --color-text-primary: #f8fafc;
+    /* slate-50 */
+    --color-text-secondary: #94a3b8;
+    /* slate-400 */
+    --color-text-muted: #64748b;
+    /* slate-500 */
     /* Status Colors */
-    --color-success: #10b981; /* emerald-500 */
-    --color-success-50: #ecfdf5; /* emerald-50 */
-    --color-success-100: #d1fae5; /* emerald-100 */
-    --color-success-500: #10b981; /* emerald-500 */
-    --color-success-600: #059669; /* emerald-600 */
-
-    --color-warning: #f59e0b; /* amber-500 */
-    --color-warning-50: #fffbeb; /* amber-50 */
-    --color-warning-100: #fef3c7; /* amber-100 */
-    --color-warning-500: #f59e0b; /* amber-500 */
-    --color-warning-600: #d97706; /* amber-600 */
-
-    --color-error: #ef4444; /* red-500 */
-    --color-error-50: #fef2f2; /* red-50 */
-    --color-error-100: #fee2e2; /* red-100 */
-    --color-error-500: #ef4444; /* red-500 */
-    --color-error-600: #dc2626; /* red-600 */
+    --color-success: #10b981;
+    /* emerald-500 */
+    --color-success-50: #ecfdf5;
+    /* emerald-50 */
+    --color-success-100: #d1fae5;
+    /* emerald-100 */
+    --color-success-500: #10b981;
+    /* emerald-500 */
+    --color-success-600: #059669;
+    /* emerald-600 */
+    --color-warning: #f59e0b;
+    /* amber-500 */
+    --color-warning-50: #fffbeb;
+    /* amber-50 */
+    --color-warning-100: #fef3c7;
+    /* amber-100 */
+    --color-warning-500: #f59e0b;
+    /* amber-500 */
+    --color-warning-600: #d97706;
+    /* amber-600 */
+    --color-error: #ef4444;
+    /* red-500 */
+    --color-error-50: #fef2f2;
+    /* red-50 */
+    --color-error-100: #fee2e2;
+    /* red-100 */
+    --color-error-500: #ef4444;
+    /* red-500 */
+    --color-error-600: #dc2626;
+    /* red-600 */
     /* Border Colors */
-    --color-border: rgba(255, 255, 255, 0.1); /* white with 10% opacity */
-    --color-border-focus: rgba(99, 102, 241, 0.5); /* primary with 50% opacity */
+    --color-border: rgba(255, 255, 255, 0.1);
+    /* white with 10% opacity */
+    --color-border-focus: rgba(99, 102, 241, 0.5);
+    /* primary with 50% opacity */
     /* Shadow Colors */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
     --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
@@ -77,39 +131,30 @@
     --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
     --shadow-floating: 0 4px 12px rgba(0, 0, 0, 0.3);
     /* Spacing System - 8px base grid */
-    --spacing-xs: 0.25rem; /* 4px */
-    --spacing-sm: 0.5rem; /* 8px */
-    --spacing-md: 0.75rem; /* 12px */
-    --spacing-lg: 1rem; /* 16px */
-    --spacing-xl: 1.5rem; /* 24px */
-    --spacing-2xl: 2rem; /* 32px */
-    --spacing-3xl: 3rem; /* 48px */
-    --spacing-4xl: 4rem; /* 64px */
+    --spacing-xs: 0.25rem;
+    /* 4px */
+    --spacing-sm: 0.5rem;
+    /* 8px */
+    --spacing-md: 0.75rem;
+    /* 12px */
+    --spacing-lg: 1rem;
+    /* 16px */
+    --spacing-xl: 1.5rem;
+    /* 24px */
+    --spacing-2xl: 2rem;
+    /* 32px */
+    --spacing-3xl: 3rem;
+    /* 48px */
+    --spacing-4xl: 4rem;
+    /* 64px */
     /* Animation Timing */
     --transition-fast: 150ms ease-out;
     --transition-normal: 200ms ease-out;
     --transition-slow: 300ms ease-out;
-
-    /* ─── Liquid Glass tokens (design-tokens.md PART 2) — tek accent #00CED1 ─── */
-    --lg-bg: #0A0A0A;
-    --lg-bg-gradient: radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%);
-    --lg-accent: #00CED1;
-    --lg-accent-hover: #00B8BC;
-    --glass-surface-base: rgba(255, 255, 255, 0.04);
-    --glass-surface-elevated: rgba(255, 255, 255, 0.08);
-    --glass-surface-hover: rgba(255, 255, 255, 0.12);
-    --glass-surface-accent: rgba(0, 206, 209, 0.10);
-    --glass-border-subtle: 1px solid rgba(255, 255, 255, 0.08);
-    --glass-border-medium: 1px solid rgba(255, 255, 255, 0.12);
-    --glass-border-accent: 1px solid rgba(0, 206, 209, 0.40);
-    --blur-light: 8px;
-    --blur-medium: 16px;
-    --blur-heavy: 24px;
-    --glow-accent-soft: 0 0 24px rgba(0, 206, 209, 0.15);
-    --glow-accent-medium: 0 0 40px rgba(0, 206, 209, 0.25);
 }
 
 /* Base Styles */
+
 * {
     box-sizing: border-box;
 }
@@ -124,40 +169,152 @@ body {
 }
 
 /* Custom Component Classes */
+
 .btn-primary {
-    @apply bg-primary hover:bg-primary-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200 shadow-floating hover:shadow-lg;
+    border-radius: 0.5rem;
+    --tw-bg-opacity: 1;
+    background-color: rgb(99 102 241 / var(--tw-bg-opacity, 1));
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-weight: 500;
+    --tw-text-opacity: 1;
+    color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+    --tw-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    --tw-shadow-colored: 0 4px 12px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
 }
+
+    .btn-primary:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
+        --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    }
 
 .btn-secondary {
-    @apply bg-secondary hover:bg-secondary-600 text-white font-medium px-6 py-3 rounded-lg transition-all duration-200;
+    border-radius: 0.5rem;
+    --tw-bg-opacity: 1;
+    background-color: rgb(139 92 246 / var(--tw-bg-opacity, 1));
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    font-weight: 500;
+    --tw-text-opacity: 1;
+    color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
 }
+
+    .btn-secondary:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(124 58 237 / var(--tw-bg-opacity, 1));
+    }
 
 .btn-accent {
-    @apply bg-accent hover:bg-accent-600 text-white font-medium px-4 py-2 rounded-md transition-all duration-150;
+    border-radius: 0.375rem;
+    --tw-bg-opacity: 1;
+    background-color: rgb(6 182 212 / var(--tw-bg-opacity, 1));
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-weight: 500;
+    --tw-text-opacity: 1;
+    color: rgb(255 255 255 / var(--tw-text-opacity, 1));
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
 }
+
+    .btn-accent:hover {
+        --tw-bg-opacity: 1;
+        background-color: rgb(8 145 178 / var(--tw-bg-opacity, 1));
+    }
 
 .input-field {
-    @apply bg-surface border text-text-primary px-4 py-3 rounded-lg transition-all duration-200 focus:border-primary focus:ring-2 focus:ring-primary/20 focus:outline-none;
+    border-radius: 0.5rem;
+    border-width: 1px;
+    --tw-bg-opacity: 1;
+    background-color: rgb(42 42 42 / var(--tw-bg-opacity, 1));
+    padding-left: 1rem;
+    padding-right: 1rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    --tw-text-opacity: 1;
+    color: rgb(248 250 252 / var(--tw-text-opacity, 1));
+    transition-property: all;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
 }
 
+    .input-field:focus {
+        --tw-border-opacity: 1;
+        border-color: rgb(99 102 241 / var(--tw-border-opacity, 1));
+        outline: 2px solid transparent;
+        outline-offset: 2px;
+        --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+        --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+        box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+        --tw-ring-color: rgb(99 102 241 / 0.2);
+    }
+
 .card {
-    @apply bg-surface border rounded-xl p-6 shadow-md;
+    border-radius: 0.75rem;
+    border-width: 1px;
+    --tw-bg-opacity: 1;
+    background-color: rgb(42 42 42 / var(--tw-bg-opacity, 1));
+    padding: 1.5rem;
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 .card-elevated {
-    @apply bg-surface-elevated border rounded-xl p-6 shadow-lg;
+    border-radius: 0.75rem;
+    border-width: 1px;
+    --tw-bg-opacity: 1;
+    background-color: rgb(51 51 51 / var(--tw-bg-opacity, 1));
+    padding: 1.5rem;
+    --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
 }
 
 /* Micro-interactions */
+
 .hover-lift {
-    @apply transition-transform duration-150 hover:-translate-y-0.5;
+    transition-property: transform;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 150ms;
 }
+
+    .hover-lift:hover {
+        --tw-translate-y: -0.125rem;
+        transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+    }
 
 .hover-glow {
-    @apply transition-shadow duration-200 hover:shadow-lg;
+    transition-property: box-shadow;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-duration: 200ms;
 }
 
+    .hover-glow:hover {
+        --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+        --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color);
+        box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+    }
+
 /* Progressive Disclosure */
+
 .collapsible-enter {
     max-height: 0;
     overflow: hidden;
@@ -179,49 +336,83 @@ body {
 }
 
 /* Form States */
+
 .form-field-rest {
 }
 
 .form-field-focus {
-    @apply border-primary ring-2 ring-primary/20;
+    --tw-border-opacity: 1;
+    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1));
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    --tw-ring-color: rgb(99 102 241 / 0.2);
 }
 
 .form-field-filled {
-    @apply border-accent/50 bg-surface-elevated;
+    border-color: rgb(6 182 212 / 0.5);
+    --tw-bg-opacity: 1;
+    background-color: rgb(51 51 51 / var(--tw-bg-opacity, 1));
 }
 
 .form-field-error {
-    @apply border-error ring-2 ring-error/20;
+    --tw-border-opacity: 1;
+    border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+    --tw-ring-color: rgb(239 68 68 / 0.2);
 }
 
 /* Icon Sizing */
+
 .icon-sm {
-    @apply w-4 h-4;
+    height: 1rem;
+    width: 1rem;
 }
 
 .icon-md {
-    @apply w-5 h-5;
+    height: 1.25rem;
+    width: 1.25rem;
 }
 
 .icon-lg {
-    @apply w-6 h-6;
+    height: 1.5rem;
+    width: 1.5rem;
 }
 
 /* Typography Utilities */
+
 .text-mono {
     font-family: 'JetBrains Mono', monospace;
 }
 
 /* Loading States */
+
+@keyframes pulse {
+    50% {
+        opacity: .5;
+    }
+}
+
 .loading-pulse {
-    @apply animate-pulse bg-surface-elevated;
+    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    --tw-bg-opacity: 1;
+    background-color: rgb(51 51 51 / var(--tw-bg-opacity, 1));
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .loading-spin {
-    @apply animate-spin;
+    animation: spin 1s linear infinite;
 }
 
 /* Enhanced Custom Scrollbar for Flux Image Style Panel */
+
 .custom-scrollbar {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.4) transparent;
@@ -241,6 +432,7 @@ body {
         background: linear-gradient(135deg, rgba(148, 163, 184, 0.3) 0%, rgba(148, 163, 184, 0.5) 100%);
         border-radius: 20px;
         border: 1px solid rgba(148, 163, 184, 0.1);
+        -webkit-transition: all 0.3s ease;
         transition: all 0.3s ease;
     }
 
@@ -261,6 +453,7 @@ body {
     }
 
 /* Special scrollbar styling for Flux Style Panel with oval design integration */
+
 #fluxPanelContent.custom-scrollbar::-webkit-scrollbar {
     width: 3px;
 }
@@ -275,6 +468,7 @@ body {
     background: linear-gradient(180deg, rgba(148, 163, 184, 0.2) 0%, rgba(148, 163, 184, 0.4) 50%, rgba(148, 163, 184, 0.2) 100% );
     border-radius: 25px;
     border: none;
+    -webkit-transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -290,47 +484,24 @@ body {
     }
 
 /* Firefox support for Flux Panel */
+
 #fluxPanelContent {
     scrollbar-width: thin;
     scrollbar-color: rgba(148, 163, 184, 0.3) transparent;
 }
 
 /* Smooth scrolling behavior for Flux Panel */
+
 #fluxPanelContent {
     scroll-behavior: smooth;
 }
 
     /* Additional visual enhancement - subtle glow effect on scroll */
+
     #fluxPanelContent::-webkit-scrollbar-track:hover {
         background: rgba(42, 42, 42, 0.5);
         box-shadow: inset 0 0 6px rgba(0, 206, 209, 0.05);
     }
-
-/* Responsive breakpoints */
-@media (max-width: 768px) {
-    .mobile-hide {
-        display: none;
-    }
-
-    /* Adjust scrollbar for mobile in Flux Panel */
-    #fluxPanelContent.custom-scrollbar::-webkit-scrollbar {
-        width: 2px;
-    }
-
-    #fluxPanelContent.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-        transform: scaleX(2);
-    }
-}
-
-@media (max-width: 640px) {
-    .mobile-stack {
-        flex-direction: column;
-    }
-
-    .mobile-full {
-        width: 100%;
-    }
-}
 
 /* ================================================
    MODEL SELECTION PANEL STYLES
@@ -346,10 +517,10 @@ body {
         color: #00CED1;
     }
 
-/* Model Option - Selected State */
+/* Model Option - Selected State (F.4.3c: .glass-panel__item--selected ile hizalı) */
 .model-option.selected > div:first-child {
-    border-color: #00CED1 !important;
-    box-shadow: 0 0 0 3px rgba(0, 206, 209, 0.3);
+    border-color: rgba(0, 206, 209, 0.5) !important;
+    box-shadow: 0 0 24px rgba(0, 206, 209, 0.2);
 }
 
 .model-option.selected p {
@@ -404,6 +575,14 @@ body {
     .model-option > div:first-child {
         transition: all 0.2s ease;
     }
+
+/* Aspect Ratio for Model Images */
+.aspect-
+$$
+3\/4
+$$ {
+    aspect-ratio: 3 / 4;
+}
 
 /* Selected Model Tag Styles */
 .selected-model-tag {
@@ -507,6 +686,38 @@ body {
 /* ================================================
    END MODEL SELECTION PANEL STYLES
    ================================================ */
+
+/* ================================================
+   F.4.3c — MODEL PANEL LIQUID GLASS
+   Model paneli (#modelPanel) glass ailesine alındı: container .glass-panel
+   (yüzey + border + radius 20px + shadow + z-index:100 oradan miras), iç
+   kolonlar (bg-background/bg-surface) markup'ta şeffaflaştırıldı, kart
+   hover/selected/focus turkuaz cam dile uyduruldu.
+   KISIT: JS modüllerine (model-selection-panel.js, flux-models-loader.js) ve
+   inline positioning'e DOKUNULMADI. JS'in toggle ettiği .model-option /
+   .selected ve inner-div'e eklediği indigo hover:border-primary, aşağıdaki
+   id-scoped kurallarla (yüksek specificity) ezilir — indigo render EDİLMEZ,
+   davranış birebir korunur. Kart class string'i out-of-scope Flux Style
+   paneliyle ortak olduğu için markup'tan silinmedi, CSS ile nötrlendi.
+   ================================================ */
+
+/* Kart tile hover — indigo hover:border-primary'yi ez (glass beyaz brighten) */
+#modelPanel .model-option:hover > div:first-child {
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+/* Kategori butonu hover (aktif olmayan) — opak bg-surface-elevated yerine cam */
+#modelPanel .model-category-btn:not(.active):hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+/* Kart focus-visible — klavye erişilebilirliği (2px turkuaz ring + glow) */
+#modelPanel .model-option:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5), 0 0 24px rgba(0, 206, 209, 0.15);
+}
+
+
 
 /* ================================================
    FLUX IMAGE STYLE PANEL STYLES
@@ -626,31 +837,224 @@ body {
             background: linear-gradient(135deg, rgba(0, 206, 209, 0.4) 0%, rgba(0, 184, 188, 0.6) 100%);
         }
 
-/* ================================================
-   END FLUX IMAGE STYLE PANEL STYLES
-   ================================================ */
+    /* ================================================
+    END FLUX IMAGE STYLE PANEL STYLES
+    ================================================ */
 
-/* ================================================
-   CONSISTENCY CONTROLS - EQUAL BUTTON SIZES
-   ================================================ */
+    /* ================================================
+    CONSISTENCY CONTROLS - EQUAL BUTTON SIZES
+    ================================================ */
 
-#characterBtn,
-#faceLockBtn,
-#poseLockBtn {
-    min-width: 0;
-    flex: 1 1 0%;
-}
+    #characterBtn,
+    #faceLockBtn,
+    #poseLockBtn {
+        min-width: 0;
+        flex: 1 1 0%;
+    }
 
-#characterBtn .flex-col span,
-#faceLockBtn .flex-col span,
-#poseLockBtn .flex-col span {
+    #characterBtn .flex-col span,
+    #faceLockBtn .flex-col span,
+    #poseLockBtn .flex-col span {
     white-space: nowrap;
     font-size: 0.75rem;
+    }
+
+    /* ================================================
+    END CONSISTENCY CONTROLS
+    ================================================ */
+
+/* Responsive breakpoints */
+
+@media (max-width: 768px) {
+    .mobile-hide {
+        display: none;
+    }
+
+    /* Adjust scrollbar for mobile in Flux Panel */
+
+    #fluxPanelContent.custom-scrollbar::-webkit-scrollbar {
+        width: 2px;
+    }
+
+    #fluxPanelContent.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        transform: scaleX(2);
+    }
 }
 
-/* ================================================
-   END CONSISTENCY CONTROLS
-   ================================================ */
+@media (max-width: 640px) {
+    .mobile-stack {
+        flex-direction: column;
+    }
+
+    .mobile-full {
+        width: 100%;
+    }
+}
+
+.hover\:-translate-y-0:hover {
+    --tw-translate-y: -0px;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.hover\:-translate-y-0\.5:hover {
+    --tw-translate-y: -0.125rem;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.hover\:scale-105:hover {
+    --tw-scale-x: 1.05;
+    --tw-scale-y: 1.05;
+    transform: translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y));
+}
+
+.hover\:border-error:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(239 68 68 / var(--tw-border-opacity, 1));
+}
+
+.hover\:border-primary:hover {
+    --tw-border-opacity: 1;
+    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1));
+}
+
+.hover\:border-primary\/50:hover {
+    border-color: rgb(99 102 241 / 0.5);
+}
+
+.hover\:bg-accent-600:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(8 145 178 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-background:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(26 26 26 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-error\/10:hover {
+    background-color: rgb(239 68 68 / 0.1);
+}
+
+.hover\:bg-primary-600:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(79 70 229 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-primary\/10:hover {
+    background-color: rgb(99 102 241 / 0.1);
+}
+
+.hover\:bg-secondary-600:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(124 58 237 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-surface:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(42 42 42 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:bg-surface-elevated:hover {
+    --tw-bg-opacity: 1;
+    background-color: rgb(51 51 51 / var(--tw-bg-opacity, 1));
+}
+
+.hover\:from-primary-600:hover {
+    --tw-gradient-from: #4f46e5 var(--tw-gradient-from-position);
+    --tw-gradient-to: rgb(79 70 229 / 0) var(--tw-gradient-to-position);
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to);
+}
+
+.hover\:to-secondary-600:hover {
+    --tw-gradient-to: #7c3aed var(--tw-gradient-to-position);
+}
+
+.hover\:text-error:hover {
+    --tw-text-opacity: 1;
+    color: rgb(239 68 68 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-error-600:hover {
+    --tw-text-opacity: 1;
+    color: rgb(220 38 38 / var(--tw-text-opacity, 1));
+}
+
+.hover\:text-text-primary:hover {
+    --tw-text-opacity: 1;
+    color: rgb(248 250 252 / var(--tw-text-opacity, 1));
+}
+
+.hover\:shadow-lg:hover {
+    --tw-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -2px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:shadow-md:hover {
+    --tw-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 4px 6px -1px var(--tw-shadow-color), 0 2px 4px -1px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:shadow-sm:hover {
+    --tw-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 1px 2px 0 var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:shadow-xl:hover {
+    --tw-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+    --tw-shadow-colored: 0 20px 25px -5px var(--tw-shadow-color), 0 10px 10px -5px var(--tw-shadow-color);
+    box-shadow: var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow);
+}
+
+.hover\:ring-2:hover {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.hover\:ring-primary:hover {
+    --tw-ring-opacity: 1;
+    --tw-ring-color: rgb(99 102 241 / var(--tw-ring-opacity, 1));
+}
+
+.focus\:border-primary:focus {
+    --tw-border-opacity: 1;
+    border-color: rgb(99 102 241 / var(--tw-border-opacity, 1));
+}
+
+.focus\:outline-none:focus {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+}
+
+.focus\:ring-2:focus {
+    --tw-ring-offset-shadow: var(--tw-ring-inset) 0 0 0 var(--tw-ring-offset-width) var(--tw-ring-offset-color);
+    --tw-ring-shadow: var(--tw-ring-inset) 0 0 0 calc(2px + var(--tw-ring-offset-width)) var(--tw-ring-color);
+    box-shadow: var(--tw-ring-offset-shadow), var(--tw-ring-shadow), var(--tw-shadow, 0 0 #0000);
+}
+
+.focus\:ring-primary\/20:focus {
+    --tw-ring-color: rgb(99 102 241 / 0.2);
+}
+
+.disabled\:transform-none:disabled {
+    transform: none;
+}
+
+.disabled\:cursor-not-allowed:disabled {
+    cursor: not-allowed;
+}
+
+.disabled\:opacity-50:disabled {
+    opacity: 0.5;
+}
+
+.group:hover .group-hover\:text-primary {
+    --tw-text-opacity: 1;
+    color: rgb(99 102 241 / var(--tw-text-opacity, 1));
+}
 
 /* ================================================
    FACE LOCK PANEL STYLES
@@ -760,33 +1164,6 @@ body {
 /* ================================================
 END FACE LOCK PANEL STYLES
 ================================================ */
-
-/* ================================================
-   CUSTOM SCROLLBAR — ince, koyu (panel iç scroll'lar için)
-   Affogato benzeri sade görünüm. Character + Pose Lock panellerinde kullanılır.
-   ================================================ */
-.scrollbar-thin {
-    scrollbar-width: thin; /* Firefox */
-    scrollbar-color: #444 transparent; /* Firefox */
-}
-
-    .scrollbar-thin::-webkit-scrollbar {
-        width: 6px;
-        height: 6px;
-    }
-
-    .scrollbar-thin::-webkit-scrollbar-track {
-        background: transparent;
-    }
-
-    .scrollbar-thin::-webkit-scrollbar-thumb {
-        background: #444;
-        border-radius: 3px;
-    }
-
-        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
 
 /* ================================================
    F.4.2 — STUDIO LIQUID GLASS + ACCENT MIGRATION
@@ -899,23 +1276,181 @@ END FACE LOCK PANEL STYLES
     box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5), 0 0 24px rgba(0, 206, 209, 0.15);
 }
 
-/* Cam kontrol butonu (consistency, model/flux trigger, count, dice, random) */
+/* ─── Sağ Studio sidebar — solid Studio Dark yüzey ───
+   Consistency Controls + Image Prompt + Model vb. bölümleri içeren ana
+   sağ kolon. Markup'taki Tailwind bg-surface'i override eder (ID > class).
+   Düz solid dark istendiği için backdrop-filter / box-shadow eklenmez;
+   arkadaki aurora mesh body background'a DOKUNULMAZ, sadece çok az sızar. */
+#rightSidebar {
+    background: rgba(13, 13, 16, 0.96);
+}
+
+/* Cam kontrol butonu (consistency, model/flux trigger, count, dice, random)
+   — Studio Dark aesthetic (WWDC25 Liquid Glass'tan sadeleştirildi).
+   Solid dark panel hissi: minimal blur, tek subtle border, tek katman
+   gölge; refraktif highlight / ::before sweep YOK. Accent (#00CED1)
+   yalnızca selected state'te subtle kullanılır. */
 .glass-control-btn {
-    background: rgba(255, 255, 255, 0.04);
+    /* Daha solid dark — dark studio paneli hissi */
+    background: rgba(22, 22, 26, 0.65);
+    /* Minimal blur — dark on dark, güçlü blur'a gerek yok */
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    transition: all 0.2s ease;
+    /* Tek subtle border */
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    /* Kart radius (pill değil). Büyük consistency butonları kendi 22px
+       override'ını, random prompt butonu kendi 10px override'ını korur. */
+    border-radius: 14px;
+    /* Tek katmanlı subtle shadow — depth için minimal */
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.04);
+    /* Sade transition */
+    transition:
+        background 200ms ease,
+        border-color 200ms ease,
+        transform 200ms ease;
+    position: relative;
+    /* Thumbnail (face/pose) kırpma için korunuyor */
+    overflow: hidden;
+    cursor: pointer;
 }
 .glass-control-btn:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: rgba(0, 206, 209, 0.4);
-    box-shadow: 0 0 16px rgba(0, 206, 209, 0.12);
+    background: rgba(30, 30, 35, 0.75);
+    border-color: rgba(255, 255, 255, 0.1);
+    transform: none; /* Y translate yok — sade brighten */
+    box-shadow:
+        0 4px 12px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+.glass-control-btn:active {
+    background: rgba(18, 18, 22, 0.75);
+    transition-duration: 80ms;
 }
 .glass-control-btn:focus-visible {
-    outline: none;
-    border-color: rgba(0, 206, 209, 0.5);
-    box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5), 0 0 24px rgba(0, 206, 209, 0.15);
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+/* Selected state — turkuaz accent korunur ama daha subtle */
+.glass-control-btn.is-selected,
+.glass-control-btn[data-has-asset="true"] {
+    background: rgba(0, 206, 209, 0.07);
+    border-color: rgba(0, 206, 209, 0.3);
+    box-shadow:
+        0 2px 8px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba(0, 206, 209, 0.15);
+}
+.glass-control-btn.is-selected:hover,
+.glass-control-btn[data-has-asset="true"]:hover {
+    background: rgba(0, 206, 209, 0.1);
+    border-color: rgba(0, 206, 209, 0.4);
+}
+
+/* ─── Consistency Controls — dış glass KALDIRILDI ───
+   Önceki WWDC25 bar konteyneri (background/blur/border/radius/shadow +
+   ::before/::after pseudo'lar) tamamen kaldırıldı. Buton satırı artık
+   yalnızca markup'taki Tailwind 'flex space-x-3' ile şeffaf bir layout
+   wrapper; cam efekti SADECE butonların kendisinde kalır. Satırın kendi
+   pozisyon/hizalama ihtiyacı yok (absolute child'lar butona göreceli). */
+
+/* Consistency tool butonları (Character / Face Lock / Pose Lock) — FLAT,
+   bar'la entegre, eşit kare. Studio Dark dili: blur/box-shadow/pseudo YOK.
+   Paylaşılan .glass-control-btn'e DOKUNULMAZ; sabit boyut + flat dil yalnız
+   bu 3 ID'ye uygulanır (aksi halde w-full model-select / 32px random/count/
+   dice butonları bozulurdu). Sabit 116px ~288px konteyneri taşırdığı için
+   responsive eşit kare seçildi: flex:1 ile eşit genişlik + aspect-ratio:1
+   ile otomatik kare. align-self:center, parent'ın stretch'ini iptal edip
+   aspect-ratio'nun kareyi vermesini sağlar (markup/parent'a dokunmadan). */
+#characterBtn,
+#faceLockBtn,
+#poseLockBtn {
+    /* Flat yüzey — minimal lift, glass yok */
+    background: rgba(255, 255, 255, 0.025);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+    border: 1px solid rgba(255, 255, 255, 0.04);
+    border-radius: 14px;
+    box-shadow: none;
+    /* Responsive eşit kare */
+    flex: 1 1 0%;
+    align-self: center;
+    aspect-ratio: 1 / 1;
+    /* İçerik (icon + label) ortalansın */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 14px;
+    /* Sade transition — transform yok, flat kalır */
+    transition:
+        background 180ms ease,
+        border-color 180ms ease;
+    position: relative;
+    cursor: pointer;
+}
+/* Bu 3 butonda pseudo-element kalıntısı olmasın — flat dili koru */
+#characterBtn::before, #characterBtn::after,
+#faceLockBtn::before, #faceLockBtn::after,
+#poseLockBtn::before, #poseLockBtn::after {
+    content: none;
+}
+#characterBtn:hover,
+#faceLockBtn:hover,
+#poseLockBtn:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(255, 255, 255, 0.08);
+}
+#characterBtn:active,
+#faceLockBtn:active,
+#poseLockBtn:active {
+    background: rgba(255, 255, 255, 0.02);
+    transition-duration: 80ms;
+}
+#characterBtn:focus-visible,
+#faceLockBtn:focus-visible,
+#poseLockBtn:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+/* Selected — asset seçili: subtle turkuaz tint, glow/shadow YOK */
+#characterBtn.is-selected, #characterBtn[data-has-asset="true"],
+#faceLockBtn.is-selected, #faceLockBtn[data-has-asset="true"],
+#poseLockBtn.is-selected, #poseLockBtn[data-has-asset="true"] {
+    background: rgba(0, 206, 209, 0.06);
+    border-color: rgba(0, 206, 209, 0.25);
+}
+#characterBtn.is-selected:hover, #characterBtn[data-has-asset="true"]:hover,
+#faceLockBtn.is-selected:hover, #faceLockBtn[data-has-asset="true"]:hover,
+#poseLockBtn.is-selected:hover, #poseLockBtn[data-has-asset="true"]:hover {
+    background: rgba(0, 206, 209, 0.09);
+    border-color: rgba(0, 206, 209, 0.35);
+}
+
+/* Random prompt butonu — Image Prompt textarea köşesindeki küçük (32px)
+   ikon butonu. .glass-control-btn'in 18px radius + ağır drop shadow'u bu
+   küçük butonda "kayık/şişkin" görünüyordu; köşe butonuna uygun değerlere
+   çekilir (küçük radius, hafif gölge, hover'da lift YOK). Tıklama işlevi
+   JS'te; markup'a/JS'e dokunulmadı. */
+#randomPromptBtn {
+    /* Pozisyon fix: .glass-control-btn passthrough'da utilities'ten SONRA gelip
+       position:relative ile markup'taki .absolute'u eziyordu → buton normal akışa
+       düşüp textarea'nın sol-altına kayıyordu (yarısı container dışında). ID
+       specificity'si (1,0,0) ile absolute + köşe offset'leri yeniden dayatılır;
+       buton .prompt-container.relative'in sağ-alt köşesine 12px padding ile oturur.
+       Sağ köşe çünkü textarea pr-12 ile sağda yer ayırıyor. */
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 2;
+    border-radius: 10px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.15);
+}
+#randomPromptBtn:hover {
+    transform: none;
+    box-shadow:
+        0 0 12px rgba(0, 206, 209, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 /* group-hover turkuaz (eski group-hover:text-primary yerine) */
 .group:hover .group-hover-accent {
@@ -1459,3 +1994,4 @@ body.page-bg {
 /* ================================================
    END F.4.3b AURORA MESH BACKGROUND
    ================================================ */
+

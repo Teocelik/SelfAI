@@ -1,8 +1,10 @@
 using Microsoft.Extensions.Options;
 using SelfAI.Configurations;
+using SelfAI.DTOs.RenderNetCharacterRequestDtos;
 using SelfAI.DTOs.RenderNetCharacterResponseDtos;
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace SelfAI.Services.Concretes
@@ -68,6 +70,77 @@ namespace SelfAI.Services.Concretes
 
             return ServiceResult<IReadOnlyList<CharacterDataDto>>.Success(
                 result.Data ?? new List<CharacterDataDto>(), "Karakterler getirildi");
+        }
+
+        // Yeni karakter oluşturur (POST /pub/v1/characters). Dönen data id + input_image içerir.
+        public async Task<ServiceResult<CharacterDataDto>> CreateCharacterAsync(
+            string assetId, string name, string prompt, string characterType)
+        {
+            var request = new CharacterCreateRequestDto
+            {
+                AssetId = assetId,
+                CharacterType = characterType,
+                Name = name,
+                Prompt = prompt
+            };
+
+            var response = await _httpClient.PostAsJsonAsync(
+                $"{_httpClient.BaseAddress}/characters", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync();
+                _logger.LogError(
+                    "Affogato karakter oluşturma hatası. | StatusCode: {StatusCode} | Body: {Body}",
+                    (int)response.StatusCode, errorBody);
+
+                return ServiceResult<CharacterDataDto>.Failure(
+                    "Karakter oluşturulamadı. Lütfen daha sonra tekrar deneyin.", 502);
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            var result = JsonSerializer.Deserialize<CharacterCreateResponseDto>(content, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+
+            if (result?.Data is null || string.IsNullOrWhiteSpace(result.Data.Id))
+            {
+                _logger.LogWarning(
+                    "Affogato karakter oluşturma yanıtı ayrıştırılamadı. | Name: {Name}",
+                    name);
+
+                return ServiceResult<CharacterDataDto>.Failure(
+                    "Karakter oluşturulamadı. Lütfen daha sonra tekrar deneyin.", 502);
+            }
+
+            _logger.LogInformation(
+                "Affogato karakter oluşturuldu. | AffId: {AffId} | Name: {Name}",
+                result.Data.Id, result.Data.Name);
+
+            return ServiceResult<CharacterDataDto>.Success(result.Data, "Karakter oluşturuldu");
+        }
+
+        // Karakteri arşivler (DELETE /pub/v1/characters/{id}). F.6.4'te endpoint doğrulanacak (paid API gerekli).
+        public async Task<ServiceResult<bool>> ArchiveCharacterAsync(string characterId)
+        {
+            var response = await _httpClient.DeleteAsync(
+                $"{_httpClient.BaseAddress}/characters/{characterId}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning(
+                    "Affogato karakter arşivleme hatası. | AffId: {AffId} | StatusCode: {StatusCode}",
+                    characterId, (int)response.StatusCode);
+
+                return ServiceResult<bool>.Failure(
+                    "Karakter arşivlenemedi. Lütfen daha sonra tekrar deneyin.", 502);
+            }
+
+            _logger.LogInformation("Affogato karakter arşivlendi. | AffId: {AffId}", characterId);
+
+            return ServiceResult<bool>.Success(true, "Karakter arşivlendi");
         }
     }
 }
