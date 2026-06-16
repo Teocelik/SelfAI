@@ -207,22 +207,11 @@
     padding-top: 4px;
 }
 
+/* F.6.5 — Grid artık doğrudan kart değil section ("KARAKTERLERİN" / "SİSTEM
+   KARAKTERLERİ") tutar. Container dikey block olur; kart grid'i her section'ın
+   kendi .character-modal__section-grid'inde tanımlıdır. */
 .character-modal__grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-}
-
-@media (max-width: 1024px) {
-    .character-modal__grid { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (max-width: 768px) {
-    .character-modal__grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 480px) {
-    .character-modal__grid { grid-template-columns: 1fr; }
+    display: block;
 }
 
 .character-card {
@@ -648,6 +637,13 @@ body.is-character-modal-open {
     color: #00CED1;
 }
 
+/* Bug 2 — spinner default GİZLİ. Submit butonu flex container ve FontAwesome
+   bazı kurulumlarda <i>'ye display verebildiği için hidden attribute'unu garanti
+   altına al (UA [hidden] override edilmesin). */
+.character-create-form__submit-spinner[hidden] {
+    display: none !important;
+}
+
 /* ─── Mobile ─── */
 @media (max-width: 767px) {
     .character-modal__create-back { padding: 0 16px 12px; }
@@ -731,4 +727,222 @@ body.is-character-modal-open {
 .character-modal__empty-list-cta:focus-visible {
     outline: 2px solid rgba(0, 206, 209, 0.5);
     outline-offset: 2px;
+}
+
+/* ============================================================================
+   F.6.4a — Archive (sil) butonu + Undo Toast
+   Kart üstüne hover'da görünen X butonu, optimistic fade-out animasyonu ve
+   alt-orta'da floating "geri al" toast'u. F.5c grid/selected kuralları değişmez.
+   ========================================================================== */
+
+/* Card archive butonu için konumlandırma referansı (zaten yoksa) */
+.character-card {
+    position: relative;
+}
+
+/* Archive (X) butonu — hover/focus-within'de fade-in */
+.character-card__archive {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.9);
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    opacity: 0;
+    transform: scale(0.85);
+    transition: all 200ms ease;
+    z-index: 2;
+    pointer-events: none;   /* opacity 0 iken tıklama yakalanmasın */
+}
+
+.character-card:hover .character-card__archive,
+.character-card:focus-within .character-card__archive {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: auto;
+}
+
+.character-card__archive:hover {
+    background: rgba(220, 38, 38, 0.85);   /* danger kırmızı vurgu */
+    border-color: rgba(220, 38, 38, 0.7);
+    color: white;
+    transform: scale(1.08);
+}
+
+.character-card__archive:focus-visible {
+    outline: 2px solid rgba(220, 38, 38, 0.7);
+    outline-offset: 2px;
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Archiving state — fade out (handleArchiveRequest is-archiving class'ı ekler) */
+.character-card.is-archiving {
+    opacity: 0;
+    transform: scale(0.92);
+    transition: opacity 350ms ease, transform 350ms ease;
+    pointer-events: none;
+}
+
+/* ─── Undo Toast — alt-orta floating ─── */
+.character-undo-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: rgba(22, 22, 26, 0.95);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
+    padding: 12px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.5);
+    z-index: 250;   /* modal (150) ve lightbox (200) üstünde */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms ease, transform 250ms cubic-bezier(0.16, 1, 0.3, 1);
+    max-width: calc(100vw - 48px);
+}
+
+.character-undo-toast.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+    pointer-events: auto;
+}
+
+.character-undo-toast__message {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.character-undo-toast__message i {
+    color: rgba(0, 206, 209, 0.8);
+    font-size: 0.95rem;
+}
+
+.character-undo-toast__undo {
+    background: rgba(0, 206, 209, 0.15);
+    border: 1px solid rgba(0, 206, 209, 0.4);
+    color: #00CED1;
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 180ms;
+}
+
+.character-undo-toast__undo:hover {
+    background: rgba(0, 206, 209, 0.25);
+    border-color: rgba(0, 206, 209, 0.6);
+}
+
+.character-undo-toast__undo:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+.character-undo-toast__close {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    width: 24px;
+    height: 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 150ms;
+}
+
+.character-undo-toast__close:hover {
+    color: white;
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.character-undo-toast__close:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+}
+
+/* Mobile — undo toast tam genişlik */
+@media (max-width: 767px) {
+    .character-undo-toast {
+        left: 16px;
+        right: 16px;
+        max-width: none;
+        transform: translateY(20px);
+    }
+    .character-undo-toast.is-visible {
+        transform: translateY(0);
+    }
+}
+
+/* ============================================================================
+   F.6.5 — İki section: "KARAKTERLERİN" (kullanıcı) + "SİSTEM KARAKTERLERİ".
+   Section'lar dikey diziler; her birinin kendi 4-col kart grid'i vardır.
+   ========================================================================== */
+
+.character-modal__section {
+    margin-bottom: 24px;
+}
+
+.character-modal__section:last-child {
+    margin-bottom: 0;
+}
+
+.character-modal__section-title {
+    color: rgba(255, 255, 255, 0.5);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    margin: 0 0 16px;
+    padding-top: 4px;
+}
+
+.character-modal__section-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 16px;
+}
+
+@media (max-width: 1024px) {
+    .character-modal__section-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 768px) {
+    .character-modal__section-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 480px) {
+    .character-modal__section-grid { grid-template-columns: 1fr; }
+}
+
+/* ============================================================================
+   [hidden] override garantisi — loading/empty state'leri display:flex olduğu
+   için UA'nın [hidden]{display:none} kuralını ezer. JS .hidden=true yaptığında
+   bu state'lerin GARANTİLİ kaybolması için !important ile geri alınır. Bu,
+   fetch sonrası loading spinner'ının ekranda takılı kalma ihtimalini sıfırlar.
+   ========================================================================== */
+.character-modal__loading[hidden],
+.character-modal__empty-list[hidden],
+.character-modal__empty[hidden] {
+    display: none !important;
 }

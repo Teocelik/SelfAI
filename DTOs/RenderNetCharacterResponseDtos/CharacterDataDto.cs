@@ -19,7 +19,8 @@ namespace SelfAI.DTOs.RenderNetCharacterResponseDtos
         [JsonPropertyName("system_character")]
         public bool SystemCharacter { get; set; }
 
-        // Create response'unda dönen referans görsel URL'i (list response'da gelmez, null kalır).
+        // Referans görsel URL'i. Hem create hem GET list yanıtında döner (F.6.5'te
+        // sistem karakter thumbnail'i olarak kullanılır); gelmezse null/boş kalabilir.
         [JsonPropertyName("input_image")]
         public string InputImage { get; set; }
     }

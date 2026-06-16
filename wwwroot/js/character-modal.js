@@ -27,6 +27,11 @@
     let gridContainer = null;
     let currentAssetId = null;
 
+    // F.6.4a — Bekleyen archive işlemleri. characterId → { timeoutId, displayTimeoutId, card, character }
+    // timeoutId: 5sn undo penceresi (dolunca backend'e archive). displayTimeoutId: 350ms fade-out
+    // sonrası kartı layout'tan kaldırma. Undo ikisini de iptal eder; backend'e hiç istek gitmez.
+    let pendingArchives = new Map();
+
     document.addEventListener('DOMContentLoaded', function () {
         modal = document.getElementById('characterModal');
         if (!modal) return;
@@ -144,11 +149,12 @@
                 throw new Error('Karakter listesi yüklenemedi (HTTP ' + response.status + ')');
             }
 
-            const payload = await response.json();
-            // Backend sarmalı: { success, message, data: { items, totalCount } }
-            const items = (payload && payload.data && payload.data.items) || [];
-
-            if (loadingState) loadingState.hidden = true;
+            const json = await response.json();
+            // ServiceResult sarmalı: { success, message, data: { items, totalCount } }.
+            // Gerçek path tek seviye (data.items). Defansif: nested (data.items) + flat (items)
+            // + PascalCase (Data/Items) varyasyonlarını da destekle.
+            const payload = json.data || json.Data || json;
+            const items = payload.items || payload.Items || [];
 
             if (items.length === 0) {
                 // Hiç karakter yok → empty list state
@@ -163,7 +169,6 @@
 
         } catch (err) {
             console.error('Karakter listesi yükleme hatası:', err);
-            if (loadingState) loadingState.hidden = true;
 
             // Hata fallback → empty list göster (kullanıcı yine de "Yeni Karakter" yapabilsin)
             if (emptyListState) emptyListState.hidden = false;
@@ -173,9 +178,15 @@
             if (typeof Toast !== 'undefined' && Toast.error) {
                 Toast.error('Karakterler yüklenemedi: ' + err.message);
             }
+        } finally {
+            // GARANTİ — loading state her durumda (success/error/erken çıkış) kapanır
+            if (loadingState) loadingState.hidden = true;
         }
     }
 
+    // F.6.5 — İki section: "KARAKTERLERİN" (kullanıcı) + "SİSTEM KARAKTERLERİ" (Affogato).
+    // Boş section render edilmez. cards listesi iki section'daki kartların birleşimidir
+    // (search filtresi tüm kartlar üzerinde çalışır).
     function renderCharacters(items) {
         if (!gridContainer) return;
 
@@ -183,10 +194,15 @@
 
         const selectedId = getCurrentSelectedCharacterId();
 
-        items.forEach(function (character) {
-            const card = createCharacterCard(character, selectedId);
-            gridContainer.appendChild(card);
-        });
+        const userChars = items.filter(function (c) { return !c.isSystemCharacter; });
+        const systemChars = items.filter(function (c) { return c.isSystemCharacter; });
+
+        if (userChars.length > 0) {
+            gridContainer.appendChild(createSection('KARAKTERLERİN', userChars, selectedId));
+        }
+        if (systemChars.length > 0) {
+            gridContainer.appendChild(createSection('SİSTEM KARAKTERLERİ', systemChars, selectedId));
+        }
 
         // cards listesini güncelle (search filtresi bunun üzerinde çalışır)
         cards = Array.from(gridContainer.querySelectorAll('.character-card'));
@@ -207,15 +223,54 @@
         });
     }
 
+    function createSection(title, characters, currentSelectedId) {
+        const section = document.createElement('div');
+        section.className = 'character-modal__section';
+
+        const heading = document.createElement('h3');
+        heading.className = 'character-modal__section-title';
+        heading.textContent = title;
+        section.appendChild(heading);
+
+        const grid = document.createElement('div');
+        grid.className = 'character-modal__section-grid';
+
+        characters.forEach(function (character) {
+            grid.appendChild(createCharacterCard(character, currentSelectedId));
+        });
+
+        section.appendChild(grid);
+        return section;
+    }
+
     function createCharacterCard(character, currentSelectedId) {
         const card = document.createElement('button');
         card.type = 'button';
         card.className = 'character-card';
         card.dataset.characterId = character.id;
         card.dataset.characterName = character.name;
+        card.dataset.isSystem = character.isSystemCharacter ? 'true' : 'false';
 
         if (currentSelectedId && character.id === currentSelectedId) {
             card.classList.add('is-selected');
+        }
+
+        // F.6.5 — Archive (sil) butonu YALNIZCA kullanıcı karakterlerinde. Sistem
+        // karakterleri arşivlenemez (backend de 403 ile reddeder), bu yüzden butonu
+        // hiç oluşturmuyoruz.
+        if (!character.isSystemCharacter) {
+            // F.6.4a — Hover'da fade-in olur, tıklanınca card click'i tetiklemeden
+            // archive akışını başlatır.
+            const archiveBtn = document.createElement('button');
+            archiveBtn.type = 'button';
+            archiveBtn.className = 'character-card__archive';
+            archiveBtn.setAttribute('aria-label', 'Karakteri sil');
+            archiveBtn.innerHTML = '<i class="fas fa-times"></i>';
+            archiveBtn.addEventListener('click', function (e) {
+                e.stopPropagation();   // Kart seçimini (handleCardClick) tetiklemesin
+                handleArchiveRequest(card, character);
+            });
+            card.appendChild(archiveBtn);
         }
 
         const imageWrap = document.createElement('div');
@@ -320,6 +375,196 @@
     }
 
     /* ────────────────────────────────────────────────────────────────────────
+       F.6.4a — Karakter archive (sil): confirm + optimistic UI + 5sn undo penceresi
+       Backend'e (POST /Characters/Archive) yalnızca undo penceresi dolunca istek gider.
+       ──────────────────────────────────────────────────────────────────────── */
+
+    function handleArchiveRequest(card, character) {
+        // F.6.5 — Defansif: sistem karakterlerinde archive butonu hiç oluşturulmaz,
+        // bu fonksiyon onlar için çağrılmamalı. Yine de güvenlik için erken çık.
+        if (character.isSystemCharacter) {
+            console.warn('Sistem karakteri arşivlenemez.');
+            return;
+        }
+
+        // C2 — Aynı karaktere art arda archive: önceki bekleyen timeout'ları temizle,
+        // yeni pencereyi baştan başlat (defansif; pratikte kart 350ms sonra gizlendiği için nadir).
+        if (pendingArchives.has(character.id)) {
+            const existing = pendingArchives.get(character.id);
+            clearTimeout(existing.timeoutId);
+            clearTimeout(existing.displayTimeoutId);
+            pendingArchives.delete(character.id);
+        }
+
+        // Confirm dialog (native — görev gereği yeterli)
+        const confirmed = confirm('"' + character.name + '" karakterini silmek istediğine emin misin?');
+        if (!confirmed) return;
+
+        // Silinen karakter şu an seçiliyse seçimi temizle (character-panel.js'in mevcut akışı)
+        const selectedId = getCurrentSelectedCharacterId();
+        if (selectedId && selectedId === character.id) {
+            if (window.CharacterPanel && typeof window.CharacterPanel.clearCharacter === 'function') {
+                window.CharacterPanel.clearCharacter();
+            }
+        }
+
+        // Optimistic UI — kartı fade-out'a al
+        card.classList.add('is-archiving');
+
+        // 350ms (fade animasyonu) sonra layout'tan kaldır + cards listesinden çıkar
+        const displayTimeoutId = setTimeout(function () {
+            card.style.display = 'none';
+            cards = cards.filter(function (c) { return c !== card; });
+
+            // Son kart da gittiyse empty list state göster
+            if (cards.length === 0) {
+                if (gridContainer) gridContainer.hidden = true;
+                if (emptyListState) emptyListState.hidden = false;
+            }
+        }, 350);
+
+        // 5sn undo penceresi — dolunca backend'e gerçek archive isteği
+        const timeoutId = setTimeout(function () {
+            confirmArchive(character.id);
+            pendingArchives.delete(character.id);
+        }, 5000);
+
+        pendingArchives.set(character.id, {
+            timeoutId: timeoutId,
+            displayTimeoutId: displayTimeoutId,
+            card: card,
+            character: character
+        });
+
+        showUndoToast(character);
+    }
+
+    function showUndoToast(character) {
+        // Toast modülü undo butonu desteklemediği için özel, kalıcı bir undo toast'u kullanırız.
+        let toastContainer = document.getElementById('characterUndoToast');
+        if (!toastContainer) {
+            toastContainer = document.createElement('div');
+            toastContainer.id = 'characterUndoToast';
+            toastContainer.className = 'character-undo-toast';
+            document.body.appendChild(toastContainer);
+        }
+
+        toastContainer.innerHTML = '';
+
+        const message = document.createElement('span');
+        message.className = 'character-undo-toast__message';
+        const icon = document.createElement('i');
+        icon.className = 'fas fa-check-circle';
+        message.appendChild(icon);
+        message.appendChild(document.createTextNode(' "' + character.name + '" silindi'));
+
+        const undoBtn = document.createElement('button');
+        undoBtn.type = 'button';
+        undoBtn.className = 'character-undo-toast__undo';
+        undoBtn.textContent = 'Geri Al';
+        undoBtn.addEventListener('click', function () {
+            undoArchive(character.id);
+        });
+
+        const closeBtn = document.createElement('button');
+        closeBtn.type = 'button';
+        closeBtn.className = 'character-undo-toast__close';
+        closeBtn.setAttribute('aria-label', 'Kapat');
+        closeBtn.innerHTML = '<i class="fas fa-times"></i>';
+        closeBtn.addEventListener('click', function () {
+            // Hemen onayla — undo penceresini atla, backend'e gönder
+            const pending = pendingArchives.get(character.id);
+            if (pending) {
+                clearTimeout(pending.timeoutId);
+                confirmArchive(character.id);
+                pendingArchives.delete(character.id);
+            }
+            toastContainer.classList.remove('is-visible');
+        });
+
+        toastContainer.appendChild(message);
+        toastContainer.appendChild(undoBtn);
+        toastContainer.appendChild(closeBtn);
+
+        // Görünür yap (transition tetiklensin diye next frame'de class ekle)
+        requestAnimationFrame(function () {
+            toastContainer.classList.add('is-visible');
+        });
+
+        // 5sn sonra otomatik gizle (undo penceresi ile senkron)
+        setTimeout(function () {
+            toastContainer.classList.remove('is-visible');
+        }, 5000);
+    }
+
+    function undoArchive(characterId) {
+        const pending = pendingArchives.get(characterId);
+        if (!pending) return;
+
+        // Backend isteği gönderilmeyecek — her iki timeout'u da iptal et
+        clearTimeout(pending.timeoutId);
+        clearTimeout(pending.displayTimeoutId);
+        pendingArchives.delete(characterId);
+
+        // Kartı geri göster
+        pending.card.style.display = '';
+        pending.card.classList.remove('is-archiving');
+
+        // 350ms display-timeout undo'dan önce çalıştıysa kart cards'tan çıkmıştır; yoksa
+        // hâlâ içindedir. Çift eklemeyi önlemek için yalnızca eksikse geri koy.
+        if (cards.indexOf(pending.card) === -1) {
+            cards.push(pending.card);
+        }
+
+        // Empty state göründüyse gizle, grid'i geri getir
+        if (gridContainer) gridContainer.hidden = false;
+        if (emptyListState) emptyListState.hidden = true;
+
+        // Toast'u gizle
+        const toastContainer = document.getElementById('characterUndoToast');
+        if (toastContainer) toastContainer.classList.remove('is-visible');
+
+        if (typeof Toast !== 'undefined' && Toast.info) {
+            Toast.info('"' + pending.character.name + '" geri alındı.');
+        }
+    }
+
+    async function confirmArchive(characterId) {
+        try {
+            const response = await fetch('/Characters/Archive', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify({ characterId: characterId })
+            });
+
+            if (!response.ok) {
+                // Backend hata yanıtı: { success: false, message: "..." }
+                let serverMessage = 'Karakter silinemedi';
+                try {
+                    const error = await response.json();
+                    if (error && error.message) serverMessage = error.message;
+                } catch (_) { /* JSON parse edilemezse default mesaj */ }
+                throw new Error(serverMessage);
+            }
+
+            // Başarılı — UI zaten kaldırılmış durumda, ekstra değişiklik yok (sessiz başarı)
+
+        } catch (err) {
+            console.error('Archive backend hatası:', err);
+
+            if (typeof Toast !== 'undefined' && Toast.error) {
+                Toast.error('Karakter sunucuda silinemedi: ' + err.message);
+            }
+
+            // Kartı geri getir — DB'den taze liste çek (kullanıcı tekrar deneyebilir)
+            await loadCharacters();
+        }
+    }
+
+    /* ────────────────────────────────────────────────────────────────────────
        F.6.2 — Sub-modal view swap (grid ↔ create)
        ──────────────────────────────────────────────────────────────────────── */
 
@@ -377,6 +622,19 @@
         const scroll = modal.querySelector(
             '.character-modal__view[data-view="' + viewName + '"] .character-modal__scroll');
         if (scroll) scroll.scrollTop = 0;
+
+        // Bug 2 — create view'a geçerken submit butonunu temiz/initial state'e al
+        // (önceki başarısız submit'ten kalan disabled/spinner/"Oluşturuluyor..." sızmasın).
+        if (viewName === 'create') {
+            const submitBtn = document.getElementById('characterCreateSubmit');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                const spinner = submitBtn.querySelector('.character-create-form__submit-spinner');
+                const label = submitBtn.querySelector('.character-create-form__submit-label');
+                if (spinner) spinner.hidden = true;
+                if (label) label.textContent = 'Oluştur';
+            }
+        }
     }
 
     /* ────────────────────────────────────────────────────────────────────────
@@ -533,10 +791,12 @@
                 throw new Error(message);
             }
 
-            // Başarılı: { success, message, data }
-            await response.json();
+            // Başarı: { success, message, data: { id, name, ... } } — ServiceResult sarmalı.
+            const successJson = await response.json();
+            const characterData = successJson.data || successJson.Data || successJson;
+            const createdName = characterData.name || characterData.Name || 'Karakter';
 
-            showToast('success', 'Karakter başarıyla oluşturuldu!');
+            showToast('success', '"' + createdName + '" oluşturuldu!');
 
             resetCreationForm();
 
