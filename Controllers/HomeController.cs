@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
+using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using SelfAI.ViewModels;
 
 namespace SelfAI.Controllers

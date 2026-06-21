@@ -4,6 +4,7 @@ using SelfAI.DTOs.Characters;
 using SelfAI.Entities;
 using SelfAI.Models;
 using SelfAI.Services.Interfaces;
+using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using System.Text;
 
 namespace SelfAI.Services.Concretes

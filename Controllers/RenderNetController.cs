@@ -2,10 +2,10 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.BackgroundServices;
-using SelfAI.DTOs.RenderNet;
-using SelfAI.DTOs.RenderNetGenerationRequestDtos;
-using SelfAI.DTOs.RenderNetUploadResponseDtos;
+using SelfAI.DTOs.Legacy.RenderNet.Upload;
+using SelfAI.DTOs.Legacy.RenderNet.Generation;
 using SelfAI.Services.Interfaces;
+using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;

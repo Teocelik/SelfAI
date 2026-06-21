@@ -2,6 +2,7 @@
 using SelfAI.Entities;
 using SelfAI.Hubs;
 using SelfAI.Services.Interfaces;
+using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using System.Collections.Concurrent;
 
 namespace SelfAI.BackgroundServices

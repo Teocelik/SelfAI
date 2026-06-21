@@ -10,6 +10,7 @@ using SelfAI.Hubs;
 using SelfAI.Middlewares;
 using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
+using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -52,10 +53,18 @@ builder.Services.AddSignalR();
 // Böylece bir kullanıcının TÜM aktif bağlantılarına (multi-tab) tek seferde yayın yapılabilir.
 builder.Services.AddSingleton<IUserIdProvider, FirebaseUserIdProvider>();
 
+// LEGACY — Affogato/RenderNet registrations (F.M.8'de silinecek)
 builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
 builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
 builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
 builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
+
+// NEW — fal.ai provider registrations (F.M.2+ phases)
+// builder.Services.AddHttpClient<IFalAiClient, FalAiClient>(...);
+// builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
+// builder.Services.AddScoped<IImageGenerator, FluxDevGenerator>();
+// builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
+// ... ileride doldurulacak
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
 
