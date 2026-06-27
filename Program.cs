@@ -11,6 +11,11 @@ using SelfAI.Middlewares;
 using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
 using SelfAI.Services.Generation.Providers.Legacy.Affogato;
+using SelfAI.Services.Generation.Abstractions;
+using SelfAI.Services.Generation.Providers.FalAi;
+using SelfAI.Services.Generation.Pricing;
+using SelfAI.Services.Generation.Domain.Image;
+using SelfAI.Services.Generation.Orchestrators;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -60,11 +65,24 @@ builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterSer
 builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
 
 // NEW — fal.ai provider registrations (F.M.2+ phases)
-// builder.Services.AddHttpClient<IFalAiClient, FalAiClient>(...);
-// builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
-// builder.Services.AddScoped<IImageGenerator, FluxDevGenerator>();
-// builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
-// ... ileride doldurulacak
+builder.Services.Configure<FalAiOptions>(
+    builder.Configuration.GetSection("FalAiOptions"));
+
+builder.Services.AddHttpClient<IFalAiClient, FalAiClient>();
+
+// ═══ F.M.3 — Image generation katmanı ═══
+// Credit pricing (tier markup) — config "CreditPricing" section'ından okunur.
+builder.Services.Configure<CreditPricingOptions>(
+    builder.Configuration.GetSection("CreditPricing"));
+builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
+
+// Image generator'lar — her biri IImageGenerator olarak kaydedilir; orchestrator
+// IEnumerable<IImageGenerator> alıp endpoint string'iyle eşler (F.M.5'te genişler).
+builder.Services.AddScoped<IImageGenerator, FluxSchnellGenerator>();
+builder.Services.AddScoped<IImageGenerator, FluxDevGenerator>();
+
+// Generation orchestrator — kredi düşme + history + SignalR koordinasyonu.
+builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
 

@@ -463,13 +463,23 @@ const ImageControls = (function () {
         if (!generateBtn) return;
 
         if (isLoading) {
+            // Generation başladı: GenerateButtonState'i kilitle ki prompt/model
+            // değişimleri loading sırasında butonu yeniden aktive etmesin.
+            if (typeof GenerateButtonState !== 'undefined') GenerateButtonState.setBusy(true);
             generateBtn.disabled = true;
             generateBtn.innerHTML =
                 '<i class="fas fa-spinner fa-spin mr-2"></i>Generating...';
         } else {
-            generateBtn.disabled = false;
             generateBtn.innerHTML =
                 '<i class="fas fa-magic mr-2"></i>Generate Image';
+            // Generation bitti: kilidi aç ve durumu prompt/model geçerliliğine göre
+            // yeniden hesapla (boş prompt/model varsa buton tekrar disabled olur).
+            if (typeof GenerateButtonState !== 'undefined') {
+                GenerateButtonState.setBusy(false);
+                GenerateButtonState.updateState();
+            } else {
+                generateBtn.disabled = false;
+            }
         }
     }
 

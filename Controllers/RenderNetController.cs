@@ -6,6 +6,8 @@ using SelfAI.DTOs.Legacy.RenderNet.Upload;
 using SelfAI.DTOs.Legacy.RenderNet.Generation;
 using SelfAI.Services.Interfaces;
 using SelfAI.Services.Generation.Providers.Legacy.Affogato;
+using SelfAI.Services.Generation.Abstractions;
+using SelfAI.Services.Generation.Orchestrators;
 using System.Net.Http.Headers;
 using System.Security.Claims;
 using System.Text.Json;
@@ -23,8 +25,9 @@ namespace SelfAI.Controllers
         private readonly IGenerationLogService _generationLogService;
         private readonly ILogger<RenderNetController> _logger;
         private readonly GenerationPollingService _pollingService;
+        private readonly IGenerationOrchestrator _orchestrator;
 
-        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, IRenderNetCharacterService renderNetCharacterService, ICreditService creditService, IGenerationLogService generationLogService, ILogger<RenderNetController> logger, GenerationPollingService pollingService)
+        public RenderNetController(IRenderNetAssetService renderNetAssetService, IRenderNetGenerationService renderNetGenerationService, IRenderNetResourcesService renderNetResourcesService, IRenderNetCharacterService renderNetCharacterService, ICreditService creditService, IGenerationLogService generationLogService, ILogger<RenderNetController> logger, GenerationPollingService pollingService, IGenerationOrchestrator orchestrator)
         {
             _renderNetAssetService = renderNetAssetService;
             _renderNetGenerationService = renderNetGenerationService;
@@ -34,6 +37,7 @@ namespace SelfAI.Controllers
             _generationLogService = generationLogService;
             _logger = logger;
             _pollingService = pollingService;
+            _orchestrator = orchestrator;
         }
 
         [AllowAnonymous]
@@ -43,13 +47,12 @@ namespace SelfAI.Controllers
             return View();
         }
 
-        //Görsel oluşturma isteği için gerekli action metot
+        // Görsel oluşturma isteği — fal.ai routing (F.M.3). Controller sadece HTTP
+        // transport: auth claim'leri çözer, connectionId'yi okur, orchestrator'a delege eder.
         [HttpPost]
-        public async Task<IActionResult> GenerateImage(
-        MediaGenerationRequestDto requestDto,
-        [FromHeader(Name = "X-SignalR-ConnectionId")] string connectionId)
+        public async Task<IActionResult> GenerateImage([FromBody] StartGenerationRequest dto)
         {
-            // 1. Auth — Firebase UID (SignalR routing için) + AppUser.Id (DB / cüzdan için)
+            // Auth — Firebase UID (SignalR routing fallback) + AppUser.Id (DB / cüzdan)
             var firebaseUid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var appUserIdStr = User.FindFirst("AppUserId")?.Value;
 
@@ -59,91 +62,15 @@ namespace SelfAI.Controllers
                 return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
             }
 
-            // 2. SignalR connectionId guard
-            if (string.IsNullOrWhiteSpace(connectionId))
-            {
-                _logger.LogWarning(
-                    "GenerateImage isteği eksik connectionId ile geldi. | UserId: {Uid}",
-                    firebaseUid);
-                return BadRequest(new { success = false, message = "SignalR bağlantı bilgisi eksik. Lütfen sayfayı yenileyin." });
-            }
+            // SignalR connectionId — primary push hedefi (orchestrator yoksa firebaseUid'e fallback yapar)
+            var connectionId = Request.Headers["X-SignalR-ConnectionId"].FirstOrDefault();
 
-            // 3. Cost hesabı: model+style çifti sayısı, minimum 1
-            var cost = CalculateGenerationCost(requestDto);
+            var result = await _orchestrator.StartGenerationAsync(dto, appUserId, firebaseUid, connectionId);
 
-            // 4. ATOMİK CREDIT DÜŞÜM
-            var deductResult = await _creditService.TryDeductAsync(
-                appUserId,
-                cost,
-                $"Generation isteği ({cost} credit)");
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
 
-            if (!deductResult.IsSuccess)
-            {
-                // 402 Payment Required — frontend bunu görüp "yetersiz kredi" gösterir
-                return StatusCode(deductResult.StatusCode, new
-                {
-                    success = false,
-                    message = deductResult.Message,
-                    currentBalance = await _creditService.GetBalanceAsync(appUserId),
-                    requiredCredits = cost
-                });
-            }
-
-            // 5. RenderNet API çağrısı
-            var genResult = await _renderNetGenerationService.GenerateMediaAsync(requestDto);
-
-            if (!genResult.IsSuccess)
-            {
-                // API hatası — REFUND
-                await _creditService.RefundAsync(
-                    appUserId,
-                    cost,
-                    $"RenderNet API hatası: {genResult.Message}");
-
-                _logger.LogWarning(
-                    "RenderNet API hatası, credit iade edildi. | UserId: {Uid} | Amount: {Cost}",
-                    appUserId, cost);
-
-                return StatusCode(genResult.StatusCode, new { success = false, message = genResult.Message });
-            }
-
-            var generationId = genResult.Data.Data.GenerationId;
-
-            // 6. Generation kayıt (DB)
-            await _generationLogService.CreateAsync(
-                appUserId,
-                generationId,
-                cost,
-                requestDto.PositivePrompt);
-
-            // 7. Polling job (Firebase UID ile — SignalR routing C.3'te bu şekilde kuruldu)
-            _pollingService.AddJob(generationId, firebaseUid, connectionId);
-
-            // 8. Yeni bakiyeyi response'a ekle (frontend UI güncellemesi için)
-            var newBalance = await _creditService.GetBalanceAsync(appUserId);
-
-            return Ok(new
-            {
-                success = true,
-                message = genResult.Message,
-                generationId = generationId,
-                cost = cost,
-                currentBalance = newBalance
-            });
-        }
-
-        // Generation maliyetini hesaplar: seçilen model/style çiftlerinin sayısı, minimum 1.
-        private static int CalculateGenerationCost(MediaGenerationRequestDto dto)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Model))
-                return 1;
-
-            var modelCount = dto.Model.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
-            var styleCount = string.IsNullOrWhiteSpace(dto.Style)
-                ? 0
-                : dto.Style.Split(',', StringSplitOptions.RemoveEmptyEntries).Length;
-
-            return Math.Max(Math.Max(modelCount, styleCount), 1);
+            return Ok(new { success = true, data = result.Data, message = result.Message });
         }
 
 

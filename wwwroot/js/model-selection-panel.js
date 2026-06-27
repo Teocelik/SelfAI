@@ -1,7 +1,13 @@
-﻿
 /**
- * Model Selection Panel Module
- * Handles model selection, categories, and multi-select functionality
+ * Model Selection Panel Module (F.M.3 — tek-seçim, fal.ai endpoint tabanlı)
+ *
+ * Eski çoklu (model+style) seçim mantığı, fal.ai migration'ında tek bir model
+ * endpoint seçimine sadeleştirildi. Kullanıcı bir model kartı seçer; kartın
+ * data-model-endpoint değeri #selectedModelValue hidden input'una yazılır ve
+ * generate isteğinin payload'undaki modelEndpoint'i olur.
+ *
+ * F.M.5'te dinamik catalog (IFalAiModelCatalog) kartları üretecek; bu modül
+ * data-model-endpoint taşıyan her .model-option ile çalışmaya devam eder.
  */
 
 const ModelSelectionPanel = (function () {
@@ -13,405 +19,196 @@ const ModelSelectionPanel = (function () {
     let modelArrow = null;
     let modelCategoryBtns = null;
     let modelContents = null;
-    let modelOptions = null;
-    let selectedModelValue = null;
-    let selectedStyleValue = null;
-    let selectedModelBaseModel = null;
-    let selectedModelName = null;
-    let selectedModelText = null;
-    let selectedModelsContainer = null;
-    let selectedModelsTags = null;
-    let clearAllModelsBtn = null;
+    let selectedModelValue = null;   // hidden input (name="Model") — endpoint string buraya yazılır
+    let selectedModelText = null;    // buton açıklama metni
 
     // State
     let isPanelOpen = false;
-    let selectedModels = [];
+    let selectedEndpoint = null;     // örn. "fal-ai/flux/schnell" veya null
 
-    /**
-     * Initialize the model selection panel
-     */
     function init() {
         cacheElements();
         bindEvents();
     }
 
-    /**
-     * Cache DOM elements
-     */
     function cacheElements() {
         modelSelectBtn = document.getElementById('modelSelectBtn');
         modelPanel = document.getElementById('modelPanel');
         modelArrow = document.getElementById('modelArrow');
         modelCategoryBtns = document.querySelectorAll('.model-category-btn');
         modelContents = document.querySelectorAll('.model-content');
-        modelOptions = document.querySelectorAll('.model-option');
         selectedModelValue = document.getElementById('selectedModelValue');
-        selectedStyleValue = document.getElementById('selectedStyleValue');
-        selectedModelBaseModel = document.getElementById('selectedModelBaseModel');
-        selectedModelName = document.getElementById('selectedModelName');
         selectedModelText = document.getElementById('selectedModelText');
-        selectedModelsContainer = document.getElementById('selectedModelsContainer');
-        selectedModelsTags = document.getElementById('selectedModelsTags');
-        clearAllModelsBtn = document.getElementById('clearAllModelsBtn');
     }
 
-    /**
-     * Bind event listeners
-     */
     function bindEvents() {
-        // Toggle button
         if (modelSelectBtn) {
             modelSelectBtn.addEventListener('click', handleToggleClick);
         }
 
-        // Category buttons
         if (modelCategoryBtns) {
-            modelCategoryBtns.forEach(btn => {
-                btn.addEventListener('click', handleCategoryClick);
-            });
+            modelCategoryBtns.forEach(btn => btn.addEventListener('click', handleCategoryClick));
         }
 
-        // Model options - initial binding
         bindModelOptionEvents();
 
-        // Clear all button
-        if (clearAllModelsBtn) {
-            clearAllModelsBtn.addEventListener('click', handleClearAll);
-        }
-
-        // Close on outside click
         document.addEventListener('click', handleOutsideClick);
-
-        // Close on Escape key
         document.addEventListener('keydown', handleEscapeKey);
     }
 
     /**
-     * ✅ YENİ: Model option eventlerini bağla
+     * Yalnızca data-model-endpoint taşıyan kartlara click bağla.
+     * (Legacy google/magic/pro kartları endpoint taşımadığı için yok sayılır.)
      */
     function bindModelOptionEvents() {
-        modelOptions = document.querySelectorAll('.model-option');
-
-        if (modelOptions) {
-            modelOptions.forEach(option => {
-                // Önceki listener'ı kaldır (duplicate önleme)
-                option.removeEventListener('click', handleModelOptionClick);
-                // Yeni listener ekle
-                option.addEventListener('click', handleModelOptionClick);
-            });
-        }
-
-        console.log('[ModelSelectionPanel] Bound events to', modelOptions?.length || 0, 'model options');
+        const options = document.querySelectorAll('.model-option[data-model-endpoint]');
+        options.forEach(option => {
+            option.removeEventListener('click', handleModelOptionClick);
+            option.addEventListener('click', handleModelOptionClick);
+        });
+        console.log('[ModelSelectionPanel] Bound events to', options.length, 'endpoint kartı');
     }
 
     /**
-     * ✅ YENİ: Dinamik içerik sonrası model option'ları yeniden bağla
-     * Bu fonksiyon flux-models-loader.js'den çağrılacak
+     * Dinamik içerik sonrası kartları yeniden bağla (F.M.5 catalog için API korunur).
      */
     function refreshModelOptions() {
-        console.log('[ModelSelectionPanel] Refreshing model options...');
         bindModelOptionEvents();
-        updateOptionStates(); // Seçili olanları tekrar işaretle
+        updateOptionStates();
     }
 
-    /**
-     * Handle toggle button click
-     */
     function handleToggleClick(e) {
         e.preventDefault();
-        if (isPanelOpen) {
-            close();
-        } else {
-            open();
-        }
+        if (isPanelOpen) close(); else open();
     }
 
-    /**
-     * Open the panel
-     */
     function open() {
         if (isPanelOpen || !modelPanel) return;
         isPanelOpen = true;
-
         modelPanel.classList.remove('hidden');
         if (modelArrow) modelArrow.style.transform = 'rotate(180deg)';
-
-        setTimeout(() => {
-            modelPanel.classList.add('open');
-        }, 10);
+        setTimeout(() => modelPanel.classList.add('open'), 10);
     }
 
-    /**
-     * Close the panel
-     */
     function close() {
         if (!isPanelOpen || !modelPanel) return;
         isPanelOpen = false;
-
         modelPanel.classList.remove('open');
         if (modelArrow) modelArrow.style.transform = 'rotate(0deg)';
-
-        setTimeout(() => {
-            modelPanel.classList.add('hidden');
-        }, 300);
+        setTimeout(() => modelPanel.classList.add('hidden'), 300);
     }
 
-    /**
-     * Handle category button click
-     */
     function handleCategoryClick() {
         const category = this.dataset.category;
 
-        // Update active state
-        if (modelCategoryBtns) {
-            modelCategoryBtns.forEach(b => b.classList.remove('active'));
-        }
+        if (modelCategoryBtns) modelCategoryBtns.forEach(b => b.classList.remove('active'));
         this.classList.add('active');
 
-        // Show corresponding content
-        if (modelContents) {
-            modelContents.forEach(content => {
-                content.classList.add('hidden');
-            });
-        }
+        if (modelContents) modelContents.forEach(c => c.classList.add('hidden'));
 
-        const targetContent = document.getElementById(`${category}-content`);
-        if (targetContent) {
-            targetContent.classList.remove('hidden');
-        }
+        const target = document.getElementById(`${category}-content`);
+        if (target) target.classList.remove('hidden');
     }
 
     /**
-     * Handle model option click
+     * Model kartı tıklaması — tek seçim, aynı karta tekrar tıklamak seçimi kaldırır.
      */
     function handleModelOptionClick(e) {
-        // this yerine e.currentTarget kullan (arrow function uyumluluğu için)
         const option = e.currentTarget;
-        // Yeni kartlarda data-model/data-style var; eski hardcoded kartlarda yoksa fallback uygula.
-        const model = option.dataset.model || option.dataset.baseModel || 'Flux';
-        const style = option.dataset.style || option.dataset.name;
-        const baseModel = option.dataset.baseModel || 'flux';
-        const img = option.dataset.img;
+        const endpoint = option.dataset.modelEndpoint;
+        if (!endpoint) return;
 
-        console.log('[ModelSelectionPanel] Card clicked:', { model, style, baseModel, img });
-
-        addModel(model, style, baseModel, img);
-
-        // Visual feedback
-        const imgContainer = option.querySelector('div');
-        if (imgContainer) {
-            imgContainer.style.transform = 'scale(0.95)';
-            setTimeout(() => {
-                imgContainer.style.transform = 'scale(1)';
-            }, 150);
-        }
-    }
-
-    /**
-     * Add (model, style) pair to selection
-     */
-    function addModel(model, style, baseModel, img) {
-        // Aynı (model, style) çifti unique key — toggle davranışı
-        const existingIndex = selectedModels.findIndex(m => m.model === model && m.style === style);
-
-        if (existingIndex > -1) {
-            // If already selected, remove it (toggle behavior)
-            selectedModels.splice(existingIndex, 1);
+        if (selectedEndpoint === endpoint) {
+            clearAll();
         } else {
-            // Add new pair
-            selectedModels.push({
-                model: model,
-                style: style,
-                baseModel: baseModel,
-                img: img
-            });
+            selectedEndpoint = endpoint;
+            updateHiddenInputs();
+            updateOptionStates();
+            updateButtonText(option);
         }
 
-        renderTags();
-        updateOptionStates();
-        updateHiddenInputs();
+        // Görsel feedback (tıklama animasyonu)
+        const imgContainer = option.firstElementChild;
+        if (imgContainer) {
+            imgContainer.style.transform = 'scale(0.96)';
+            setTimeout(() => { imgContainer.style.transform = 'scale(1)'; }, 150);
+        }
     }
 
     /**
-     * Remove (model, style) pair from selection
+     * Seçili karta turkuaz border ver, diğerlerini temizle.
      */
-    function removeModel(model, style) {
-        selectedModels = selectedModels.filter(m => !(m.model === model && m.style === style));
-        renderTags();
-        updateOptionStates();
-        updateHiddenInputs();
-    }
-
-    /**
-     * Render selected model tags
-     */
-    function renderTags() {
-        if (!selectedModelsTags) return;
-
-        selectedModelsTags.innerHTML = '';
-
-        if (selectedModels.length === 0) {
-            if (selectedModelsContainer) selectedModelsContainer.classList.add('hidden');
-            if (selectedModelText) {
-                selectedModelText.textContent = 'Select a model to start generating images';
-                selectedModelText.classList.remove('text-primary');
-                selectedModelText.classList.add('text-text-secondary');
-            }
-            return;
-        }
-
-        if (selectedModelsContainer) selectedModelsContainer.classList.remove('hidden');
-
-        selectedModels.forEach(pair => {
-            const tag = document.createElement('div');
-            tag.className = 'selected-model-tag';
-
-            // Etikette style adı gösterilir (Flux tek olduğu için kartlar style ile anılır)
-            const shortName = pair.style.length > 10 ? pair.style.substring(0, 10) + '...' : pair.style;
-
-            tag.innerHTML = `
-                <img src="${pair.img}" alt="${pair.style}" />
-                <span title="${pair.style}">${shortName}</span>
-                <button type="button" class="remove-tag" data-model="${pair.model}" data-style="${pair.style}">
-                    <i class="fas fa-times"></i>
-                </button>
-            `;
-            selectedModelsTags.appendChild(tag);
-        });
-
-        // Update button text
-        if (selectedModelText) {
-            selectedModelText.textContent = `${selectedModels.length} model${selectedModels.length > 1 ? 's' : ''} selected`;
-            selectedModelText.classList.remove('text-text-secondary');
-            selectedModelText.classList.add('text-primary');
-        }
-
-        // Add click handlers for remove buttons (model + style çifti ile)
-        document.querySelectorAll('.remove-tag').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.stopPropagation();
-                removeModel(btn.dataset.model, btn.dataset.style);
-            });
-        });
-    }
-
-    /**
-  * Update visual state of model options
-  */
     function updateOptionStates() {
-        // Her zaman güncel elementleri al
-        const currentModelOptions = document.querySelectorAll('.model-option');
-
-        currentModelOptions.forEach(option => {
-            // Çift bazlı eşleşme; eski hardcoded kartlar için fallback
-            const model = option.dataset.model || option.dataset.baseModel || 'Flux';
-            const style = option.dataset.style || option.dataset.name;
-            // ✅ Basitçe ilk div'i seç (aspect-[3/4] olan div)
+        document.querySelectorAll('.model-option[data-model-endpoint]').forEach(option => {
             const imgContainer = option.firstElementChild;
+            const isSelected = option.dataset.modelEndpoint === selectedEndpoint;
 
-            if (selectedModels.find(m => m.model === model && m.style === style)) {
-                option.classList.add('selected');
-                if (imgContainer) {
-                    imgContainer.classList.remove('border-transparent');
-                    imgContainer.classList.add('border-primary');
-                }
-            } else {
-                option.classList.remove('selected');
-                if (imgContainer) {
-                    imgContainer.classList.remove('border-primary');
-                    imgContainer.classList.add('border-transparent');
-                }
+            option.classList.toggle('selected', isSelected);
+            if (imgContainer) {
+                imgContainer.classList.toggle('border-primary', isSelected);
+                imgContainer.classList.toggle('border-transparent', !isSelected);
             }
         });
     }
 
     /**
-     * Update hidden inputs for DTO binding
+     * Buton açıklamasını seçilen modelin adı + kredi ile güncelle.
+     */
+    function updateButtonText(option) {
+        if (!selectedModelText) return;
+        const label = option.dataset.modelLabel || 'Model';
+        const cost = option.dataset.creditCost;
+        selectedModelText.textContent = cost ? `${label} — ${cost} kredi` : label;
+        selectedModelText.classList.remove('text-text-secondary');
+        selectedModelText.classList.add('text-primary');
+    }
+
+    /**
+     * Hidden input'u (endpoint) güncelle ve seçim değişimini yayınla
+     * (generate-button-state.js bunu dinler).
      */
     function updateHiddenInputs() {
-        if (selectedModels.length > 0) {
-            // Model ve Style senkron çiftler halinde yazılır:
-            //   Model = "Flux,Flux"   Style = "Cinematic,Anime"
-            if (selectedModelValue) selectedModelValue.value = selectedModels.map(m => m.model).join(',');
-            if (selectedStyleValue) selectedStyleValue.value = selectedModels.map(m => m.style).join(',');
+        if (selectedModelValue) selectedModelValue.value = selectedEndpoint || '';
 
-            // StyleDetail ilk çiftten doldurulur (Phase 1 DTO hizalaması korunur)
-            const first = selectedModels[0];
-            if (selectedModelBaseModel) selectedModelBaseModel.value = first.baseModel;
-            if (selectedModelName) selectedModelName.value = first.style;
-
-            console.log('[ModelSelectionPanel] Hidden inputs updated:', {
-                model: selectedModelValue?.value,
-                style: selectedStyleValue?.value
-            });
-        } else {
-            if (selectedModelValue) selectedModelValue.value = '';
-            if (selectedStyleValue) selectedStyleValue.value = '';
-            if (selectedModelBaseModel) selectedModelBaseModel.value = '';
-            if (selectedModelName) selectedModelName.value = '';
-        }
+        document.dispatchEvent(new CustomEvent('model-selection-changed', {
+            detail: { selectedEndpoint: selectedEndpoint }
+        }));
     }
 
     /**
-     * Handle clear all click
-     */
-    function handleClearAll(e) {
-        e.stopPropagation();
-        clearAll();
-    }
-
-    /**
-     * Clear all selected models
+     * Seçimi tamamen kaldır.
      */
     function clearAll() {
-        selectedModels = [];
-        renderTags();
-        updateOptionStates();
+        selectedEndpoint = null;
         updateHiddenInputs();
+        updateOptionStates();
+
+        if (selectedModelText) {
+            selectedModelText.textContent = 'Select a model to start generating images';
+            selectedModelText.classList.remove('text-primary');
+            selectedModelText.classList.add('text-text-secondary');
+        }
     }
 
-    /**
-     * Handle outside click
-     */
     function handleOutsideClick(e) {
-        if (isPanelOpen &&
-            modelPanel &&
-            modelSelectBtn &&
-            !modelPanel.contains(e.target) &&
-            !modelSelectBtn.contains(e.target) &&
-            !e.target.closest('.selected-model-tag')) {
+        if (isPanelOpen && modelPanel && modelSelectBtn &&
+            !modelPanel.contains(e.target) && !modelSelectBtn.contains(e.target)) {
             close();
         }
     }
 
-    /**
-     * Handle Escape key
-     */
     function handleEscapeKey(e) {
-        if (e.key === 'Escape' && isPanelOpen) {
-            close();
-        }
+        if (e.key === 'Escape' && isPanelOpen) close();
     }
 
-    /**
-     * Check if panel is open
-     * @returns {boolean}
-     */
     function isOpen() {
         return isPanelOpen;
     }
 
-    /**
-     * Get selected models
-     * @returns {Array}
-     */
-    function getSelectedModels() {
-        return [...selectedModels];
+    function getSelectedEndpoint() {
+        return selectedEndpoint;
     }
 
-    /**
-     * Reset the panel
-     */
     function reset() {
         clearAll();
         close();
@@ -423,10 +220,10 @@ const ModelSelectionPanel = (function () {
         open,
         close,
         isOpen,
-        getSelectedModels,
+        getSelectedEndpoint,
         clearAll,
         reset,
-        refreshModelOptions  // : Dışarıdan erişilebilir
+        refreshModelOptions
     };
 })();
 

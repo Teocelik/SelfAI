@@ -218,148 +218,45 @@
 
                 <!-- Right Content - Model Options (SCROLL BURADA) -->
                 <div class="flex-1 overflow-y-auto custom-scrollbar">
-                    <!-- Flux Models Content -->
-                    <div id="flux-content" class="model-content p-4">
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-text-primary mb-1">Cutting edge model for amazing images</h3>
-                            <div class="flex flex-col text-xs text-text-secondary">
-                                <span>1 Flux Image - 5 credits</span>
+                    <!-- Flux Models Content (F.M.3 — 2 hardcoded fal.ai model kartı) -->
+                        <div id="flux-content" class="model-content p-4">
+                            <div class="mb-4">
+                                <h3 class="text-sm font-semibold text-text-primary mb-1">fal.ai Flux modelleri</h3>
+                                <div class="flex flex-col text-xs text-text-secondary">
+                                    <span>Hız veya kalite — birini seç</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <!-- Flux Schnell (Fast tier) -->
+                                <div class="model-option model-card cursor-pointer group"
+                                     data-model-endpoint="fal-ai/flux/schnell"
+                                     data-model-tier="Fast"
+                                     data-credit-cost="3"
+                                     data-model-label="Flux Schnell">
+                                    <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200 relative">
+                                        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=150&h=200&fit=crop" alt="Flux Schnell" class="w-full h-full object-cover" />
+                                        <span class="absolute top-1 right-1 bg-[#00CED1] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">Hızlı</span>
+                                    </div>
+                                    <p class="text-xs text-center text-text-primary mt-1.5 font-medium">Flux Schnell</p>
+                                    <p class="text-[10px] text-center text-text-secondary">3 kredi</p>
+                                </div>
+
+                                <!-- Flux Dev (Standard tier) -->
+                                <div class="model-option model-card cursor-pointer group"
+                                     data-model-endpoint="fal-ai/flux/dev"
+                                     data-model-tier="Standard"
+                                     data-credit-cost="13"
+                                     data-model-label="Flux Dev">
+                                    <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200 relative">
+                                        <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=150&h=200&fit=crop" alt="Flux Dev" class="w-full h-full object-cover" />
+                                        <span class="absolute top-1 right-1 bg-purple-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">Kalite</span>
+                                    </div>
+                                    <p class="text-xs text-center text-text-primary mt-1.5 font-medium">Flux Dev</p>
+                                    <p class="text-[10px] text-center text-text-secondary">13 kredi</p>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <!-- Black & White -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Black & White"
-                                 data-img="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face"
-                                         alt="Black & White"
-                                         class="w-full h-full object-cover grayscale" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Black & White</p>
-                            </div>
-
-                            <!-- Candid Portrait -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Candid Portrait"
-                                 data-img="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&h=200&fit=crop&crop=face"
-                                         alt="Candid Portrait"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Candid Portrait</p>
-                            </div>
-
-                            <!-- Cinematic -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Cinematic"
-                                 data-img="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=150&h=200&fit=crop"
-                                         alt="Cinematic"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Cinematic</p>
-                            </div>
-
-                            <!-- Fashion -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Fashion"
-                                 data-img="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1509631179647-0177331693ae?w=150&h=200&fit=crop&crop=face"
-                                         alt="Fashion"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Fashion</p>
-                            </div>
-
-                            <!-- Fine Art -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Fine Art"
-                                 data-img="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=150&h=200&fit=crop"
-                                         alt="Fine Art"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Fine Art</p>
-                            </div>
-
-                            <!-- Flux Photo -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Flux Photo"
-                                 data-img="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=150&h=200&fit=crop&crop=face"
-                                         alt="Flux Photo"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Flux Photo</p>
-                            </div>
-
-                            <!-- Flux TrueTouch -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Flux TrueTouch"
-                                 data-img="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200 relative">
-                                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=200&fit=crop&crop=face"
-                                         alt="Flux TrueTouch"
-                                         class="w-full h-full object-cover" />
-                                    <span class="absolute top-1 right-1 bg-green-500 text-white text-[10px] px-1.5 py-0.5 rounded">New</span>
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Flux TrueTouch</p>
-                            </div>
-
-                            <!-- Gothic -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Gothic"
-                                 data-img="https://images.unsplash.com/photo-1509248961406-689dbc7e2b0f?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1509248961406-689dbc7e2b0f?w=150&h=200&fit=crop"
-                                         alt="Gothic"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Gothic</p>
-                            </div>
-
-                            <!-- Horror -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Horror"
-                                 data-img="https://images.unsplash.com/photo-1604975701397-6365ccbd028a?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1604975701397-6365ccbd028a?w=150&h=200&fit=crop"
-                                         alt="Horror"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Horror</p>
-                            </div>
-
-                            <!-- Indie Film -->
-                            <div class="model-option cursor-pointer group"
-                                 data-base-model="flux"
-                                 data-name="Indie Film"
-                                 data-img="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1485846234645-a62644f84728?w=150&h=200&fit=crop"
-                                         alt="Indie Film"
-                                         class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Indie Film</p>
-                            </div>
-                        </div>
-                    </div>
 
                     <!-- Google Models Content -->
                     <div id="google-content" class="model-content p-4 hidden">
@@ -593,7 +490,8 @@
                     </div>
 
                     <!-- Generate Button -->
-                    <button type="submit" id="generateBtn" class="w-full generate-btn">
+                    <!-- Başlangıçta disabled: prompt + model seçilene kadar pasif (flicker önler, JS doğrular) -->
+                    <button type="submit" id="generateBtn" class="w-full generate-btn" disabled aria-disabled="true">
                         <i class="fas fa-magic mr-2"></i>
                         Generate Image
                     </button>
@@ -1059,7 +957,9 @@
     <script src="~/js/prompt-handler.js"></script>
     <script src="~/js/face-lock-panel.js"></script>
     <script src="~/js/flux-image-styles.js"></script>
-    <script src="~/js/flux-models-loader.js"></script>
+    @* F.M.3: flux-models-loader.js devre dışı — legacy /GetModels+/GetStyles (Affogato) çağırıp
+       hardcoded fal.ai kartlarını eziyordu. Dinamik catalog F.M.5'te IFalAiModelCatalog ile gelecek. *@
+    @* <script src="~/js/flux-models-loader.js"></script> *@
     <script src="~/js/model-selection-panel.js"></script>
     <script src="~/js/image-controls.js"></script>
     <script src="~/js/seed-handler.js"></script>
@@ -1067,6 +967,7 @@
     <script src="~/js/pose-lock-panel.js"></script>
     <script src="~/js/pose-presets.js"></script>
     <script src="~/js/character-modal.js"></script>
+    <script src="~/js/generate-button-state.js"></script>
     <script src="~/js/app.js"></script>
     @* <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script> *@
     }

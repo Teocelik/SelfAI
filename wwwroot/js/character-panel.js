@@ -181,6 +181,16 @@ const CharacterPanel = (function () {
      * Bir karakteri seç
      */
     function selectCharacter({ id, name }) {
+        // F.M.3: Karakter sistemi henüz fal.ai'a bağlanmadı (F.M.4). Seçimi backend'e
+        // taşımıyoruz — kullanıcıyı bilgilendir ve hiçbir state'i wire etmeden çık.
+        Toast.warning(
+            'Karakter sistemi yakında aktif olacak (F.M.4\'te güncellenecek). ' +
+            'Şimdilik karakter olmadan üretim yapılabilir.',
+            'Karakter Sistemi'
+        );
+        return;
+
+        // eslint-disable-next-line no-unreachable
         const previousName = selectedCharacter ? selectedCharacter.name : null;
         selectedCharacter = { id, name };
 

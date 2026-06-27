@@ -193,6 +193,13 @@ const FaceLockPanel = (function () {
      * 🆕 Process uploaded file - UPDATED
      */
     function processFile(file) {
+        // F.M.3: Face Lock henüz fal.ai'a bağlanmadı (F.M.6). Görsel yüklenebilir ama
+        // generation'a etki etmez — kullanıcıyı bilgilendir.
+        Toast.warning(
+            'Face Lock yakında aktif olacak (F.M.6\'da güncellenecek).',
+            'Face Lock'
+        );
+
         if (!file.type.startsWith('image/')) {
             showNotification('Lütfen bir görsel dosyası yükleyin.', 'error');
             return;

@@ -197,12 +197,13 @@
         const userChars = items.filter(function (c) { return !c.isSystemCharacter; });
         const systemChars = items.filter(function (c) { return c.isSystemCharacter; });
 
-        if (userChars.length > 0) {
-            gridContainer.appendChild(createSection('KARAKTERLERİN', userChars, selectedId));
-        }
-        if (systemChars.length > 0) {
-            gridContainer.appendChild(createSection('SİSTEM KARAKTERLERİ', systemChars, selectedId));
-        }
+        // Boş section başlığı render edilmesin: createSection boş array'de null döner,
+        // ayrıca burada da null kontrolü yapılır (çift güvence).
+        const userSection = createSection('KARAKTERLERİN', userChars, selectedId);
+        if (userSection) gridContainer.appendChild(userSection);
+
+        const systemSection = createSection('SİSTEM KARAKTERLERİ', systemChars, selectedId);
+        if (systemSection) gridContainer.appendChild(systemSection);
 
         // cards listesini güncelle (search filtresi bunun üzerinde çalışır)
         cards = Array.from(gridContainer.querySelectorAll('.character-card'));
@@ -224,6 +225,11 @@
     }
 
     function createSection(title, characters, currentSelectedId) {
+        // Boş section render edilmesin (başlık tek başına görünmesin).
+        if (!characters || characters.length === 0) {
+            return null;
+        }
+
         const section = document.createElement('div');
         section.className = 'character-modal__section';
 

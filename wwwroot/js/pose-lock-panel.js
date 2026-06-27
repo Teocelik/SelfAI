@@ -86,6 +86,14 @@ const PoseLockPanel = (function () {
 
     function openPoseModal() {
         if (!modal) return;
+
+        // F.M.3: Pose Lock henüz fal.ai'a bağlanmadı (F.M.6). Poz seçilebilir ama
+        // generation'a etki etmez — kullanıcıyı bilgilendir.
+        Toast.warning(
+            'Pose Lock yakında aktif olacak (F.M.6\'da güncellenecek).',
+            'Pose Lock'
+        );
+
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('is-pose-modal-open');

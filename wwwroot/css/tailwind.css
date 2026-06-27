@@ -1493,9 +1493,18 @@ END FACE LOCK PANEL STYLES
     outline: 2px solid rgba(0, 206, 209, 0.7);
     outline-offset: 3px;
 }
-.generate-btn:disabled {
-    opacity: 0.5;
+.generate-btn:disabled,
+.generate-btn[aria-disabled="true"] {
+    opacity: 0.45;
     cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    pointer-events: none; /* defansif: disabled iken hover/click yakalamaz */
+}
+/* Disabled buton hover'da parlamasın (hover kuralını nötrle) */
+.generate-btn:disabled:hover,
+.generate-btn[aria-disabled="true"]:hover {
+    background: linear-gradient(135deg, rgba(0, 206, 209, 0.9), rgba(0, 184, 188, 0.9));
     transform: none;
     box-shadow: none;
 }

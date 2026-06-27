@@ -22,6 +22,7 @@
         initSeedHandler();
         initCharacterPanel();
         initPoseLockPanel();
+        initGenerateButtonState();
         initFormHandler();
         initSignalR();
 
@@ -46,44 +47,35 @@
 
         // ═══ SUNUCUDAN GELEN EVENT'LER ═══
 
-        // ✅ Görsel TAMAMLANDI
-        signalRConnection.on('GenerationCompleted', function (data) {
-            console.log('[SignalR] GenerationCompleted:', data);
+        // 🆕 F.M.3: Tek event — GenerationOrchestrator status ile push eder.
+        // payload: { generationId, status: "Completed"|"Failed", images:[{url,width,height}], errorMessage }
+        signalRConnection.on('GenerationUpdate', function (payload) {
+            console.log('[SignalR] GenerationUpdate:', payload);
 
             ImageControls.setGenerateButtonState(false);
 
-            if (data.media && data.media.length > 0) {
-                const successfulImages = data.media
-                    .filter(m => m.status === 'success' && m.url)
-                    .map(m => m.url);
+            if (payload.status === 'Completed') {
+                const urls = (payload.images || [])
+                    .filter(i => i && i.url)
+                    .map(i => i.url);
 
-                if (successfulImages.length > 0) {
-                    const message = successfulImages.length === 1
+                if (urls.length > 0) {
+                    const message = urls.length === 1
                         ? 'Görsel başarıyla oluşturuldu!'
-                        : `${successfulImages.length} görsel başarıyla oluşturuldu!`;
+                        : `${urls.length} görsel başarıyla oluşturuldu!`;
                     Toast.success(message, 'Tamamlandı 🎨');
-                    ImageControls.showGeneratedImages(successfulImages);
+                    ImageControls.showGeneratedImages(urls);
                 } else {
                     Toast.error('Görsel URL\'i alınamadı.');
                     ImageControls.showDefaultState();
                 }
+            } else {
+                // Failed (veya bilinmeyen status) — krediler orchestrator tarafından iade edildi
+                Toast.error(payload.errorMessage || 'Görsel oluşturulurken bir hata oluştu.', 'Başarısız');
+                ImageControls.showDefaultState();
+                // Kredi iadesini top bar'a yansıt
+                refreshCreditBalance();
             }
-        });
-
-        // ❌ BAŞARISIZ
-        signalRConnection.on('GenerationFailed', function (data) {
-            console.log('[SignalR] GenerationFailed:', data);
-            Toast.error(data.message || 'Görsel oluşturulurken bir hata oluştu.', 'Başarısız');
-            ImageControls.showDefaultState();
-            ImageControls.setGenerateButtonState(false);
-        });
-
-        // ⏰ ZAMAN AŞIMI
-        signalRConnection.on('GenerationTimeout', function (data) {
-            console.log('[SignalR] GenerationTimeout:', data);
-            Toast.warning(data.message || 'Zaman aşımına uğradı.', 'Zaman Aşımı');
-            ImageControls.showDefaultState();
-            ImageControls.setGenerateButtonState(false);
         });
 
         // ═══ BAĞLANTI DURUMLARI ═══
@@ -145,38 +137,35 @@
         ImageControls.showLoadingState();
         ImageControls.setGenerateButtonState(true);
 
-        // Random modda her Generate'te yeni seed üret (custom modda kullanıcının değeri korunur)
-        if (typeof SeedHandler !== 'undefined') {
-            const refreshedSeed = SeedHandler.refreshIfRandom();
-            if (refreshedSeed) console.log('Random seed yenilendi:', refreshedSeed);
-        }
+        // 🆕 F.M.3: Payload yalnızca modelEndpoint + prompt + aspectRatio (+ numImages).
+        // characterId / faceLockAssetId / poseLockAssetId GÖNDERİLMEZ (F.M.4/F.M.6'da eklenecek).
+        const promptInput = document.getElementById('promptInput');
+        const modelInput = document.getElementById('selectedModelValue');
+        const aspectSelect = document.querySelector('select[name="AspectRatio"]');
+        const imageCountInput = document.getElementById('imageCount');
 
-        const formData = new FormData(uploadForm);
+        const payload = {
+            modelEndpoint: modelInput ? modelInput.value.trim() : '',
+            prompt: promptInput ? promptInput.value.trim() : '',
+            aspectRatio: aspectSelect ? aspectSelect.value : '1:1',
+            numImages: imageCountInput ? parseInt(imageCountInput.value, 10) || 1 : 1
+        };
 
-        // 🆕 Character mention dönüşümü: UI'da @Name görünür, backend'e {Name} gider (RenderNet formatı)
-        if (typeof CharacterPanel !== 'undefined') {
-            const originalPrompt = formData.get('PositivePrompt');
-            const transformedPrompt = CharacterPanel.transformPromptForSubmit(originalPrompt);
-            if (transformedPrompt !== originalPrompt) {
-                formData.set('PositivePrompt', transformedPrompt);
-                console.log('[Character] Prompt @Name → {Name} dönüştürüldü');
-            }
-        }
-
-        // Kimlik auth çereziyle gider; yalnızca SignalR connectionId header'ı gerekir.
+        // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
         const result = await apiFetch('/RenderNet/GenerateImage', {
             method: 'POST',
-            body: formData,
+            body: JSON.stringify(payload),
             headers: {
+                'Content-Type': 'application/json',
                 'X-SignalR-ConnectionId': connectionId
             }
         });
 
-        if (result && result.generationId) {
+        if (result && result.data && result.data.generationId) {
             Toast.info('Görsel oluşturuluyor, lütfen bekleyin...', 'İşleniyor');
-            // Kredi düşüldü — top bar bakiyesini güncelle (sunucu currentBalance döndü)
+            // Kredi düşüldü — top bar bakiyesini güncelle
             refreshCreditBalance();
-            // SignalR bildirim gönderecek, bekliyoruz...
+            // SignalR "GenerationUpdate" bildirimi bekleniyor...
         } else {
             ImageControls.showDefaultState();
             ImageControls.setGenerateButtonState(false);
@@ -219,6 +208,14 @@
                 prompt?.focus();
                 return false;
             }
+        }
+
+        // Defansif model kontrolü — buton zaten disabled olmalı, ama DevTools'tan
+        // disabled kaldırılırsa backend'e geçersiz istek gitmesin (en az 1 model şart).
+        const selectedModel = document.getElementById('selectedModelValue');
+        if (!selectedModel || !selectedModel.value.trim()) {
+            Toast.warning('Lütfen en az bir model seçin.', 'Eksik Bilgi');
+            return false;
         }
 
         return true;
@@ -266,6 +263,11 @@
     function initPoseLockPanel() {
         if (typeof PoseLockPanel !== 'undefined') PoseLockPanel.init();
         else console.warn('PoseLockPanel module not found');
+    }
+
+    function initGenerateButtonState() {
+        if (typeof GenerateButtonState !== 'undefined') GenerateButtonState.init();
+        else console.warn('GenerateButtonState module not found');
     }
 
     function resetAll() {
