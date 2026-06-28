@@ -146,7 +146,7 @@ namespace SelfAI.Data
                  .OnDelete(DeleteBehavior.Cascade);
             });
 
-            // Character — kullanıcının oluşturduğu karakterler (F.6.1)
+            // Character — kullanıcının oluşturduğu karakterler (F.6.1 + F.M.4 LoRA)
             mb.Entity<Character>(e =>
             {
                 e.HasKey(c => c.Id);
@@ -154,11 +154,34 @@ namespace SelfAI.Data
                 e.HasIndex(c => c.AffogatoCharacterId);
                 e.HasIndex(c => new { c.UserId, c.Status });  // List query için
 
-                e.Property(c => c.AffogatoCharacterId).IsRequired().HasMaxLength(128);
-                e.Property(c => c.AffogatoCharacterName).IsRequired().HasMaxLength(128);
+                // ⚠️ F.M.4 — Affogato alanları artık nullable: fal.ai karakterlerinde set edilmez.
+                e.Property(c => c.AffogatoCharacterId).HasMaxLength(128);
+                e.Property(c => c.AffogatoCharacterName).HasMaxLength(128);
                 e.Property(c => c.Name).IsRequired().HasMaxLength(100);
                 e.Property(c => c.Prompt).IsRequired().HasMaxLength(2000);
                 e.Property(c => c.ThumbnailUrl).HasMaxLength(2048);
+
+                // ═══ F.M.4 — LoRA training alanları ═══
+                e.Property(c => c.LoraModelUrl).HasMaxLength(2048);
+                e.Property(c => c.LoraTrainingJobId).HasMaxLength(256);
+                e.Property(c => c.TriggerWord).HasMaxLength(64);
+                e.Property(c => c.TrainingFailureReason).HasMaxLength(1024);
+
+                // LoraTrainingStatus enum → int.
+                e.Property(c => c.LoraTrainingStatus)
+                 .HasConversion<int>();
+
+                // FaceReferenceUrls (List<string>) → JSON nvarchar(max).
+                // ValueComparer: koleksiyon değişikliklerinin doğru tespiti için (EF uyarısı).
+                e.Property(c => c.FaceReferenceUrls)
+                 .HasConversion(
+                     v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
+                     v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
+                     new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
+                         (a, b) => (a ?? new List<string>()).SequenceEqual(b ?? new List<string>()),
+                         v => v.Aggregate(0, (acc, s) => HashCode.Combine(acc, s.GetHashCode())),
+                         v => v.ToList()))
+                 .HasColumnType("nvarchar(max)");
 
                 // AppUser'da Characters navigation property YOK — WithMany() boş bırakıldı.
                 e.HasOne(c => c.User)

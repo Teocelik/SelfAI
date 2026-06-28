@@ -946,3 +946,96 @@ body.is-character-modal-open {
 .character-modal__empty[hidden] {
     display: none !important;
 }
+
+/* ==========================================================================
+   F.M.4 — Character LoRA training durumu (kart rozetleri + seçilemez state)
+   ========================================================================== */
+.character-card {
+    position: relative;  /* Status badge'in absolute konumlanması için */
+}
+
+/* Ready olmayan kart: soluk + bekleme imleci, ama tıklanabilir (toast için) */
+.character-card.is-not-ready {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.character-card.is-not-ready:hover {
+    transform: none;
+}
+
+.character-card__status-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.character-card__status-badge--training {
+    background: rgba(0, 206, 209, 0.18);
+    color: #7fe9eb;
+    border-color: rgba(0, 206, 209, 0.35);
+}
+
+.character-card__status-badge--failed {
+    background: rgba(220, 60, 60, 0.18);
+    color: #ff9b9b;
+    border-color: rgba(220, 60, 60, 0.35);
+}
+
+/* ==========================================================================
+   F.M.4 — Çoklu yüz görseli upload thumbnail grid'i
+   ========================================================================== */
+.character-create-form__upload-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
+    gap: 10px;
+    width: 100%;
+}
+
+.character-create-form__thumb {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 10px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.character-create-form__thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.character-create-form__thumb-remove {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    width: 22px;
+    height: 22px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: white;
+    border-radius: 999px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    transition: background 150ms ease;
+}
+
+.character-create-form__thumb-remove:hover {
+    background: rgba(220, 60, 60, 0.85);
+}

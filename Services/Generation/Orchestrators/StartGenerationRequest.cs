@@ -13,4 +13,9 @@ public class StartGenerationRequest
     public int? Seed { get; set; }
     public int? NumInferenceSteps { get; set; }
     public decimal? GuidanceScale { get; set; }
+
+    // ═══ F.M.4 — Character LoRA seçimi ═══
+    // CharacterId set ise backend ModelEndpoint'i "fal-ai/flux-lora"'ya override eder.
+    public Guid? CharacterId { get; set; }
+    public string? CharacterMode { get; set; }  // "flexible" / "balanced" / "strong"
 }

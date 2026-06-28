@@ -835,39 +835,33 @@
                 <div class="character-modal__scroll">
                     <form class="character-create-form" id="characterCreateForm" novalidate>
 
-                        @* Yüz görseli yükleme *@
+                        @* Yüz görselleri yükleme (F.M.4 — çoklu) *@
                         <div class="character-create-form__field">
                             <label class="character-create-form__label">
-                                Yüz Görseli
+                                Yüz Görselleri
                                 <span class="character-create-form__required">*</span>
                             </label>
                             <div class="character-create-form__upload" id="characterUploadZone">
                                 <input type="file" id="characterFaceInput"
                                        class="character-create-form__file"
-                                       accept="image/jpeg,image/png,image/webp" hidden />
+                                       accept="image/jpeg,image/png,image/webp" multiple hidden />
 
                                 <div class="character-create-form__upload-empty"
                                      id="characterUploadEmpty">
                                     <i class="fas fa-upload character-create-form__upload-icon"></i>
                                     <p class="character-create-form__upload-text">
-                                        Bir görsel yükle
+                                        Yüz görsellerini yükle
                                     </p>
                                     <p class="character-create-form__upload-hint">
-                                        JPG / PNG / WebP, max 20MB
+                                        4-6 görsel önerilir · JPG / PNG / WebP · max 15MB
                                     </p>
                                 </div>
 
-                                <div class="character-create-form__upload-preview"
-                                     id="characterUploadPreview" hidden>
-                                    <img id="characterPreviewImg" alt="Önizleme" />
-                                    <button type="button" class="character-create-form__upload-remove"
-                                            id="characterPreviewRemove"
-                                            aria-label="Görseli kaldır">
-                                        <i class="fas fa-times"></i>
-                                    </button>
-                                </div>
+                                @* Seçilen görsellerin küçük önizlemeleri (JS doldurur) *@
+                                <div class="character-create-form__upload-grid"
+                                     id="characterUploadGrid" hidden></div>
                             </div>
-                            <input type="hidden" id="characterAssetIdInput" value="" />
+                            <small class="character-create-form__helper" id="characterUploadCount" hidden></small>
                         </div>
 
                         @* Karakter adı *@

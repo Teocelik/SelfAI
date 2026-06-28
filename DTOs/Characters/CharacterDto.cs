@@ -12,20 +12,17 @@ namespace SelfAI.DTOs.Characters
         public string ThumbnailUrl { get; set; }
         public string CharacterType { get; set; }  // "realistic" | "stylized"
 
-        // F.6.5 — true ise Affogato'nun default sistem karakteri (DB'de yok, arşivlenemez).
+        // F.6.5 — true ise Affogato'nun default sistem karakteri. F.M.4 sonrası daima false
+        // (sistem karakteri kavramı kaldırıldı), frontend uyumluluğu için tutulur.
         public bool IsSystemCharacter { get; set; }
 
-        // Sistem karakterleri için null (oluşturulma tarihi bilinmiyor).
-        public DateTime? CreatedAt { get; set; }
-    }
+        // F.M.4 — LoRA training durumu: "Pending"|"Uploading"|"Training"|"Ready"|"Failed".
+        public string TrainingStatus { get; set; } = "Ready";
 
-    // POST /Characters/Create istek gövdesi.
-    public class CharacterCreateRequest
-    {
-        public string Name { get; set; }
-        public string Prompt { get; set; }
-        public string CharacterType { get; set; }  // "realistic" | "stylized"
-        public string AssetId { get; set; }         // Önceden /RenderNet/GetAssetId ile upload edilmiş face image
+        // F.M.4 — training başarısızsa kullanıcıya gösterilecek güvenli sebep.
+        public string? FailureReason { get; set; }
+
+        public DateTime? CreatedAt { get; set; }
     }
 
     // POST /Characters/Archive istek gövdesi.

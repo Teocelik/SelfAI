@@ -1,5 +1,8 @@
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
+using SelfAI.Data;
 using SelfAI.Entities;
+using SelfAI.Entities.Enums;
 using SelfAI.Hubs;
 using SelfAI.Models;
 using SelfAI.Services.Generation.Abstractions;
@@ -27,6 +30,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private readonly IGenerationLogService _logService;
     private readonly IHubContext<GenerationHub> _hubContext;
     private readonly IServiceScopeFactory _scopeFactory;
+    private readonly AppDbContext _db;
     private readonly ILogger<GenerationOrchestrator> _logger;
 
     public GenerationOrchestrator(
@@ -36,6 +40,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         IGenerationLogService logService,
         IHubContext<GenerationHub> hubContext,
         IServiceScopeFactory scopeFactory,
+        AppDbContext db,
         ILogger<GenerationOrchestrator> logger)
     {
         _imageGenerators = imageGenerators;
@@ -44,6 +49,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         _logService = logService;
         _hubContext = hubContext;
         _scopeFactory = scopeFactory;
+        _db = db;
         _logger = logger;
     }
 
@@ -61,17 +67,49 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         if (string.IsNullOrWhiteSpace(request.ModelEndpoint))
             return ServiceResult<GenerationStartedResponse>.Failure("Model seçilmedi.", 400);
 
-        // 2. Generator lookup (metadata için; gerçek çağrı background scope'ta yeniden çözülür)
-        var generator = _imageGenerators.FirstOrDefault(g => g.ModelEndpoint == request.ModelEndpoint);
+        // 2. Karakter çözümü (F.M.4) — CharacterId set ise endpoint LoRA'ya override edilir.
+        var effectiveEndpoint = request.ModelEndpoint;
+        string? loraModelUrl = null;
+        string? triggerWord = null;
+        decimal? loraWeight = null;
+
+        if (request.CharacterId.HasValue)
+        {
+            var character = await _db.Characters.FirstOrDefaultAsync(
+                c => c.Id == request.CharacterId.Value
+                  && c.UserId == userId
+                  && c.Status == CharacterStatus.Active,
+                cancellationToken);
+
+            if (character == null)
+                return ServiceResult<GenerationStartedResponse>.Failure("Karakter bulunamadı.", 404);
+
+            if (character.LoraTrainingStatus != LoraTrainingStatus.Ready
+                || string.IsNullOrEmpty(character.LoraModelUrl))
+                return ServiceResult<GenerationStartedResponse>.Failure("Karakter henüz hazır değil.", 409);
+
+            // Kullanıcı Schnell seçse bile karakter varsa LoRA endpoint'i kullanılır.
+            effectiveEndpoint = "fal-ai/flux-lora";
+            loraModelUrl = character.LoraModelUrl;
+            triggerWord = character.TriggerWord;
+            loraWeight = MapCharacterModeToWeight(request.CharacterMode);
+
+            _logger.LogInformation(
+                "Karakter ile generation. | CharId: {CharId} | Mode: {Mode} | Weight: {Weight}",
+                character.Id, request.CharacterMode ?? "balanced", loraWeight);
+        }
+
+        // 3. Generator lookup (metadata için; gerçek çağrı background scope'ta yeniden çözülür)
+        var generator = _imageGenerators.FirstOrDefault(g => g.ModelEndpoint == effectiveEndpoint);
         if (generator == null)
         {
             _logger.LogWarning(
                 "Bilinmeyen model endpoint. | Endpoint: {Endpoint} | UserId: {UserId}",
-                request.ModelEndpoint, userId);
+                effectiveEndpoint, userId);
             return ServiceResult<GenerationStartedResponse>.Failure("Seçilen model bulunamadı.", 400);
         }
 
-        // 3. Credit calculation
+        // 4. Credit calculation
         var tier = _pricingService.MapEndpointToTier(generator.ModelEndpoint);
         var creditsRequired = _pricingService.CalculateUserCredits(generator.EstimatedCostUsd, tier);
 
@@ -97,7 +135,8 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
         // 6. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
         _ = Task.Run(() => ExecuteGenerationBackgroundAsync(
-            request, userId, firebaseUid, generationId, creditsRequired, signalRConnectionId),
+            request, effectiveEndpoint, loraModelUrl, triggerWord, loraWeight,
+            userId, firebaseUid, generationId, creditsRequired, signalRConnectionId),
             CancellationToken.None);
 
         // 7. Hemen response dön — sonuç SignalR ile gelecek
@@ -111,6 +150,10 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
     private async Task ExecuteGenerationBackgroundAsync(
         StartGenerationRequest request,
+        string effectiveEndpoint,
+        string? loraModelUrl,
+        string? triggerWord,
+        decimal? loraWeight,
         Guid userId,
         string firebaseUid,
         Guid generationId,
@@ -125,8 +168,8 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
         try
         {
-            var generator = generators.FirstOrDefault(g => g.ModelEndpoint == request.ModelEndpoint)
-                ?? throw new FalAiException($"Generator bulunamadı: {request.ModelEndpoint}");
+            var generator = generators.FirstOrDefault(g => g.ModelEndpoint == effectiveEndpoint)
+                ?? throw new FalAiException($"Generator bulunamadı: {effectiveEndpoint}");
 
             var imageSize = MapAspectRatioToImageSize(request.AspectRatio);
 
@@ -138,7 +181,11 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 Seed = request.Seed,
                 NumInferenceSteps = request.NumInferenceSteps,
                 GuidanceScale = request.GuidanceScale,
-                EnableSafetyChecker = true
+                EnableSafetyChecker = true,
+                // F.M.4 — LoRA alanları (yalnızca karakter seçiliyse dolu)
+                LoraModelUrl = loraModelUrl,
+                TriggerWord = triggerWord,
+                LoraWeight = loraWeight
             };
 
             var result = await generator.GenerateAsync(genRequest);
@@ -182,6 +229,18 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     {
         await creditService.RefundAsync(userId, creditsCharged, $"Generation failed: {generationId}");
         await logService.UpdateStatusAsync(generationId.ToString(), GenerationStatus.Failed);
+    }
+
+    // Character mode pill → LoRA weight (F.M.4). Esnek/Dengeli/Güçlü.
+    private static decimal MapCharacterModeToWeight(string? mode)
+    {
+        return mode switch
+        {
+            "flexible" => 0.4m,
+            "balanced" => 0.6m,
+            "strong" => 0.8m,
+            _ => 0.6m  // Dengeli default
+        };
     }
 
     // Aspect ratio → fal.ai image_size enum mapping (en yakın enum'a yuvarlanır)

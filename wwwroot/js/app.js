@@ -78,6 +78,28 @@
             }
         });
 
+        // 🆕 F.M.4: Karakter LoRA training durum güncellemesi.
+        // payload: { characterId, status: "Ready"|"Failed", name, thumbnailUrl?, reason? }
+        signalRConnection.on('CharacterTrainingUpdate', function (payload) {
+            console.log('[SignalR] CharacterTrainingUpdate:', payload);
+
+            const name = payload.name || 'Karakter';
+
+            if (payload.status === 'Ready') {
+                Toast.success('"' + name + '" karakteri hazır! Artık üretimde kullanabilirsin.', 'Karakter Hazır 🎭');
+            } else {
+                Toast.error(payload.reason || ('"' + name + '" eğitimi başarısız oldu.'), 'Eğitim Başarısız');
+            }
+
+            // Modal açıksa kart listesini tazele (badge güncellensin). CharacterModal public API.
+            if (typeof CharacterModal !== 'undefined' && typeof CharacterModal.refresh === 'function') {
+                const modal = document.getElementById('characterModal');
+                if (modal && modal.classList.contains('is-open')) {
+                    CharacterModal.refresh();
+                }
+            }
+        });
+
         // ═══ BAĞLANTI DURUMLARI ═══
 
         signalRConnection.onreconnecting(function () {
@@ -137,12 +159,15 @@
         ImageControls.showLoadingState();
         ImageControls.setGenerateButtonState(true);
 
-        // 🆕 F.M.3: Payload yalnızca modelEndpoint + prompt + aspectRatio (+ numImages).
-        // characterId / faceLockAssetId / poseLockAssetId GÖNDERİLMEZ (F.M.4/F.M.6'da eklenecek).
+        // 🆕 F.M.4: Payload modelEndpoint + prompt + aspectRatio (+ numImages) +
+        // opsiyonel characterId/characterMode. Karakter seçiliyse backend endpoint'i
+        // LoRA'ya override eder. faceLockAssetId / poseLockAssetId hâlâ gönderilmez (F.M.6).
         const promptInput = document.getElementById('promptInput');
         const modelInput = document.getElementById('selectedModelValue');
         const aspectSelect = document.querySelector('select[name="AspectRatio"]');
         const imageCountInput = document.getElementById('imageCount');
+        const characterIdInput = document.getElementById('characterId');
+        const characterModeInput = document.getElementById('characterMode');
 
         const payload = {
             modelEndpoint: modelInput ? modelInput.value.trim() : '',
@@ -150,6 +175,13 @@
             aspectRatio: aspectSelect ? aspectSelect.value : '1:1',
             numImages: imageCountInput ? parseInt(imageCountInput.value, 10) || 1 : 1
         };
+
+        // Karakter seçiliyse payload'a ekle (boşsa gönderme — null/undefined backend'de yok sayılır)
+        const characterId = characterIdInput ? characterIdInput.value.trim() : '';
+        if (characterId) {
+            payload.characterId = characterId;
+            payload.characterMode = characterModeInput ? characterModeInput.value : 'balanced';
+        }
 
         // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
         const result = await apiFetch('/RenderNet/GenerateImage', {

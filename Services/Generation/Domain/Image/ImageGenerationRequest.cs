@@ -13,4 +13,9 @@ public class ImageGenerationRequest
     public int? NumInferenceSteps { get; set; }  // Flux Dev için
     public decimal? GuidanceScale { get; set; }  // Flux Dev için
     public bool EnableSafetyChecker { get; set; } = true;
+
+    // ═══ F.M.4 — Character LoRA alanları (yalnızca FluxLoraGenerator kullanır) ═══
+    public string? LoraModelUrl { get; set; }   // Eğitilmiş LoRA model URL'i
+    public string? TriggerWord { get; set; }    // Prompt başına eklenir
+    public decimal? LoraWeight { get; set; }     // 0.4 (Esnek) / 0.6 (Dengeli) / 0.8 (Güçlü)
 }

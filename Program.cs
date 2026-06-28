@@ -15,6 +15,7 @@ using SelfAI.Services.Generation.Abstractions;
 using SelfAI.Services.Generation.Providers.FalAi;
 using SelfAI.Services.Generation.Pricing;
 using SelfAI.Services.Generation.Domain.Image;
+using SelfAI.Services.Generation.Domain.CharacterTraining;
 using SelfAI.Services.Generation.Orchestrators;
 
 
@@ -70,6 +71,9 @@ builder.Services.Configure<FalAiOptions>(
 
 builder.Services.AddHttpClient<IFalAiClient, FalAiClient>();
 
+// fal.ai storage (asset upload) — F.M.4 minimal (F.M.7'de tam refactor).
+builder.Services.AddHttpClient<IFalAiStorageClient, FalAiStorageClient>();
+
 // ═══ F.M.3 — Image generation katmanı ═══
 // Credit pricing (tier markup) — config "CreditPricing" section'ından okunur.
 builder.Services.Configure<CreditPricingOptions>(
@@ -80,9 +84,16 @@ builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
 // IEnumerable<IImageGenerator> alıp endpoint string'iyle eşler (F.M.5'te genişler).
 builder.Services.AddScoped<IImageGenerator, FluxSchnellGenerator>();
 builder.Services.AddScoped<IImageGenerator, FluxDevGenerator>();
+// F.M.4 — Character LoRA inference generator (karakter seçiliyse orchestrator buna override eder).
+builder.Services.AddScoped<IImageGenerator, FluxLoraGenerator>();
 
 // Generation orchestrator — kredi düşme + history + SignalR koordinasyonu.
 builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
+
+// ═══ F.M.4 — Character LoRA training katmanı ═══
+// Domain trainer (fal.ai flux-lora-fast-training) + training orchestrator.
+builder.Services.AddScoped<ICharacterTrainer, FluxLoraTrainer>();
+builder.Services.AddScoped<ICharacterTrainingOrchestrator, CharacterTrainingOrchestrator>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddSingleton<IPromptService, PromptService>();
 
@@ -163,6 +174,12 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddSingleton<GenerationPollingService>();
 builder.Services.AddHostedService(provider =>
     provider.GetRequiredService<GenerationPollingService>());
+
+// F.M.4 — Character LoRA training polling (Singleton + HostedService dual registration:
+// orchestrator RegisterTrainingJob'u doğrudan çağırabilsin diye).
+builder.Services.AddSingleton<LoraTrainingPollingService>();
+builder.Services.AddHostedService(provider =>
+    provider.GetRequiredService<LoraTrainingPollingService>());
 
 // Subscription Lifecycle Service (Hosted) — saatte bir: süresi dolan Active'leri Expired yapar,
 // stale Pending subscription/payment'ları temizler. Scoped DbContext'i scope factory ile kullanır (D.3.3).

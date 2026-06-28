@@ -181,17 +181,8 @@ const CharacterPanel = (function () {
      * Bir karakteri seç
      */
     function selectCharacter({ id, name }) {
-        // F.M.3: Karakter sistemi henüz fal.ai'a bağlanmadı (F.M.4). Seçimi backend'e
-        // taşımıyoruz — kullanıcıyı bilgilendir ve hiçbir state'i wire etmeden çık.
-        Toast.warning(
-            'Karakter sistemi yakında aktif olacak (F.M.4\'te güncellenecek). ' +
-            'Şimdilik karakter olmadan üretim yapılabilir.',
-            'Karakter Sistemi'
-        );
-        return;
-
-        // eslint-disable-next-line no-unreachable
-        const previousName = selectedCharacter ? selectedCharacter.name : null;
+        // F.M.4 — Karakter sistemi fal.ai LoRA ile aktif. Seçim hidden input'lara
+        // wire edilir, generate payload'una characterId + characterMode olarak gider.
         selectedCharacter = { id, name };
 
         // Hidden input'ları doldur
@@ -214,8 +205,8 @@ const CharacterPanel = (function () {
         // Kart vurgusu
         highlightSelectedCard();
 
-        // Prompt'a @Name ekle (önceki seçiliyse onun mention'ını değiştirir)
-        insertMentionInPrompt(name, previousName);
+        // NOT (F.M.4): Eskiden prompt'a @Name eklenirdi (Affogato). fal.ai LoRA'da
+        // trigger word'ü backend prepend ettiği için prompt temiz bırakılır.
 
         // Butonda icon yerine seçilen karakterin kart görselini thumbnail olarak göster (Face Lock stili)
         const cardImg = document.querySelector(`[data-character-id="${id}"] img`)?.src;
@@ -228,7 +219,6 @@ const CharacterPanel = (function () {
      * Seçimi kaldır
      */
     function deselectCharacter() {
-        const previousName = selectedCharacter ? selectedCharacter.name : null;
         selectedCharacter = null;
 
         // Hidden input'ları sıfırla
@@ -243,8 +233,7 @@ const CharacterPanel = (function () {
         // Kart vurgusunu temizle
         clearCardHighlights();
 
-        // Prompt'tan kendi eklediğimiz @Name'i çıkar
-        if (previousName) removeMentionFromPrompt(previousName);
+        // (F.M.4: prompt'a @Name eklenmediği için temizleme de yapılmaz)
 
         // Mode default'a dön
         selectedMode = 'balanced';

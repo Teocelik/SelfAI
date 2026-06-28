@@ -25,7 +25,7 @@
     let emptyListState = null;      // Hiç karakter yok (F.6.3)
     let loadingState = null;        // Fetch sırasında spinner
     let gridContainer = null;
-    let currentAssetId = null;
+    let selectedFiles = [];   // F.M.4 — create formunda seçilen yüz görselleri (File[])
 
     // F.6.4a — Bekleyen archive işlemleri. characterId → { timeoutId, displayTimeoutId, card, character }
     // timeoutId: 5sn undo penceresi (dolunca backend'e archive). displayTimeoutId: 350ms fade-out
@@ -250,15 +250,40 @@
     }
 
     function createCharacterCard(character, currentSelectedId) {
+        // F.M.4 — training durumu. "Ready" dışındaki kartlar seçilemez.
+        const trainingStatus = character.trainingStatus || 'Ready';
+        const isReady = trainingStatus === 'Ready';
+        const isFailed = trainingStatus === 'Failed';
+
         const card = document.createElement('button');
         card.type = 'button';
         card.className = 'character-card';
         card.dataset.characterId = character.id;
         card.dataset.characterName = character.name;
         card.dataset.isSystem = character.isSystemCharacter ? 'true' : 'false';
+        card.dataset.trainingStatus = trainingStatus;
+        if (character.failureReason) card.dataset.failureReason = character.failureReason;
+
+        if (!isReady) card.classList.add('is-not-ready');
+        if (isFailed) card.classList.add('is-failed');
 
         if (currentSelectedId && character.id === currentSelectedId) {
             card.classList.add('is-selected');
+        }
+
+        // F.M.4 — durum rozeti (Ready dışında gösterilir)
+        if (!isReady) {
+            const badge = document.createElement('span');
+            badge.className = 'character-card__status-badge';
+            if (isFailed) {
+                badge.classList.add('character-card__status-badge--failed');
+                badge.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Başarısız';
+            } else {
+                // Pending / Uploading / Training
+                badge.classList.add('character-card__status-badge--training');
+                badge.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Eğitiliyor...';
+            }
+            card.appendChild(badge);
         }
 
         // F.6.5 — Archive (sil) butonu YALNIZCA kullanıcı karakterlerinde. Sistem
@@ -337,6 +362,18 @@
     }
 
     function handleCardClick(card) {
+        // F.M.4 — Ready olmayan karakter seçilemez.
+        const trainingStatus = card.dataset.trainingStatus || 'Ready';
+        if (trainingStatus !== 'Ready') {
+            if (trainingStatus === 'Failed') {
+                const reason = card.dataset.failureReason || 'Eğitim başarısız oldu.';
+                if (typeof Toast !== 'undefined' && Toast.error) Toast.error(reason, 'Karakter Hazır Değil');
+            } else if (typeof Toast !== 'undefined' && Toast.warning) {
+                Toast.warning('Karakter henüz hazır değil, eğitim sürüyor.', 'Lütfen Bekle');
+            }
+            return;
+        }
+
         // Re-click to deselect: kart zaten seçiliyse → CLEAR (toggle off)
         if (card.classList.contains('is-selected')) {
             card.classList.remove('is-selected');
@@ -647,98 +684,105 @@
        F.6.2 — Karakter oluşturma formu
        ──────────────────────────────────────────────────────────────────────── */
 
+    // F.M.4 — çoklu yüz görseli yükleme (multipart). Asset upload backend'de yapılır,
+    // frontend dosyaları doğrudan /Characters/Create'e gönderir.
+    const MAX_FACE_FILES = 10;
+    const MAX_FACE_SIZE = 15 * 1024 * 1024;  // 15MB
+
     function initCreationForm() {
         const form = document.getElementById('characterCreateForm');
         const uploadZone = document.getElementById('characterUploadZone');
         const fileInput = document.getElementById('characterFaceInput');
-        const previewImg = document.getElementById('characterPreviewImg');
-        const previewWrap = document.getElementById('characterUploadPreview');
-        const emptyWrap = document.getElementById('characterUploadEmpty');
-        const removeBtn = document.getElementById('characterPreviewRemove');
-        const assetIdInput = document.getElementById('characterAssetIdInput');
 
         if (!form) return;
 
-        // Upload zone tıklaması → dosya seçici (remove butonu hariç)
+        // Upload zone tıklaması → dosya seçici (thumbnail remove butonu hariç)
         uploadZone.addEventListener('click', function (e) {
-            if (e.target.closest('.character-create-form__upload-remove')) return;
+            if (e.target.closest('.character-create-form__thumb-remove')) return;
             fileInput.click();
         });
 
-        // Dosya seçildi → önizleme + asset upload
-        fileInput.addEventListener('change', async function (e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Boyut kontrolü (20MB)
-            if (file.size > 20 * 1024 * 1024) {
-                showToast('error', 'Dosya boyutu 20MB\'dan büyük olamaz.');
-                fileInput.value = '';
-                return;
-            }
-
-            // Yerel önizleme göster
-            const reader = new FileReader();
-            reader.onload = function (ev) {
-                previewImg.src = ev.target.result;
-                previewWrap.hidden = false;
-                emptyWrap.hidden = true;
-            };
-            reader.readAsDataURL(file);
-
-            // Asset upload (mevcut /RenderNet/GetAssetId reuse — face-lock ile aynı pattern).
-            // Endpoint IFormFile parametresi 'formFile' adında olduğu için field adı 'formFile'.
-            try {
-                uploadZone.classList.add('is-loading');
-
-                const formData = new FormData();
-                formData.append('formFile', file);
-
-                const response = await fetch('/RenderNet/GetAssetId', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                if (!response.ok) throw new Error('Asset upload başarısız (HTTP ' + response.status + ')');
-
-                const data = await response.json();
-                // Backend yanıtı: { success, assetId, data }
-                if (!data.success || !data.assetId) {
-                    throw new Error(data.message || 'Asset ID alınamadı');
-                }
-
-                currentAssetId = data.assetId;
-                if (assetIdInput) assetIdInput.value = currentAssetId;
-
-            } catch (err) {
-                console.error('Asset upload hatası:', err);
-                showToast('error', 'Yüz görseli yüklenemedi: ' + err.message);
-                resetUpload();
-            } finally {
-                uploadZone.classList.remove('is-loading');
-            }
+        // Dosyalar seçildi → in-memory listeye ekle + thumbnail render
+        fileInput.addEventListener('change', function (e) {
+            addFaceFiles(Array.from(e.target.files || []));
+            fileInput.value = '';  // aynı dosyayı tekrar seçebilmek için sıfırla
         });
-
-        // Önizlemeyi kaldır
-        removeBtn.addEventListener('click', function (e) {
-            e.stopPropagation();
-            resetUpload();
-        });
-
-        function resetUpload() {
-            fileInput.value = '';
-            previewImg.src = '';
-            previewWrap.hidden = true;
-            emptyWrap.hidden = false;
-            currentAssetId = null;
-            if (assetIdInput) assetIdInput.value = '';
-        }
 
         // Form submit
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             await handleCreateSubmit();
         });
+    }
+
+    function addFaceFiles(files) {
+        for (const file of files) {
+            if (selectedFiles.length >= MAX_FACE_FILES) {
+                showToast('warning', 'En fazla ' + MAX_FACE_FILES + ' görsel ekleyebilirsin.');
+                break;
+            }
+            if (!file.type || !file.type.startsWith('image/')) {
+                showToast('error', 'Sadece görsel dosyaları kabul edilir.');
+                continue;
+            }
+            if (file.size > MAX_FACE_SIZE) {
+                showToast('error', '"' + file.name + '" 15MB sınırını aşıyor.');
+                continue;
+            }
+            selectedFiles.push(file);
+        }
+        renderFaceThumbs();
+    }
+
+    function renderFaceThumbs() {
+        const grid = document.getElementById('characterUploadGrid');
+        const emptyWrap = document.getElementById('characterUploadEmpty');
+        const countEl = document.getElementById('characterUploadCount');
+        if (!grid) return;
+
+        grid.innerHTML = '';
+
+        if (selectedFiles.length === 0) {
+            grid.hidden = true;
+            if (emptyWrap) emptyWrap.hidden = false;
+            if (countEl) countEl.hidden = true;
+            return;
+        }
+
+        if (emptyWrap) emptyWrap.hidden = true;
+        grid.hidden = false;
+
+        selectedFiles.forEach(function (file, index) {
+            const thumb = document.createElement('div');
+            thumb.className = 'character-create-form__thumb';
+
+            const img = document.createElement('img');
+            img.alt = file.name;
+            const reader = new FileReader();
+            reader.onload = function (ev) { img.src = ev.target.result; };
+            reader.readAsDataURL(file);
+            thumb.appendChild(img);
+
+            const removeBtn = document.createElement('button');
+            removeBtn.type = 'button';
+            removeBtn.className = 'character-create-form__thumb-remove';
+            removeBtn.setAttribute('aria-label', 'Görseli kaldır');
+            removeBtn.innerHTML = '<i class="fas fa-times"></i>';
+            removeBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                selectedFiles.splice(index, 1);
+                renderFaceThumbs();
+            });
+            thumb.appendChild(removeBtn);
+
+            grid.appendChild(thumb);
+        });
+
+        if (countEl) {
+            countEl.hidden = false;
+            countEl.textContent = selectedFiles.length + ' görsel seçildi'
+                + (selectedFiles.length < 4 ? ' (4-6 önerilir)' : '');
+        }
     }
 
     async function handleCreateSubmit() {
@@ -754,8 +798,8 @@
         const characterType = checkedType ? checkedType.value : 'realistic';
 
         // Client-side validation
-        if (!currentAssetId) {
-            showToast('error', 'Lütfen bir yüz görseli yükle.');
+        if (selectedFiles.length < 1) {
+            showToast('error', 'En az 1 yüz görseli yükle (4-6 önerilir).');
             return;
         }
         if (name.length < 1) {
@@ -770,21 +814,25 @@
         // Submit state
         submitBtn.disabled = true;
         spinner.hidden = false;
-        label.textContent = 'Oluşturuluyor...';
+        label.textContent = 'Başlatılıyor...';
 
         try {
+            // F.M.4 — multipart: dosyalar FaceImages[] olarak gider, Content-Type
+            // header'ını ELLE set ETME (browser multipart boundary'i kendi ekler).
+            const formData = new FormData();
+            formData.append('Name', name);
+            formData.append('Prompt', prompt);
+            formData.append('CharacterType', characterType);
+            selectedFiles.forEach(function (file) {
+                formData.append('FaceImages', file);
+            });
+
             const response = await fetch('/Characters/Create', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'RequestVerificationToken': getAntiForgeryToken()
                 },
-                body: JSON.stringify({
-                    name: name,
-                    prompt: prompt,
-                    characterType: characterType,
-                    assetId: currentAssetId
-                })
+                body: formData
             });
 
             if (!response.ok) {
@@ -797,19 +845,17 @@
                 throw new Error(message);
             }
 
-            // Başarı: { success, message, data: { id, name, ... } } — ServiceResult sarmalı.
+            // Başarı: { success, message, data: { characterId } }. Training arka planda başladı.
             const successJson = await response.json();
-            const characterData = successJson.data || successJson.Data || successJson;
-            const createdName = characterData.name || characterData.Name || 'Karakter';
-
-            showToast('success', '"' + createdName + '" oluşturuldu!');
+            const msg = successJson.message || 'Karakter eğitimi başlatıldı. Yaklaşık 5 dakika sürer.';
+            showToast('success', msg);
 
             resetCreationForm();
 
-            // F.6.3 — yeni karakter grid'e dahil olsun diye listeyi taze çek
+            // Yeni karakter "Eğitiliyor" badge'iyle grid'e dahil olsun diye listeyi taze çek
             await loadCharacters();
 
-            // Grid view'a dön
+            // Grid view'a dön (sonuç SignalR "CharacterTrainingUpdate" ile gelecek)
             switchToView('grid');
 
         } catch (err) {
@@ -826,16 +872,15 @@
         const form = document.getElementById('characterCreateForm');
         if (form) form.reset();
 
-        const previewWrap = document.getElementById('characterUploadPreview');
-        const emptyWrap = document.getElementById('characterUploadEmpty');
-        const previewImg = document.getElementById('characterPreviewImg');
-        const assetIdInput = document.getElementById('characterAssetIdInput');
+        selectedFiles = [];
 
-        if (previewWrap) previewWrap.hidden = true;
+        const grid = document.getElementById('characterUploadGrid');
+        const emptyWrap = document.getElementById('characterUploadEmpty');
+        const countEl = document.getElementById('characterUploadCount');
+
+        if (grid) { grid.innerHTML = ''; grid.hidden = true; }
         if (emptyWrap) emptyWrap.hidden = false;
-        if (previewImg) previewImg.src = '';
-        if (assetIdInput) assetIdInput.value = '';
-        currentAssetId = null;
+        if (countEl) countEl.hidden = true;
     }
 
     function getAntiForgeryToken() {
@@ -847,6 +892,7 @@
         if (typeof Toast !== 'undefined') {
             if (type === 'success' && Toast.success) { Toast.success(message); return; }
             if (type === 'error' && Toast.error) { Toast.error(message); return; }
+            if (type === 'warning' && Toast.warning) { Toast.warning(message); return; }
             if (type === 'info' && Toast.info) { Toast.info(message); return; }
         }
         alert(message);

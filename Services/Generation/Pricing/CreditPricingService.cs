@@ -15,7 +15,8 @@ public class CreditPricingService : ICreditPricingService
         { "fal-ai/flux/dev", ModelTier.Standard },
         { "fal-ai/flux-pro", ModelTier.Premium },
         { "fal-ai/recraft-v3", ModelTier.Premium },
-        { "fal-ai/flux-lora", ModelTier.CharacterLora }
+        { "fal-ai/flux-lora", ModelTier.CharacterLora },
+        { "fal-ai/flux-lora-fast-training", ModelTier.CharacterLora }
     };
 
     public CreditPricingService(
