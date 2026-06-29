@@ -7,7 +7,7 @@ namespace SelfAI.Services.Generation.Domain.Image;
 public class ImageGenerationResult
 {
     public List<GeneratedImage> Images { get; set; } = new();
-    public long? Seed { get; set; }
+    public string? Seed { get; set; }
     public decimal? InferenceTimeSeconds { get; set; }
 }
 

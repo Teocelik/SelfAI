@@ -11,8 +11,12 @@ public class FalAiFluxResponse
     [JsonPropertyName("images")]
     public List<FalAiImage> Images { get; set; } = new();
 
+    // Seed sadece log/display amaçlı. fal.ai modeline göre integer, decimal veya
+    // Int64 sınırını aşan değerler dönebildiği için string olarak tutulur. JSON number
+    // de gelebildiğinden FlexibleStringConverter ile token tipi fark etmeksizin parse edilir.
     [JsonPropertyName("seed")]
-    public long? Seed { get; set; }
+    [JsonConverter(typeof(FlexibleStringConverter))]
+    public string? Seed { get; set; }
 
     [JsonPropertyName("timings")]
     public FalAiTimings? Timings { get; set; }

@@ -6,6 +6,7 @@ using SelfAI.Entities.Enums;
 using SelfAI.Hubs;
 using SelfAI.Models;
 using SelfAI.Services.Generation.Abstractions;
+using SelfAI.Services.Generation.Domain.Catalog;
 using SelfAI.Services.Generation.Domain.Image;
 using SelfAI.Services.Generation.Pricing;
 using SelfAI.Services.Generation.Providers.FalAi;
@@ -14,17 +15,19 @@ using SelfAI.Services.Interfaces;
 namespace SelfAI.Services.Generation.Orchestrators;
 
 /// <summary>
-/// Image generation iş akışı koordinatörü. Kredi pre-charge + history kaydını
-/// request scope'unda yapar, fal.ai çağrısını fire-and-forget background task'ta
-/// (yeni DI scope ile) yürütür ve sonucu SignalR "GenerationUpdate" ile push eder.
+/// Image generation iş akışı koordinatörü (F.M.5 — dynamic catalog).
 ///
-/// NOT: Background task request scope'unu aşar; scoped servisler (ICreditService,
-/// IGenerationLogService → AppDbContext) IServiceScopeFactory ile YENİ scope'tan
-/// alınır. IHubContext singleton olduğu için doğrudan kullanılabilir.
+/// Model seçimi artık iki yola ayrılır:
+///   • Karakter seçili değil → DynamicImageGenerator (generic, endpoint string'iyle)
+///   • Karakter seçili        → FluxLoraGenerator (karakter LoRA inference)
+///
+/// Maliyet/tier hardcoded değil, ModelCatalogEntry (DB) + ICatalogTierResolver'dan
+/// gelir. Kredi pre-charge + history request scope'unda; fal.ai çağrısı fire-and-forget
+/// background task'ta (yeni DI scope) yürütülür, sonuç SignalR "GenerationUpdate" ile push.
 /// </summary>
 public class GenerationOrchestrator : IGenerationOrchestrator
 {
-    private readonly IEnumerable<IImageGenerator> _imageGenerators;
+    private readonly ICatalogTierResolver _tierResolver;
     private readonly ICreditPricingService _pricingService;
     private readonly ICreditService _creditService;
     private readonly IGenerationLogService _logService;
@@ -34,7 +37,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private readonly ILogger<GenerationOrchestrator> _logger;
 
     public GenerationOrchestrator(
-        IEnumerable<IImageGenerator> imageGenerators,
+        ICatalogTierResolver tierResolver,
         ICreditPricingService pricingService,
         ICreditService creditService,
         IGenerationLogService logService,
@@ -43,7 +46,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         AppDbContext db,
         ILogger<GenerationOrchestrator> logger)
     {
-        _imageGenerators = imageGenerators;
+        _tierResolver = tierResolver;
         _pricingService = pricingService;
         _creditService = creditService;
         _logService = logService;
@@ -69,6 +72,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
         // 2. Karakter çözümü (F.M.4) — CharacterId set ise endpoint LoRA'ya override edilir.
         var effectiveEndpoint = request.ModelEndpoint;
+        var isCharacterPath = false;
         string? loraModelUrl = null;
         string? triggerWord = null;
         decimal? loraWeight = null;
@@ -88,8 +92,9 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 || string.IsNullOrEmpty(character.LoraModelUrl))
                 return ServiceResult<GenerationStartedResponse>.Failure("Karakter henüz hazır değil.", 409);
 
-            // Kullanıcı Schnell seçse bile karakter varsa LoRA endpoint'i kullanılır.
-            effectiveEndpoint = "fal-ai/flux-lora";
+            // Kullanıcı hangi modeli seçerse seçsin, karakter varsa LoRA endpoint'i kullanılır.
+            effectiveEndpoint = FluxLoraGenerator.LoraEndpoint;
+            isCharacterPath = true;
             loraModelUrl = character.LoraModelUrl;
             triggerWord = character.TriggerWord;
             loraWeight = MapCharacterModeToWeight(request.CharacterMode);
@@ -99,23 +104,36 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 character.Id, request.CharacterMode ?? "balanced", loraWeight);
         }
 
-        // 3. Generator lookup (metadata için; gerçek çağrı background scope'ta yeniden çözülür)
-        var generator = _imageGenerators.FirstOrDefault(g => g.ModelEndpoint == effectiveEndpoint);
-        if (generator == null)
+        // 3. Catalog lookup — endpoint DB'de var mı? Maliyet/tier DB'den okunur.
+        //    Karakter yolu Hidden flux-lora kaydını kullanır (kullanıcıya görünmez ama
+        //    cost lookup için seed'lidir); doğrudan kullanıcı seçimi Approved olmalıdır.
+        var entry = await _db.ModelCatalogEntries
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.EndpointId == effectiveEndpoint, cancellationToken);
+
+        if (entry == null)
         {
             _logger.LogWarning(
-                "Bilinmeyen model endpoint. | Endpoint: {Endpoint} | UserId: {UserId}",
+                "Catalog'da olmayan endpoint. | Endpoint: {Endpoint} | UserId: {UserId}",
                 effectiveEndpoint, userId);
-            return ServiceResult<GenerationStartedResponse>.Failure("Seçilen model bulunamadı.", 400);
+            return ServiceResult<GenerationStartedResponse>.Failure("Geçersiz model.", 400);
         }
 
-        // 4. Credit calculation
-        var tier = _pricingService.MapEndpointToTier(generator.ModelEndpoint);
-        var creditsRequired = _pricingService.CalculateUserCredits(generator.EstimatedCostUsd, tier);
+        if (!isCharacterPath && entry.Status != CatalogStatus.Approved)
+        {
+            _logger.LogWarning(
+                "Onaylı olmayan model seçildi. | Endpoint: {Endpoint} | Status: {Status}",
+                effectiveEndpoint, entry.Status);
+            return ServiceResult<GenerationStartedResponse>.Failure("Bu model şu an kullanılamıyor.", 400);
+        }
 
-        // 4. Credit deduction (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
+        // 4. Tier + credit hesabı (ikisi de DB-driven, hardcoded değil)
+        var tier = await _tierResolver.ResolveAsync(effectiveEndpoint, cancellationToken);
+        var creditsRequired = _pricingService.CalculateUserCredits(entry.CostUsd, tier);
+
+        // 5. Credit deduction (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
         var deductionResult = await _creditService.TryDeductAsync(
-            userId, creditsRequired, $"Generation: {generator.ModelEndpoint}");
+            userId, creditsRequired, $"Generation: {effectiveEndpoint}");
         if (!deductionResult.IsSuccess)
         {
             _logger.LogWarning(
@@ -127,19 +145,19 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
         _logger.LogInformation(
             "Kredi düşüldü. | UserId: {UserId} | Amount: {Credits} | Endpoint: {Endpoint}",
-            userId, creditsRequired, generator.ModelEndpoint);
+            userId, creditsRequired, effectiveEndpoint);
 
-        // 5. History kaydı (Pending status'üyle). Tracking ID string key olarak kullanılır.
+        // 6. History kaydı (Pending status'üyle). Tracking ID string key olarak kullanılır.
         var generationId = Guid.NewGuid();
         await _logService.CreateAsync(userId, generationId.ToString(), creditsRequired, request.Prompt);
 
-        // 6. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
+        // 7. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
         _ = Task.Run(() => ExecuteGenerationBackgroundAsync(
-            request, effectiveEndpoint, loraModelUrl, triggerWord, loraWeight,
+            request, effectiveEndpoint, isCharacterPath, loraModelUrl, triggerWord, loraWeight,
             userId, firebaseUid, generationId, creditsRequired, signalRConnectionId),
             CancellationToken.None);
 
-        // 7. Hemen response dön — sonuç SignalR ile gelecek
+        // 8. Hemen response dön — sonuç SignalR ile gelecek
         return ServiceResult<GenerationStartedResponse>.Success(new GenerationStartedResponse
         {
             GenerationId = generationId,
@@ -151,6 +169,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private async Task ExecuteGenerationBackgroundAsync(
         StartGenerationRequest request,
         string effectiveEndpoint,
+        bool isCharacterPath,
         string? loraModelUrl,
         string? triggerWord,
         decimal? loraWeight,
@@ -162,15 +181,13 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     {
         // Background task request scope'unu aşar → scoped servisler için YENİ scope.
         using var scope = _scopeFactory.CreateScope();
-        var generators = scope.ServiceProvider.GetRequiredService<IEnumerable<IImageGenerator>>();
+        var dynamicGenerator = scope.ServiceProvider.GetRequiredService<DynamicImageGenerator>();
+        var loraGenerator = scope.ServiceProvider.GetRequiredService<FluxLoraGenerator>();
         var creditService = scope.ServiceProvider.GetRequiredService<ICreditService>();
         var logService = scope.ServiceProvider.GetRequiredService<IGenerationLogService>();
 
         try
         {
-            var generator = generators.FirstOrDefault(g => g.ModelEndpoint == effectiveEndpoint)
-                ?? throw new FalAiException($"Generator bulunamadı: {effectiveEndpoint}");
-
             var imageSize = MapAspectRatioToImageSize(request.AspectRatio);
 
             var genRequest = new ImageGenerationRequest
@@ -182,13 +199,16 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 NumInferenceSteps = request.NumInferenceSteps,
                 GuidanceScale = request.GuidanceScale,
                 EnableSafetyChecker = true,
-                // F.M.4 — LoRA alanları (yalnızca karakter seçiliyse dolu)
+                // LoRA alanları yalnızca karakter yolunda dolu.
                 LoraModelUrl = loraModelUrl,
                 TriggerWord = triggerWord,
                 LoraWeight = loraWeight
             };
 
-            var result = await generator.GenerateAsync(genRequest);
+            // Karakter yolu → FluxLoraGenerator; aksi halde → DynamicImageGenerator (endpoint string'iyle).
+            var result = isCharacterPath
+                ? await loraGenerator.GenerateAsync(genRequest)
+                : await dynamicGenerator.GenerateAsync(effectiveEndpoint, genRequest);
 
             // Success — history güncelle (status + media)
             await logService.UpdateStatusAsync(generationId.ToString(), GenerationStatus.Completed);

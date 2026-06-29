@@ -16,6 +16,8 @@ namespace SelfAI.Data
         public DbSet<Subscription> Subscriptions { get; set; }
         public DbSet<Payment> Payments { get; set; }
         public DbSet<Character> Characters { get; set; }
+        public DbSet<ModelCatalogEntry> ModelCatalogEntries { get; set; }
+        public DbSet<UserFavoriteModel> UserFavoriteModels { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -188,6 +190,34 @@ namespace SelfAI.Data
                  .WithMany()
                  .HasForeignKey(c => c.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // ModelCatalogEntry — dinamik model catalog (F.M.5)
+            mb.Entity<ModelCatalogEntry>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => x.EndpointId).IsUnique();
+                e.HasIndex(x => x.Status);
+                e.HasIndex(x => x.Category);
+
+                e.Property(x => x.EndpointId).IsRequired().HasMaxLength(256);
+                e.Property(x => x.DisplayName).IsRequired().HasMaxLength(256);
+                e.Property(x => x.Description).HasMaxLength(1024);
+                e.Property(x => x.Category).IsRequired().HasMaxLength(64);
+                e.Property(x => x.Provider).HasMaxLength(128);
+                e.Property(x => x.ThumbnailUrl).HasMaxLength(2048);
+                e.Property(x => x.Tier).IsRequired().HasMaxLength(32);
+
+                e.Property(x => x.Status).HasConversion<int>();
+                e.Property(x => x.CostUsd).HasColumnType("decimal(10,4)");
+            });
+
+            // UserFavoriteModel — kullanıcı favori modelleri (F.M.5)
+            mb.Entity<UserFavoriteModel>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => new { x.UserId, x.EndpointId }).IsUnique();
+                e.Property(x => x.EndpointId).IsRequired().HasMaxLength(256);
             });
         }
     }

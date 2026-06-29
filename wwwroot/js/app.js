@@ -17,7 +17,7 @@
         initPromptHandler();
         initFaceLockPanel();
         initFluxImageStyles();
-        initModelSelectionPanel();
+        initModelPicker();
         initImageControls();
         initSeedHandler();
         initCharacterPanel();
@@ -272,9 +272,9 @@
         else console.warn('FluxImageStyles module not found');
     }
 
-    function initModelSelectionPanel() {
-        if (typeof ModelSelectionPanel !== 'undefined') ModelSelectionPanel.init();
-        else console.warn('ModelSelectionPanel module not found');
+    function initModelPicker() {
+        if (typeof ModelPicker !== 'undefined') ModelPicker.init();
+        else console.warn('ModelPicker module not found');
     }
 
     function initImageControls() {
@@ -306,7 +306,7 @@
         if (typeof PromptHandler !== 'undefined') PromptHandler.clear();
         if (typeof FaceLockPanel !== 'undefined') FaceLockPanel.reset();
         if (typeof FluxImageStyles !== 'undefined') FluxImageStyles.reset();
-        if (typeof ModelSelectionPanel !== 'undefined') ModelSelectionPanel.reset();
+        if (typeof ModelPicker !== 'undefined') ModelPicker.reset();
         if (typeof ImageControls !== 'undefined') ImageControls.showDefaultState();
     }
 

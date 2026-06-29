@@ -6,7 +6,7 @@
  *   - Prompt dolu VE en az 1 model seçili    → ENABLED
  *
  * "Model seçili mi" sinyali olarak #selectedModelValue hidden input'u kullanılır
- * (ModelSelectionPanel bunu doldurur; backend'e giden Model değerinin ta kendisi).
+ * (F.M.5: ModelPicker bunu doldurur; backend'e giden Model değerinin ta kendisi).
  *
  * ⚠️ Generation sırasında buton durumunu ImageControls.setGenerateButtonState yönetir
  *    (loading/spinner). Çakışmayı önlemek için "busy" kilidi vardır: busy iken bu
@@ -41,7 +41,7 @@ const GenerateButtonState = (function () {
         // Prompt yazıldıkça canlı güncelle
         promptInput.addEventListener('input', updateState);
 
-        // Model seçimi değişince güncelle (model-selection-panel.js emit eder)
+        // Model seçimi değişince güncelle (F.M.5: model-picker.js emit eder)
         document.addEventListener('model-selection-changed', updateState);
     }
 

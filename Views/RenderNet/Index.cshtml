@@ -182,179 +182,6 @@
         </div>
 
         
-        <!-- Model Selection Panel - Compact Side Panel -->
-        <div id="modelPanel" class="glass-panel fixed top-[100px] h-[520px] w-[550px] transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px;">
-            <div class="h-full flex rounded-[20px] overflow-hidden">
-                <!-- Left Sidebar - Model Categories -->
-                <div class="w-32 border-r glass-divider flex flex-col flex-shrink-0">
-                    <!-- Panel Header -->
-                    <div class="p-3 border-b glass-divider">
-                        <div class="flex items-center space-x-2">
-                            <i class="fas fa-camera text-[#00CED1] text-sm"></i>
-                            <span class="text-sm font-semibold text-text-primary">Model</span>
-                        </div>
-                    </div>
-
-                    <!-- Model Categories -->
-                    <div class="flex-1 py-2">
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 active" data-category="flux">
-                            <span class="text-base">▲</span>
-                            <span class="text-sm font-medium text-text-primary">Flux</span>
-                        </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="google">
-                            <span class="text-base">G</span>
-                            <span class="text-sm font-medium text-text-primary">Google</span>
-                        </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="magic">
-                            <span class="text-base">✦</span>
-                            <span class="text-sm font-medium text-text-primary">Magic</span>
-                        </button>
-                        <button type="button" class="model-category-btn w-full flex items-center space-x-2 px-3 py-2.5 text-left hover:bg-surface-elevated transition-colors duration-200 hidden" data-category="pro">
-                            <span class="text-base">⊞</span>
-                            <span class="text-sm font-medium text-text-primary">Pro</span>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Right Content - Model Options (SCROLL BURADA) -->
-                <div class="flex-1 overflow-y-auto custom-scrollbar">
-                    <!-- Flux Models Content (F.M.3 — 2 hardcoded fal.ai model kartı) -->
-                        <div id="flux-content" class="model-content p-4">
-                            <div class="mb-4">
-                                <h3 class="text-sm font-semibold text-text-primary mb-1">fal.ai Flux modelleri</h3>
-                                <div class="flex flex-col text-xs text-text-secondary">
-                                    <span>Hız veya kalite — birini seç</span>
-                                </div>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <!-- Flux Schnell (Fast tier) -->
-                                <div class="model-option model-card cursor-pointer group"
-                                     data-model-endpoint="fal-ai/flux/schnell"
-                                     data-model-tier="Fast"
-                                     data-credit-cost="3"
-                                     data-model-label="Flux Schnell">
-                                    <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200 relative">
-                                        <img src="https://images.unsplash.com/photo-1536440136628-849c177e76a1?w=150&h=200&fit=crop" alt="Flux Schnell" class="w-full h-full object-cover" />
-                                        <span class="absolute top-1 right-1 bg-[#00CED1] text-black text-[10px] font-semibold px-1.5 py-0.5 rounded">Hızlı</span>
-                                    </div>
-                                    <p class="text-xs text-center text-text-primary mt-1.5 font-medium">Flux Schnell</p>
-                                    <p class="text-[10px] text-center text-text-secondary">3 kredi</p>
-                                </div>
-
-                                <!-- Flux Dev (Standard tier) -->
-                                <div class="model-option model-card cursor-pointer group"
-                                     data-model-endpoint="fal-ai/flux/dev"
-                                     data-model-tier="Standard"
-                                     data-credit-cost="13"
-                                     data-model-label="Flux Dev">
-                                    <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200 relative">
-                                        <img src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?w=150&h=200&fit=crop" alt="Flux Dev" class="w-full h-full object-cover" />
-                                        <span class="absolute top-1 right-1 bg-purple-500 text-white text-[10px] font-semibold px-1.5 py-0.5 rounded">Kalite</span>
-                                    </div>
-                                    <p class="text-xs text-center text-text-primary mt-1.5 font-medium">Flux Dev</p>
-                                    <p class="text-[10px] text-center text-text-secondary">13 kredi</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    <!-- Google Models Content -->
-                    <div id="google-content" class="model-content p-4 hidden">
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-text-primary mb-1">Google's powerful image generation</h3>
-                            <div class="text-xs text-text-secondary">
-                                <span>1 Image - 8 credits</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="model-option cursor-pointer group" data-model="google-imagen" data-name="Imagen" data-img="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&h=200&fit=crop&crop=face" alt="Imagen" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Imagen</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="google-gemini" data-name="Gemini" data-img="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=150&h=200&fit=crop&crop=face" alt="Gemini" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Gemini</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="google-photo" data-name="Photorealistic" data-img="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=150&h=200&fit=crop&crop=face" alt="Photorealistic" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Photorealistic</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Magic Models Content -->
-                    <div id="magic-content" class="model-content p-4 hidden">
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-text-primary mb-1">Magical and artistic styles</h3>
-                            <div class="text-xs text-text-secondary">
-                                <span>1 Image - 6 credits</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="model-option cursor-pointer group" data-model="magic-fantasy" data-name="Fantasy" data-img="https://images.unsplash.com/photo-1518882605630-8b57d60260e3?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1518882605630-8b57d60260e3?w=150&h=200&fit=crop" alt="Fantasy" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Fantasy</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="magic-anime" data-name="Anime" data-img="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1578632767115-351597cf2477?w=150&h=200&fit=crop" alt="Anime" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Anime</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="magic-neon" data-name="Neon Noir" data-img="https://images.unsplash.com/photo-1633177317976-3f9bc45e1d1d?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1633177317976-3f9bc45e1d1d?w=150&h=200&fit=crop" alt="Neon Noir" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Neon Noir</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Pro Models Content -->
-                    <div id="pro-content" class="model-content p-4 hidden">
-                        <div class="mb-4">
-                            <h3 class="text-sm font-semibold text-text-primary mb-1">Professional grade models</h3>
-                            <div class="flex flex-col text-xs text-text-secondary">
-                                <span>1 Image - 15 credits</span>
-                                <span>Commercial license included</span>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-3 gap-3">
-                            <div class="model-option cursor-pointer group" data-model="pro-studio" data-name="Studio" data-img="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&h=200&fit=crop&crop=face" alt="Studio" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Studio</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="pro-product" data-name="Product" data-img="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=100&h=100&fit=crop">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&h=200&fit=crop" alt="Product" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Product</p>
-                            </div>
-                            <div class="model-option cursor-pointer group" data-model="pro-night" data-name="Night" data-img="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=100&h=100&fit=crop&crop=face">
-                                <div class="aspect-[3/4] rounded-lg overflow-hidden border-2 border-transparent hover:border-primary transition-all duration-200">
-                                    <img src="https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&h=200&fit=crop&crop=face" alt="Night" class="w-full h-full object-cover" />
-                                </div>
-                                <p class="text-xs text-center text-text-secondary mt-1.5 group-hover:text-text-primary">Night</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        <!-- Model selection slidebar end -->
 
         <!-- Face Lock Panel - Floating Side Panel -->
         <div id="faceLockPanel" class="glass-panel fixed top-[80px] z-40 transform translate-x-full opacity-0 transition-all duration-300 ease-out hidden" style="right: 400px; width: 260px;">
@@ -496,36 +323,27 @@
                         Generate Image
                     </button>
 
-                    <!-- Model Selection -->
-                    <!-- Model Selection - Expandable Panel Trigger -->
+                    <!-- Model Selection (F.M.5 — dinamik catalog modal trigger) -->
                     <div class="space-y-3">
                         <input type="hidden" id="faceLockAssetId" name="FaceLockAssetId" value="" />
                         <input type="hidden" id="poseLockAssetId" name="PoseLockAssetId" value="" />
                         <input type="hidden" id="characterId" name="CharacterId" value="" />
                         <input type="hidden" id="characterMode" name="CharacterMode" value="balanced" />
                         <input type="hidden" id="selectedModelValue" name="Model" value="" />
-                        <input type="hidden" id="selectedModelBaseModel" name="StyleDetail.BaseModel" value="" />
-                        <input type="hidden" id="selectedModelName" name="StyleDetail.Name" value="" />
-                        <button type="button" id="modelSelectBtn" class="w-full flex items-center justify-between glass-control-btn rounded-lg p-4 text-left transition-all duration-200 group">
-                            <div class="flex items-center space-x-3">
-                                <i class="fas fa-camera text-text-secondary group-hover-accent"></i>
-                                <div>
-                                    <h3 class="text-sm font-medium text-text-primary">Model</h3>
-                                    <p id="selectedModelText" class="text-xs text-text-secondary">Select a model to start generating images</p>
-                                </div>
-                            </div>
-                            <i id="modelArrow" class="fas fa-chevron-right text-text-secondary group-hover-accent transition-transform duration-200"></i>
-                        </button>
 
-                        <!-- Selected Models Tags Container -->
-                        <div id="selectedModelsContainer" class="hidden mt-3">
-                            <div id="selectedModelsTags" class="flex flex-wrap gap-1.5 max-w-full">
-                                <!-- Tags will be added here dynamically -->
+                        <!-- Trigger: tam ekran model picker modal'ını açar -->
+                        <button type="button" id="modelPickerTrigger" class="model-picker-trigger">
+                            <div class="model-picker-trigger__thumbnail">
+                                <img id="mpSelectedThumbnail" src="" alt="" hidden />
+                                <i class="fas fa-camera model-picker-trigger__icon"></i>
                             </div>
-                            <button type="button" id="clearAllModelsBtn" class="text-xs text-text-muted hover:text-error mt-2 transition-colors duration-200">
-                                Clear all
-                            </button>
-                        </div>
+                            <div class="model-picker-trigger__info">
+                                <span class="model-picker-trigger__label">Model</span>
+                                <span class="model-picker-trigger__name" id="mpSelectedName">Model seç</span>
+                                <span class="model-picker-trigger__credit" id="mpSelectedCredit"></span>
+                            </div>
+                            <i class="fas fa-chevron-right model-picker-trigger__chevron"></i>
+                        </button>
                     </div>
 
                     <!-- Flux Image Style Section (Faz A.2'de gizlendi; hidden input form'da kalır) -->
@@ -941,9 +759,52 @@
         </div>
     </div>
 
+    <!-- Model Picker Modal (F.M.5 — tam ekran dinamik catalog) -->
+    <div class="model-picker-modal" id="modelPickerModal" hidden>
+        <div class="model-picker-modal__backdrop" id="modelPickerBackdrop"></div>
+        <div class="model-picker-modal__container">
+            <header class="model-picker-modal__header">
+                <h2 class="model-picker-modal__title">Model Seç</h2>
+                <span class="model-picker-modal__count" id="modelPickerCount"></span>
+                <button type="button" class="model-picker-modal__close" id="modelPickerClose" aria-label="Kapat">
+                    <i class="fas fa-times"></i>
+                </button>
+            </header>
+
+            <div class="model-picker-modal__search">
+                <i class="fas fa-search model-picker-modal__search-icon"></i>
+                <input type="text" id="modelPickerSearch" autocomplete="off"
+                       placeholder="Model adı, sağlayıcı veya açıklama ara..." />
+            </div>
+
+            <div class="model-picker-modal__filters">
+                <button type="button" class="model-picker-modal__filter is-active" data-filter="all">Tümü</button>
+                <button type="button" class="model-picker-modal__filter" data-filter="recommended">Önerilen</button>
+                <button type="button" class="model-picker-modal__filter" data-filter="favorites">Favoriler</button>
+                <span class="model-picker-modal__divider">|</span>
+                <button type="button" class="model-picker-modal__filter" data-filter="Fast">Hızlı</button>
+                <button type="button" class="model-picker-modal__filter" data-filter="Standard">Standart</button>
+                <button type="button" class="model-picker-modal__filter" data-filter="Premium">Premium</button>
+            </div>
+
+            <div class="model-picker-modal__grid" id="modelPickerGrid">
+                <!-- JS render -->
+            </div>
+
+            <div class="model-picker-modal__loading" id="modelPickerLoading" hidden>
+                <i class="fas fa-spinner fa-spin"></i> Yükleniyor...
+            </div>
+
+            <div class="model-picker-modal__empty" id="modelPickerEmpty" hidden>
+                Eşleşen model yok.
+            </div>
+        </div>
+    </div>
+
     @section Styles {
         <link rel="stylesheet" href="~/css/pose-modal.css" />
         <link rel="stylesheet" href="~/css/character-modal.css" />
+        <link rel="stylesheet" href="~/css/model-picker.css" />
     }
 
     <!-- JavaScript Files -->
@@ -954,7 +815,8 @@
     @* F.M.3: flux-models-loader.js devre dışı — legacy /GetModels+/GetStyles (Affogato) çağırıp
        hardcoded fal.ai kartlarını eziyordu. Dinamik catalog F.M.5'te IFalAiModelCatalog ile gelecek. *@
     @* <script src="~/js/flux-models-loader.js"></script> *@
-    <script src="~/js/model-selection-panel.js"></script>
+    @* F.M.5: model-selection-panel.js kaldırıldı — yerini dinamik catalog modal'ı (model-picker.js) aldı. *@
+    <script src="~/js/model-picker.js"></script>
     <script src="~/js/image-controls.js"></script>
     <script src="~/js/seed-handler.js"></script>
     <script src="~/js/character-panel.js"></script>

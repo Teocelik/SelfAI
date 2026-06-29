@@ -361,8 +361,8 @@ const ImageControls = (function () {
             FluxImageStyles.reset();
         }
 
-        if (typeof ModelSelectionPanel !== 'undefined') {
-            ModelSelectionPanel.reset();
+        if (typeof ModelPicker !== 'undefined') {
+            ModelPicker.reset();
         }
 
         showDefaultState();

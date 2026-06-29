@@ -7,11 +7,14 @@ namespace SelfAI.Services.Generation.Domain.Image;
 /// Flux LoRA inference (F.M.4) — eğitilmiş karakter LoRA'sıyla image generation.
 /// Trigger word prompt başına eklenir, LoRA ağırlığı mode'a göre (0.4/0.6/0.8) ayarlanır.
 /// GenerationOrchestrator karakter seçiliyse endpoint'i buna override eder.
+///
+/// F.M.5: Artık IImageGenerator implement etmez (interface kaldırıldı). Karaktere
+/// özel logic'i generic DynamicImageGenerator'dan ayrı tutmak için kendi class'ı olarak
+/// durur. Endpoint sabit "fal-ai/flux-lora"; maliyet/tier ModelCatalogEntry'den okunur.
 /// </summary>
-public class FluxLoraGenerator : IImageGenerator
+public class FluxLoraGenerator
 {
-    public string ModelEndpoint => "fal-ai/flux-lora";
-    public decimal EstimatedCostUsd => 0.025m;
+    public const string LoraEndpoint = "fal-ai/flux-lora";
 
     private readonly IFalAiClient _falAiClient;
     private readonly ILogger<FluxLoraGenerator> _logger;
@@ -59,7 +62,7 @@ public class FluxLoraGenerator : IImageGenerator
             request.LoraModelUrl, loraWeight, request.TriggerWord);
 
         var response = await _falAiClient.SubmitAndWaitAsync<FalAiFluxResponse>(
-            ModelEndpoint, payload, cancellationToken);
+            LoraEndpoint, payload, cancellationToken);
 
         return new ImageGenerationResult
         {

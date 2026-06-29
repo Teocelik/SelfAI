@@ -15,6 +15,7 @@ using SelfAI.Services.Generation.Abstractions;
 using SelfAI.Services.Generation.Providers.FalAi;
 using SelfAI.Services.Generation.Pricing;
 using SelfAI.Services.Generation.Domain.Image;
+using SelfAI.Services.Generation.Domain.Catalog;
 using SelfAI.Services.Generation.Domain.CharacterTraining;
 using SelfAI.Services.Generation.Orchestrators;
 
@@ -52,6 +53,9 @@ if (FirebaseApp.DefaultInstance == null)
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// IMemoryCache — F.M.5 model catalog cache (15 dk sliding) için.
+builder.Services.AddMemoryCache();
+
 // SignalR ekle
 builder.Services.AddSignalR();
 
@@ -80,12 +84,21 @@ builder.Services.Configure<CreditPricingOptions>(
     builder.Configuration.GetSection("CreditPricing"));
 builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
 
-// Image generator'lar — her biri IImageGenerator olarak kaydedilir; orchestrator
-// IEnumerable<IImageGenerator> alıp endpoint string'iyle eşler (F.M.5'te genişler).
-builder.Services.AddScoped<IImageGenerator, FluxSchnellGenerator>();
-builder.Services.AddScoped<IImageGenerator, FluxDevGenerator>();
-// F.M.4 — Character LoRA inference generator (karakter seçiliyse orchestrator buna override eder).
-builder.Services.AddScoped<IImageGenerator, FluxLoraGenerator>();
+// ═══ F.M.5 — Dynamic catalog ═══
+// Tier resolution artık DB-driven (ModelCatalogEntry.Tier). Model-spesifik default'lar stateless.
+builder.Services.AddScoped<ICatalogTierResolver, CatalogTierResolver>();
+builder.Services.AddSingleton<IModelDefaultProvider, ModelDefaultProvider>();
+
+// fal.ai unified model list client (catalog sync için — api.fal.ai/v1/models).
+builder.Services.AddHttpClient<IFalAiModelCatalogClient, FalAiModelCatalogClient>();
+
+// Catalog orchestrator (cache + favoriler + sync). IMemoryCache aşağıda kayıtlı.
+builder.Services.AddScoped<IModelCatalogOrchestrator, ModelCatalogOrchestrator>();
+
+// Image generator'lar (F.M.5): generic DynamicImageGenerator + karakter özel FluxLoraGenerator.
+// Eski FluxSchnell/FluxDev + IImageGenerator interface'i kaldırıldı.
+builder.Services.AddScoped<DynamicImageGenerator>();
+builder.Services.AddScoped<FluxLoraGenerator>();  // Karakter LoRA inference (orchestrator seçer).
 
 // Generation orchestrator — kredi düşme + history + SignalR koordinasyonu.
 builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
