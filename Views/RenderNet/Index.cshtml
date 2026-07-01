@@ -291,7 +291,10 @@
                                 </div>
                             </button>
                             
-                            <button type="button" id="poseLockBtn" class="flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
+                            @* F.M.6 hotfix: Pose Lock geçici gizli — fal.ai'da uygun native OpenPose
+                               endpoint yok. Backend generator kodu ileride için duruyor; F.M.UI.1'de
+                               değerlendirilecek. Buton + modal (#poseLockModal) display:none. *@
+                            <button type="button" id="poseLockBtn" style="display: none;" class="flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
                                 <div class="flex flex-col items-center space-y-2">
                                     <i class="fas fa-running text-xl text-text-secondary group-hover-accent"></i>
                                     <span class="text-sm text-text-secondary group-hover-accent">Pose Lock</span>
@@ -494,7 +497,9 @@
         }).ToList();
     }
 
-    <div class="pose-modal" id="poseLockModal" role="dialog" aria-modal="true" aria-labelledby="poseLockModalTitle" aria-hidden="true">
+    @* F.M.6 hotfix: Pose Lock geçici gizli (bkz. #poseLockBtn). Modal DOM ileride için
+       duruyor ama display:none ile hiçbir koşulda açılmaz. *@
+    <div class="pose-modal" id="poseLockModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="poseLockModalTitle" aria-hidden="true">
         <div class="pose-modal__backdrop" data-pose-modal-close></div>
 
         <div class="pose-modal__container">
@@ -823,6 +828,8 @@
     <script src="~/js/pose-lock-panel.js"></script>
     <script src="~/js/pose-presets.js"></script>
     <script src="~/js/character-modal.js"></script>
+    @* F.M.6: Character/Face/Pose mutex — panellerden sonra, app.js'ten önce yüklenmeli. *@
+    <script src="~/js/feature-mutex.js"></script>
     <script src="~/js/generate-button-state.js"></script>
     <script src="~/js/app.js"></script>
     @* <script id="dhws-dataInjector" src="../public/dhws-data-injector.js"></script> *@

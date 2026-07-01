@@ -89,6 +89,29 @@
     display: none;
 }
 
+/* F.M.6 hotfix: Character/Face aktifken model seçiminin override edildiğini gösterir. */
+.model-picker-trigger.is-overridden {
+    opacity: 0.7;
+    position: relative;
+}
+
+.model-picker-trigger__override-badge {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 12px;
+    background: rgba(0, 206, 209, 0.9);
+    color: #0A0A0A;
+    font-size: 0.72rem;
+    font-weight: 600;
+    border-radius: 10px;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0, 206, 209, 0.4);
+    backdrop-filter: blur(6px);
+    z-index: 5;
+}
+
 .model-picker-trigger__chevron {
     flex-shrink: 0;
     color: rgba(255, 255, 255, 0.35);
@@ -268,130 +291,195 @@
 .model-picker-modal__grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 1fr;        /* Row'ları eşit yükseklik — kart aspect-ratio'su korunur */
     gap: 16px;
     padding: 4px 28px 28px;
     overflow-y: auto;
 }
 
-@media (max-width: 1024px) {
-    .model-picker-modal__grid { grid-template-columns: repeat(2, 1fr); }
+@media (max-width: 1080px) {
+    .model-picker-modal__grid { grid-template-columns: repeat(4, 1fr) !important; }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 720px) {
+    .model-picker-modal__grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+@media (max-width: 480px) {
     .model-picker-modal__grid { grid-template-columns: 1fr; }
     .model-picker-modal { padding: 16px; }
 }
 
-/* ─── Card ─────────────────────────────────────────────────────────────── */
-.model-card-pick {
+/* ─── Card (Affogato benzeri full-bleed thumbnail + overlay text) ──────── */
+.model-picker-card {
     position: relative;
-    display: flex;
-    flex-direction: column;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 16px;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    min-height: 0;              /* Grid item overflow/çakışmasını önler */
+    align-self: start;         /* Stretch yerine aspect-ratio yüksekliği geçerli olsun */
+    border-radius: 12px;
     overflow: hidden;
     cursor: pointer;
-    transition: border-color 200ms ease, transform 200ms ease, box-shadow 200ms ease;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
 
-.model-card-pick:hover {
-    border-color: rgba(0, 206, 209, 0.5);
+.model-picker-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4), 0 0 24px rgba(0, 206, 209, 0.12);
+    border-color: rgba(0, 206, 209, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(0, 206, 209, 0.2);
 }
 
-.model-card-pick__media {
-    position: relative;
-    aspect-ratio: 1 / 1;
-    overflow: hidden;
-    background: rgba(255, 255, 255, 0.04);
+.model-picker-card.is-recommended {
+    border-color: rgba(0, 206, 209, 0.3);
 }
 
-.model-card-pick__media img {
+.model-picker-card.is-selected {
+    border-color: #00CED1;
+    box-shadow: 0 0 0 2px rgba(0, 206, 209, 0.5);
+}
+
+/* Thumbnail — tüm kartı kaplar */
+.model-picker-card__thumbnail {
+    position: absolute;
+    inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: center;
+    display: block;
+    z-index: 1;
 }
 
-.model-card-pick__media-fallback {
-    width: 100%;
-    height: 100%;
+.model-picker-card__thumbnail.is-broken {
+    display: none;
+}
+
+.model-picker-card__placeholder {
+    position: absolute;
+    inset: 0;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: rgba(255, 255, 255, 0.2);
-    font-size: 1.8rem;
+    font-size: 3rem;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+    z-index: 1;
 }
 
-.model-card-pick__badge {
+/* Gradient overlay — alttaki yazılar okunabilir kalsın */
+.model-picker-card::after {
+    content: '';
     position: absolute;
-    top: 8px;
-    left: 8px;
-    padding: 3px 9px;
-    font-size: 0.66rem;
-    font-weight: 700;
-    border-radius: 999px;
-    background: #00CED1;
-    color: #06231f;
+    inset: 0;
+    background: linear-gradient(
+        to top,
+        rgba(0, 0, 0, 0.85) 0%,
+        rgba(0, 0, 0, 0.5) 35%,
+        rgba(0, 0, 0, 0.0) 60%,
+        rgba(0, 0, 0, 0.3) 100%
+    );
+    pointer-events: none;
+    z-index: 2;
+}
+
+/* Recommended badge — sol üst */
+.model-picker-card__badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 3;
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(0, 206, 209, 0.85);
+    color: #0A0A0A;
+    font-size: 0.7rem;
+    font-weight: 600;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
     letter-spacing: 0.02em;
 }
 
-.model-card-pick__fav {
+/* Favorite star — sağ üst */
+.model-picker-card__favorite {
     position: absolute;
-    top: 8px;
-    right: 8px;
-    width: 30px;
-    height: 30px;
+    top: 10px;
+    right: 10px;
+    z-index: 3;
+    width: 32px;
+    height: 32px;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    background: rgba(8, 8, 12, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: rgba(255, 255, 255, 0.6);
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    color: rgba(255, 255, 255, 0.7);
     cursor: pointer;
-    transition: color 180ms ease, transform 180ms ease;
+    transition: background 0.2s, color 0.2s, transform 0.2s;
+    border: none;
+    font-size: 1rem;
+    line-height: 1;
 }
 
-.model-card-pick__fav:hover {
+.model-picker-card__favorite:hover {
+    background: rgba(0, 0, 0, 0.7);
     transform: scale(1.1);
-    color: #ffd24a;
 }
 
-.model-card-pick__fav.is-favorited {
-    color: #ffd24a;
+.model-picker-card__favorite.is-active {
+    color: #FFD700;
 }
 
-.model-card-pick__info {
-    padding: 10px 12px 12px;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+/* Bottom text content — absolute overlay */
+.model-picker-card__content {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    padding: 12px 14px 14px;
+    color: #FFFFFF;
 }
 
-.model-card-pick__name {
-    font-size: 0.85rem;
+.model-picker-card__name {
+    font-size: 0.95rem;
     font-weight: 600;
-    color: #fff;
+    margin: 0 0 2px 0;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+    line-height: 1.2;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.model-card-pick__provider {
-    font-size: 0.7rem;
-    color: rgba(255, 255, 255, 0.45);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.model-card-pick__credit {
+.model-picker-card__meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
     margin-top: 4px;
-    font-size: 0.75rem;
+}
+
+.model-picker-card__provider {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.75);
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.model-picker-card__credit {
+    font-size: 0.82rem;
     font-weight: 600;
     color: #00CED1;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+    flex-shrink: 0;
 }
 
 /* ─── Loading / Empty ──────────────────────────────────────────────────── */

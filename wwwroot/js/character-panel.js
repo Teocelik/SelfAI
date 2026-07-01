@@ -189,14 +189,15 @@ const CharacterPanel = (function () {
         setHiddenValue('characterId', id);
         setHiddenValue('characterMode', selectedMode);
 
-        // ─── Face Lock'u pasive et (mutual exclusivity) ───
-        setHiddenValue('faceLockAssetId', '');
-        disableFaceLock(true);
-        // Face Lock paneli açıksa kapat + görsel state'i temizle
-        if (typeof FaceLockPanel !== 'undefined') {
-            if (FaceLockPanel.isOpen && FaceLockPanel.isOpen()) FaceLockPanel.close();
-            if (FaceLockPanel.clearImage) FaceLockPanel.clearImage();
-        }
+        // ─── Mutex: Character aktif → Face Lock + Pose Lock otomatik temizlenir (F.M.6) ───
+        // F.M.4'teki inline Face-disable mantığının yerini FeatureMutex aldı; artık üç
+        // feature (Character/Face/Pose) tek noktadan karşılıklı dışlanır.
+        if (window.FeatureMutex) window.FeatureMutex.setActive('character');
+
+        // F.M.6 hotfix: Generate button state için değişimi bildir
+        document.dispatchEvent(new CustomEvent('character-selection-changed', {
+            detail: { characterId: id }
+        }));
 
         // Not: Aktiflik göstergesi olarak butondaki avatar kullanılıyor (Face Lock stili),
         // bu yüzden ayrıca turkuaz dot gösterilmiyor.
@@ -224,9 +225,6 @@ const CharacterPanel = (function () {
         // Hidden input'ları sıfırla
         setHiddenValue('characterId', '');
 
-        // Face Lock'u geri aktif et
-        disableFaceLock(false);
-
         // Aktif göstergesini gizle
         if (activeDot) activeDot.classList.add('hidden');
 
@@ -242,6 +240,11 @@ const CharacterPanel = (function () {
 
         // Butonda thumbnail'ı kaldır, icon'u geri getir
         updateCharacterBtnThumbnail(null);
+
+        // F.M.6 hotfix: Generate button state için değişimi bildir
+        document.dispatchEvent(new CustomEvent('character-selection-changed', {
+            detail: { characterId: null }
+        }));
 
         console.log('[CharacterPanel] Karakter seçimi kaldırıldı.');
     }
@@ -317,21 +320,6 @@ const CharacterPanel = (function () {
             card.classList.remove('border-[#00CED1]');
             card.classList.add('border-transparent');
         });
-    }
-
-    /**
-     * Face Lock butonunu pasive/aktif yap
-     */
-    function disableFaceLock(disabled) {
-        const faceLockBtn = document.getElementById('faceLockBtn');
-        if (!faceLockBtn) return;
-        if (disabled) {
-            faceLockBtn.classList.add('opacity-50', 'pointer-events-none');
-            faceLockBtn.setAttribute('aria-disabled', 'true');
-        } else {
-            faceLockBtn.classList.remove('opacity-50', 'pointer-events-none');
-            faceLockBtn.removeAttribute('aria-disabled');
-        }
     }
 
     // ═══════════════════════════════════════════════
@@ -447,10 +435,18 @@ const CharacterPanel = (function () {
     }
 
     /**
-     * PUBLIC: Karakter aktif mi? (Face Lock disable kontrolü için)
+     * PUBLIC: Karakter aktif mi? (mutex / disable kontrolü için)
      */
     function isCharacterActive() {
         return selectedCharacter !== null;
+    }
+
+    /**
+     * PUBLIC: Seçili karakter ID'si (F.M.6 — generate button state + FeatureMutex için)
+     * @returns {string|null}
+     */
+    function getSelectedCharacterId() {
+        return selectedCharacter ? selectedCharacter.id : null;
     }
 
     // Public API
@@ -458,6 +454,7 @@ const CharacterPanel = (function () {
         init,
         transformPromptForSubmit,
         isCharacterActive,
+        getSelectedCharacterId,   // F.M.6 hotfix — generate button state
         // F.5c: full-screen modal (character-modal.js) bu API'yi kullanır.
         // selectCharacter, characterData = { id, name, imageUrl } kabul eder;
         // imageUrl yok sayılır (thumbnail mevcut mantıkta kart DOM'undan türetilir).

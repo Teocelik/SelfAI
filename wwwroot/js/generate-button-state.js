@@ -1,12 +1,13 @@
 /**
  * Generate Button State Module
  *
- * Generate butonunu prompt + model seçimine göre canlı olarak enable/disable eder.
- *   - Prompt boş VEYA hiç model seçilmemiş  → DISABLED
- *   - Prompt dolu VE en az 1 model seçili    → ENABLED
+ * Generate butonunu prompt + seçim durumuna göre canlı olarak enable/disable eder.
+ *   - Prompt boş → DISABLED
+ *   - Prompt dolu VE (model seçili VEYA karakter seçili VEYA Face Lock aktif) → ENABLED
  *
- * "Model seçili mi" sinyali olarak #selectedModelValue hidden input'u kullanılır
- * (F.M.5: ModelPicker bunu doldurur; backend'e giden Model değerinin ta kendisi).
+ * F.M.6 hotfix: Face Lock veya Character aktifken backend endpoint'i override eder,
+ * bu yüzden model seçimi ZORUNLU DEĞİL. Model sinyali #selectedModelValue hidden
+ * input'undan; karakter/face sinyali ilgili panel public API'lerinden okunur.
  *
  * ⚠️ Generation sırasında buton durumunu ImageControls.setGenerateButtonState yönetir
  *    (loading/spinner). Çakışmayı önlemek için "busy" kilidi vardır: busy iken bu
@@ -41,8 +42,11 @@ const GenerateButtonState = (function () {
         // Prompt yazıldıkça canlı güncelle
         promptInput.addEventListener('input', updateState);
 
-        // Model seçimi değişince güncelle (F.M.5: model-picker.js emit eder)
-        document.addEventListener('model-selection-changed', updateState);
+        // Seçim değişimlerinde güncelle
+        document.addEventListener('model-selection-changed', updateState);       // F.M.5 model-picker
+        document.addEventListener('character-selection-changed', updateState);   // F.M.6 character-panel
+        document.addEventListener('face-lock-changed', updateState);             // F.M.6 face-lock-panel
+        document.addEventListener('feature-mutex-changed', updateState);         // F.M.6 feature-mutex
     }
 
     /**
@@ -63,8 +67,9 @@ const GenerateButtonState = (function () {
         if (isBusy) return;
 
         const hasPrompt = promptInput.value.trim().length > 0;
-        const hasModel = checkModelSelected();
-        const shouldEnable = hasPrompt && hasModel;
+        // Model VEYA karakter VEYA Face Lock — herhangi biri yeterli (F.M.6 hotfix).
+        const hasSelection = checkModelSelected() || checkCharacterSelected() || checkFaceLockActive();
+        const shouldEnable = hasPrompt && hasSelection;
 
         generateBtn.disabled = !shouldEnable;
         generateBtn.setAttribute('aria-disabled', String(!shouldEnable));
@@ -76,6 +81,26 @@ const GenerateButtonState = (function () {
      */
     function checkModelSelected() {
         return !!(selectedModelInput && selectedModelInput.value.trim().length > 0);
+    }
+
+    /**
+     * Karakter seçili mi? (F.M.6 — Character aktifken model gerekmez)
+     * @returns {boolean}
+     */
+    function checkCharacterSelected() {
+        return !!(window.CharacterPanel
+            && typeof window.CharacterPanel.getSelectedCharacterId === 'function'
+            && window.CharacterPanel.getSelectedCharacterId());
+    }
+
+    /**
+     * Face Lock aktif mi? (F.M.6 — Face Lock aktifken model gerekmez)
+     * @returns {boolean}
+     */
+    function checkFaceLockActive() {
+        return !!(window.FaceLockPanel
+            && typeof window.FaceLockPanel.getFaceImageUrl === 'function'
+            && window.FaceLockPanel.getFaceImageUrl());
     }
 
     /**

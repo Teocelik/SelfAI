@@ -1,8 +1,9 @@
 namespace SelfAI.Services.Generation.Orchestrators;
 
 /// <summary>
-/// Studio frontend'in JSON gövdesi. Sadece model + prompt + aspect ratio
-/// (F.M.3 scope). Character/Face/Pose alanları F.M.4/F.M.6'da eklenecek.
+/// Studio frontend'in JSON gövdesi. Model + prompt + aspect ratio (F.M.3) +
+/// opsiyonel Character (F.M.4) / Face Lock / Pose Lock (F.M.6) kişiselleştirme.
+/// Character/Face/Pose üçünden en fazla biri set olabilir (mutex — orchestrator doğrular).
 /// </summary>
 public class StartGenerationRequest
 {
@@ -18,4 +19,14 @@ public class StartGenerationRequest
     // CharacterId set ise backend ModelEndpoint'i "fal-ai/flux-lora"'ya override eder.
     public Guid? CharacterId { get; set; }
     public string? CharacterMode { get; set; }  // "flexible" / "balanced" / "strong"
+
+    // ═══ F.M.6 — Face Lock (PuLID) ═══
+    // FaceImageUrl set ise endpoint "fal-ai/pulid-flux"'a override edilir.
+    public string? FaceImageUrl { get; set; }   // /Assets/UploadReference'tan dönen fal.ai URL
+    public decimal? FaceWeight { get; set; }    // PuLID id_weight, default 1.0
+
+    // ═══ F.M.6 — Pose Lock (ControlNet) ═══
+    // PoseImageUrl set ise endpoint "fal-ai/flux-controlnet"'e override edilir.
+    public string? PoseImageUrl { get; set; }   // /Assets/UploadReference'tan dönen fal.ai URL
+    public decimal? PoseWeight { get; set; }    // ControlNet scale, default 0.6
 }

@@ -67,20 +67,43 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return ServiceResult<GenerationStartedResponse>.Failure("Prompt boş olamaz.", 400);
 
-        if (string.IsNullOrWhiteSpace(request.ModelEndpoint))
+        // 2. Kişiselleştirme mutex (F.M.6) — Character / Face Lock / Pose Lock üçünden
+        //    en fazla biri aktif olabilir. Üçü de tek bir effectiveEndpoint'e route edildiği
+        //    için birden fazlası anlamsız; backend güvenlik kapısı olarak reddeder.
+        var hasCharacter = request.CharacterId.HasValue;
+        var hasFace = !string.IsNullOrWhiteSpace(request.FaceImageUrl);
+        var hasPose = !string.IsNullOrWhiteSpace(request.PoseImageUrl);
+
+        // Feature aktifse endpoint override edilir (Character/Face/Pose); model seçimi
+        // ZORUNLU DEĞİL. Yalnızca hiçbir feature yokken (generic yol) model gerekir.
+        if (!hasCharacter && !hasFace && !hasPose
+            && string.IsNullOrWhiteSpace(request.ModelEndpoint))
             return ServiceResult<GenerationStartedResponse>.Failure("Model seçilmedi.", 400);
 
-        // 2. Karakter çözümü (F.M.4) — CharacterId set ise endpoint LoRA'ya override edilir.
+        var activeFeatures = (hasCharacter ? 1 : 0) + (hasFace ? 1 : 0) + (hasPose ? 1 : 0);
+        if (activeFeatures > 1)
+        {
+            _logger.LogWarning(
+                "Birden fazla kişiselleştirme aynı anda seçildi. | Char: {C} | Face: {F} | Pose: {P} | UserId: {UserId}",
+                hasCharacter, hasFace, hasPose, userId);
+            return ServiceResult<GenerationStartedResponse>.Failure(
+                "Aynı anda sadece bir kişiselleştirme seçilebilir (Karakter, Face Lock veya Pose Lock).", 400);
+        }
+
+        // 3. Endpoint çözümü — feature aktifse kullanıcının model seçimi OVERRIDE edilir.
+        //    Character→flux-lora, Face→pulid-flux, Pose→flux-controlnet. Bu üç endpoint
+        //    catalog'da Pending (kullanıcıya gizli) olarak seed'lidir; cost/tier lookup için
+        //    DB'de bulunur ama isInternalPath sayesinde Approved guard'ından muaf tutulur.
         var effectiveEndpoint = request.ModelEndpoint;
-        var isCharacterPath = false;
+        var isInternalPath = hasCharacter || hasFace || hasPose;
         string? loraModelUrl = null;
         string? triggerWord = null;
         decimal? loraWeight = null;
 
-        if (request.CharacterId.HasValue)
+        if (hasCharacter)
         {
             var character = await _db.Characters.FirstOrDefaultAsync(
-                c => c.Id == request.CharacterId.Value
+                c => c.Id == request.CharacterId!.Value
                   && c.UserId == userId
                   && c.Status == CharacterStatus.Active,
                 cancellationToken);
@@ -92,9 +115,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 || string.IsNullOrEmpty(character.LoraModelUrl))
                 return ServiceResult<GenerationStartedResponse>.Failure("Karakter henüz hazır değil.", 409);
 
-            // Kullanıcı hangi modeli seçerse seçsin, karakter varsa LoRA endpoint'i kullanılır.
             effectiveEndpoint = FluxLoraGenerator.LoraEndpoint;
-            isCharacterPath = true;
             loraModelUrl = character.LoraModelUrl;
             triggerWord = character.TriggerWord;
             loraWeight = MapCharacterModeToWeight(request.CharacterMode);
@@ -103,10 +124,24 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 "Karakter ile generation. | CharId: {CharId} | Mode: {Mode} | Weight: {Weight}",
                 character.Id, request.CharacterMode ?? "balanced", loraWeight);
         }
+        else if (hasFace)
+        {
+            effectiveEndpoint = FluxPulidGenerator.ModelEndpoint;
+            _logger.LogInformation(
+                "Face Lock ile generation. | Endpoint: {Endpoint} | UserId: {UserId}",
+                effectiveEndpoint, userId);
+        }
+        else if (hasPose)
+        {
+            effectiveEndpoint = FluxControlNetGenerator.ModelEndpoint;
+            _logger.LogInformation(
+                "Pose Lock ile generation. | Endpoint: {Endpoint} | UserId: {UserId}",
+                effectiveEndpoint, userId);
+        }
 
-        // 3. Catalog lookup — endpoint DB'de var mı? Maliyet/tier DB'den okunur.
-        //    Karakter yolu Hidden flux-lora kaydını kullanır (kullanıcıya görünmez ama
-        //    cost lookup için seed'lidir); doğrudan kullanıcı seçimi Approved olmalıdır.
+        // 4. Catalog lookup — endpoint DB'de var mı? Maliyet/tier DB'den okunur.
+        //    Internal path (character/face/pose) Pending kaydı kullanır (kullanıcıya görünmez
+        //    ama cost lookup için seed'lidir); doğrudan kullanıcı seçimi Approved olmalıdır.
         var entry = await _db.ModelCatalogEntries
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.EndpointId == effectiveEndpoint, cancellationToken);
@@ -119,7 +154,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
             return ServiceResult<GenerationStartedResponse>.Failure("Geçersiz model.", 400);
         }
 
-        if (!isCharacterPath && entry.Status != CatalogStatus.Approved)
+        if (!isInternalPath && entry.Status != CatalogStatus.Approved)
         {
             _logger.LogWarning(
                 "Onaylı olmayan model seçildi. | Endpoint: {Endpoint} | Status: {Status}",
@@ -127,11 +162,11 @@ public class GenerationOrchestrator : IGenerationOrchestrator
             return ServiceResult<GenerationStartedResponse>.Failure("Bu model şu an kullanılamıyor.", 400);
         }
 
-        // 4. Tier + credit hesabı (ikisi de DB-driven, hardcoded değil)
+        // 5. Tier + credit hesabı (ikisi de DB-driven, hardcoded değil)
         var tier = await _tierResolver.ResolveAsync(effectiveEndpoint, cancellationToken);
         var creditsRequired = _pricingService.CalculateUserCredits(entry.CostUsd, tier);
 
-        // 5. Credit deduction (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
+        // 6. Credit deduction (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
         var deductionResult = await _creditService.TryDeductAsync(
             userId, creditsRequired, $"Generation: {effectiveEndpoint}");
         if (!deductionResult.IsSuccess)
@@ -147,17 +182,17 @@ public class GenerationOrchestrator : IGenerationOrchestrator
             "Kredi düşüldü. | UserId: {UserId} | Amount: {Credits} | Endpoint: {Endpoint}",
             userId, creditsRequired, effectiveEndpoint);
 
-        // 6. History kaydı (Pending status'üyle). Tracking ID string key olarak kullanılır.
+        // 7. History kaydı (Pending status'üyle). Tracking ID string key olarak kullanılır.
         var generationId = Guid.NewGuid();
         await _logService.CreateAsync(userId, generationId.ToString(), creditsRequired, request.Prompt);
 
-        // 7. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
+        // 8. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
         _ = Task.Run(() => ExecuteGenerationBackgroundAsync(
-            request, effectiveEndpoint, isCharacterPath, loraModelUrl, triggerWord, loraWeight,
+            request, effectiveEndpoint, loraModelUrl, triggerWord, loraWeight,
             userId, firebaseUid, generationId, creditsRequired, signalRConnectionId),
             CancellationToken.None);
 
-        // 8. Hemen response dön — sonuç SignalR ile gelecek
+        // 9. Hemen response dön — sonuç SignalR ile gelecek
         return ServiceResult<GenerationStartedResponse>.Success(new GenerationStartedResponse
         {
             GenerationId = generationId,
@@ -169,7 +204,6 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private async Task ExecuteGenerationBackgroundAsync(
         StartGenerationRequest request,
         string effectiveEndpoint,
-        bool isCharacterPath,
         string? loraModelUrl,
         string? triggerWord,
         decimal? loraWeight,
@@ -183,6 +217,8 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         using var scope = _scopeFactory.CreateScope();
         var dynamicGenerator = scope.ServiceProvider.GetRequiredService<DynamicImageGenerator>();
         var loraGenerator = scope.ServiceProvider.GetRequiredService<FluxLoraGenerator>();
+        var pulidGenerator = scope.ServiceProvider.GetRequiredService<FluxPulidGenerator>();
+        var controlNetGenerator = scope.ServiceProvider.GetRequiredService<FluxControlNetGenerator>();
         var creditService = scope.ServiceProvider.GetRequiredService<ICreditService>();
         var logService = scope.ServiceProvider.GetRequiredService<IGenerationLogService>();
 
@@ -202,13 +238,33 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 // LoRA alanları yalnızca karakter yolunda dolu.
                 LoraModelUrl = loraModelUrl,
                 TriggerWord = triggerWord,
-                LoraWeight = loraWeight
+                LoraWeight = loraWeight,
+                // Face/Pose alanları yalnızca ilgili yolda dolu (F.M.6).
+                FaceImageUrl = request.FaceImageUrl,
+                FaceWeight = request.FaceWeight,
+                PoseImageUrl = request.PoseImageUrl,
+                PoseWeight = request.PoseWeight
             };
 
-            // Karakter yolu → FluxLoraGenerator; aksi halde → DynamicImageGenerator (endpoint string'iyle).
-            var result = isCharacterPath
-                ? await loraGenerator.GenerateAsync(genRequest)
-                : await dynamicGenerator.GenerateAsync(effectiveEndpoint, genRequest);
+            // effectiveEndpoint'e göre domain generator seçilir (orchestrator step 3'te override edildi).
+            //   flux-lora → FluxLoraGenerator, pulid-flux → FluxPulidGenerator,
+            //   flux-controlnet → FluxControlNetGenerator, aksi halde generic DynamicImageGenerator.
+            ImageGenerationResult result;
+            switch (effectiveEndpoint)
+            {
+                case FluxLoraGenerator.LoraEndpoint:
+                    result = await loraGenerator.GenerateAsync(genRequest);
+                    break;
+                case FluxPulidGenerator.ModelEndpoint:
+                    result = await pulidGenerator.GenerateAsync(genRequest);
+                    break;
+                case FluxControlNetGenerator.ModelEndpoint:
+                    result = await controlNetGenerator.GenerateAsync(genRequest);
+                    break;
+                default:
+                    result = await dynamicGenerator.GenerateAsync(effectiveEndpoint, genRequest);
+                    break;
+            }
 
             // Success — history güncelle (status + media)
             await logService.UpdateStatusAsync(generationId.ToString(), GenerationStatus.Completed);

@@ -26,7 +26,7 @@ const FaceLockPanel = (function () {
     // State
     let isPanelOpen = false;
     let isUploading = false; // 🆕 Upload durumu
-    let currentAssetId = null; // 🆕 Mevcut asset ID
+    let selectedFaceImageUrl = null; // F.M.6: fal.ai storage URL (generation payload'una gider)
 
     /**
      * Initialize the face lock panel
@@ -193,13 +193,8 @@ const FaceLockPanel = (function () {
      * 🆕 Process uploaded file - UPDATED
      */
     function processFile(file) {
-        // F.M.3: Face Lock henüz fal.ai'a bağlanmadı (F.M.6). Görsel yüklenebilir ama
-        // generation'a etki etmez — kullanıcıyı bilgilendir.
-        Toast.warning(
-            'Face Lock yakında aktif olacak (F.M.6\'da güncellenecek).',
-            'Face Lock'
-        );
-
+        // F.M.6: Face Lock fal.ai PuLID'e bağlı. Görsel /Assets/UploadReference'a
+        // yüklenir, dönen URL generation request'inde faceImageUrl olarak gider.
         if (!file.type.startsWith('image/')) {
             showNotification('Lütfen bir görsel dosyası yükleyin.', 'error');
             return;
@@ -237,14 +232,15 @@ const FaceLockPanel = (function () {
         };
         reader.readAsDataURL(file);
 
-        // 🆕 Arka planda Asset ID al
-        uploadAssetAndGetId(file);
+        // F.M.6: Görseli fal.ai storage'a yükle, URL'i state'te sakla
+        uploadReference(file);
     }
 
     /**
-     * 🆕 Upload asset to server and get Asset ID
+     * F.M.6: Görseli /Assets/UploadReference'a yükler, dönen fal.ai URL'ini saklar.
+     * Başarılı olunca FeatureMutex.setActive('face') ile Character + Pose temizlenir.
      */
-    async function uploadAssetAndGetId(file) {
+    async function uploadReference(file) {
         if (isUploading) return;
 
         isUploading = true;
@@ -252,9 +248,9 @@ const FaceLockPanel = (function () {
 
         try {
             const formData = new FormData();
-            formData.append('formFile', file);
+            formData.append('file', file);  // AssetsController.UploadReference(IFormFile file)
 
-            const response = await fetch('/RenderNet/GetAssetId', {
+            const response = await fetch('/Assets/UploadReference', {
                 method: 'POST',
                 body: formData
             });
@@ -264,33 +260,42 @@ const FaceLockPanel = (function () {
             }
 
             const result = await response.json();
+            const url = result && result.data ? result.data.url : null;
 
-            if (result.success && result.assetId) {
-                currentAssetId = result.assetId;
+            if (result.success && url) {
+                selectedFaceImageUrl = url;
 
-                // Hidden input'a asset ID'yi kaydet
+                // Hidden input'a URL'i kaydet (legacy uyumluluk / form state)
                 if (faceLockAssetIdInput) {
-                    faceLockAssetIdInput.value = result.assetId;
+                    faceLockAssetIdInput.value = url;
                 }
 
+                // Mutex: Face aktif → Character + Pose otomatik temizlenir
+                if (window.FeatureMutex) window.FeatureMutex.setActive('face');
+
+                // F.M.6 hotfix: Generate button state için değişimi bildir
+                document.dispatchEvent(new CustomEvent('face-lock-changed', {
+                    detail: { imageUrl: url }
+                }));
+
                 showNotification('Yüz görseli başarıyla yüklendi!', 'success');
-                console.log('Asset ID alındı:', result.assetId);
+                console.log('[FaceLockPanel] Face URL alındı:', url);
 
                 // Face Lock butonuna başarı göstergesi ekle
                 updateFaceLockButtonState('success');
             } else {
-                throw new Error(result.message || 'Asset ID alınamadı.');
+                throw new Error(result.message || 'Görsel yüklenemedi.');
             }
 
         } catch (error) {
-            console.error('Asset upload error:', error);
+            console.error('Face reference upload error:', error);
             showNotification('Görsel yüklenirken hata oluştu: ' + error.message, 'error');
 
             // Hata durumunda preview'ı kaldırma, kullanıcı tekrar deneyebilir
             updateFaceLockButtonState('error');
 
-            // Asset ID'yi temizle
-            currentAssetId = null;
+            // URL'i temizle
+            selectedFaceImageUrl = null;
             if (faceLockAssetIdInput) {
                 faceLockAssetIdInput.value = '';
             }
@@ -459,11 +464,16 @@ const FaceLockPanel = (function () {
         if (faceLockPanelPreview) faceLockPanelPreview.classList.add('hidden');
         if (faceLockHiddenInput) faceLockHiddenInput.value = '';
 
-        // 🆕 Asset ID'yi temizle
-        currentAssetId = null;
+        // F.M.6: Face URL'ini temizle
+        selectedFaceImageUrl = null;
         if (faceLockAssetIdInput) {
             faceLockAssetIdInput.value = '';
         }
+
+        // F.M.6 hotfix: Generate button state için değişimi bildir
+        document.dispatchEvent(new CustomEvent('face-lock-changed', {
+            detail: { imageUrl: null }
+        }));
 
         // 🆕 Button state'ini sıfırla
         updateFaceLockButtonState('none');
@@ -503,11 +513,11 @@ const FaceLockPanel = (function () {
     }
 
     /**
-     * 🆕 Get current asset ID
+     * F.M.6: Yüklü yüz görselinin fal.ai URL'ini döndür (generate payload + FeatureMutex için)
      * @returns {string|null}
      */
-    function getAssetId() {
-        return currentAssetId;
+    function getFaceImageUrl() {
+        return selectedFaceImageUrl;
     }
 
     /**
@@ -534,10 +544,16 @@ const FaceLockPanel = (function () {
         isOpen,
         clearImage,
         reset,
-        getAssetId,        // 🆕
-        isUploadInProgress // 🆕
+        getFaceImageUrl,   // F.M.6 — generate payload + FeatureMutex
+        isUploadInProgress
     };
 })();
+
+// F.M.6: FeatureMutex window.FaceLockPanel üzerinden erişir (top-level const window'a
+// otomatik bağlanmaz). character-panel/pose-panel ile aynı pattern.
+if (typeof window !== 'undefined') {
+    window.FaceLockPanel = FaceLockPanel;
+}
 
 // Export for module systems
 if (typeof module !== 'undefined' && module.exports) {

@@ -159,9 +159,9 @@
         ImageControls.showLoadingState();
         ImageControls.setGenerateButtonState(true);
 
-        // 🆕 F.M.4: Payload modelEndpoint + prompt + aspectRatio (+ numImages) +
-        // opsiyonel characterId/characterMode. Karakter seçiliyse backend endpoint'i
-        // LoRA'ya override eder. faceLockAssetId / poseLockAssetId hâlâ gönderilmez (F.M.6).
+        // 🆕 F.M.4/F.M.6: Payload modelEndpoint + prompt + aspectRatio (+ numImages) +
+        // opsiyonel characterId/characterMode (LoRA) veya faceImageUrl (PuLID) veya
+        // poseImageUrl (ControlNet). Üçü mutex; biri set ise backend endpoint'i override eder.
         const promptInput = document.getElementById('promptInput');
         const modelInput = document.getElementById('selectedModelValue');
         const aspectSelect = document.querySelector('select[name="AspectRatio"]');
@@ -181,6 +181,22 @@
         if (characterId) {
             payload.characterId = characterId;
             payload.characterMode = characterModeInput ? characterModeInput.value : 'balanced';
+        }
+
+        // F.M.6: Face Lock seçiliyse PuLID'e yönlendir (weight F.M.6'da sabit 1.0).
+        const faceImageUrl = window.FaceLockPanel && window.FaceLockPanel.getFaceImageUrl
+            ? window.FaceLockPanel.getFaceImageUrl() : null;
+        if (faceImageUrl) {
+            payload.faceImageUrl = faceImageUrl;
+            payload.faceWeight = 1.0;
+        }
+
+        // F.M.6: Pose Lock seçiliyse ControlNet'e yönlendir (weight F.M.6'da sabit 0.6).
+        const poseImageUrl = window.PoseLockPanel && window.PoseLockPanel.getPoseImageUrl
+            ? window.PoseLockPanel.getPoseImageUrl() : null;
+        if (poseImageUrl) {
+            payload.poseImageUrl = poseImageUrl;
+            payload.poseWeight = 0.6;
         }
 
         // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
@@ -242,11 +258,21 @@
             }
         }
 
-        // Defansif model kontrolü — buton zaten disabled olmalı, ama DevTools'tan
-        // disabled kaldırılırsa backend'e geçersiz istek gitmesin (en az 1 model şart).
+        // Defansif seçim kontrolü — buton zaten disabled olmalı, ama DevTools'tan
+        // disabled kaldırılırsa backend'e geçersiz istek gitmesin. F.M.6 hotfix-3:
+        // model ZORUNLU DEĞİL — Character veya Face Lock aktifse backend endpoint'i
+        // override eder (flux-lora / flux-pulid). Üçünden biri yeterli.
         const selectedModel = document.getElementById('selectedModelValue');
-        if (!selectedModel || !selectedModel.value.trim()) {
-            Toast.warning('Lütfen en az bir model seçin.', 'Eksik Bilgi');
+        const modelSelected = !!(selectedModel && selectedModel.value.trim());
+        const characterSelected = !!(window.CharacterPanel
+            && window.CharacterPanel.getSelectedCharacterId
+            && window.CharacterPanel.getSelectedCharacterId());
+        const faceLockActive = !!(window.FaceLockPanel
+            && window.FaceLockPanel.getFaceImageUrl
+            && window.FaceLockPanel.getFaceImageUrl());
+
+        if (!modelSelected && !characterSelected && !faceLockActive) {
+            Toast.warning('Lütfen bir model, karakter veya Face Lock seç', 'Eksik Bilgi');
             return false;
         }
 

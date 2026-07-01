@@ -60,8 +60,54 @@ const ModelPicker = (function () {
             btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
         });
 
+        // F.M.6 hotfix: Character/Face aktifken trigger'da override rozeti göster.
+        document.addEventListener('feature-mutex-changed', function (e) {
+            updateTriggerOverride(e.detail ? e.detail.active : null);
+        });
+
         // Sayfa açılışında catalog'u önceden çek (modal ilk açılışta hazır olsun).
         loadCatalog();
+    }
+
+    /**
+     * F.M.6 hotfix: Feature (character/face) aktifken model seçiminin override
+     * edildiğini trigger butonunda rozetle gösterir. Pose UI gizli olduğu için
+     * 'pose' gelmez; gelse bile default'ta rozet render edilmez.
+     */
+    function updateTriggerOverride(activeFeature) {
+        if (!trigger) return;
+        const existing = trigger.querySelector('.model-picker-trigger__override-badge');
+
+        if (!activeFeature) {
+            if (existing) existing.remove();
+            trigger.classList.remove('is-overridden');
+            return;
+        }
+
+        let badgeText;
+        switch (activeFeature) {
+            case 'character':
+                badgeText = 'Karakter aktif · Flux LoRA';
+                break;
+            case 'face':
+                badgeText = 'Face Lock aktif · PuLID Flux';
+                break;
+            default:
+                // Bilinmeyen/gizli feature (ör. pose) → rozet gösterme
+                if (existing) existing.remove();
+                trigger.classList.remove('is-overridden');
+                return;
+        }
+
+        trigger.classList.add('is-overridden');
+
+        let badgeEl = existing;
+        if (!badgeEl) {
+            badgeEl = document.createElement('div');
+            badgeEl.className = 'model-picker-trigger__override-badge';
+            trigger.appendChild(badgeEl);
+        }
+        badgeEl.textContent = badgeText;
     }
 
     async function loadCatalog() {
@@ -116,64 +162,89 @@ const ModelPicker = (function () {
 
     function createModelCard(model) {
         const card = document.createElement('div');
-        card.className = 'model-card-pick';
+        card.className = 'model-picker-card';
         card.dataset.endpointId = model.endpointId;
+        if (model.isRecommended) card.classList.add('is-recommended');
+        if (model.endpointId === selectedEndpointId) card.classList.add('is-selected');
 
-        // Media
-        const media = document.createElement('div');
-        media.className = 'model-card-pick__media';
+        // 1. Thumbnail (full bleed)
         if (model.thumbnailUrl) {
             const img = document.createElement('img');
+            img.className = 'model-picker-card__thumbnail';
             img.src = model.thumbnailUrl;
             img.alt = model.displayName || '';
             img.loading = 'lazy';
-            // Broken/erişilemeyen URL → img'i kaldır, fallback ikonunu göster.
+            // Broken/erişilemeyen URL → img'i gizle, yedek placeholder ekle.
             img.addEventListener('error', () => {
-                img.remove();
-                media.prepend(buildMediaFallback());
+                img.classList.add('is-broken');
+                if (!card.querySelector('.model-picker-card__placeholder')) {
+                    card.insertBefore(buildPlaceholder(), card.firstChild);
+                }
             });
-            media.appendChild(img);
+            card.appendChild(img);
         } else {
-            media.appendChild(buildMediaFallback());
+            card.appendChild(buildPlaceholder());
         }
 
+        // 2. Recommended badge (sol üst)
         if (model.isRecommended) {
-            const badge = document.createElement('span');
-            badge.className = 'model-card-pick__badge';
+            const badge = document.createElement('div');
+            badge.className = 'model-picker-card__badge';
             badge.textContent = 'Önerilen';
-            media.appendChild(badge);
+            card.appendChild(badge);
         }
 
-        // Favori yıldızı
-        const fav = document.createElement('button');
-        fav.type = 'button';
-        fav.className = 'model-card-pick__fav' + (model.isFavorited ? ' is-favorited' : '');
-        fav.setAttribute('aria-label', 'Favori');
-        fav.innerHTML = `<i class="fa${model.isFavorited ? 's' : 'r'} fa-star"></i>`;
-        fav.addEventListener('click', (e) => {
-            e.stopPropagation();
+        // 3. Favorite star (sağ üst)
+        const favBtn = document.createElement('button');
+        favBtn.type = 'button';
+        favBtn.className = 'model-picker-card__favorite' + (model.isFavorited ? ' is-active' : '');
+        favBtn.setAttribute('aria-label', 'Favorilere ekle');
+        favBtn.textContent = model.isFavorited ? '★' : '☆';
+        favBtn.addEventListener('click', (e) => {
+            e.stopPropagation();  // Kart click'i tetiklenmesin
             toggleFavorite(model.endpointId);
         });
-        media.appendChild(fav);
+        card.appendChild(favBtn);
 
-        // Info
-        const info = document.createElement('div');
-        info.className = 'model-card-pick__info';
-        info.innerHTML = `
-            <span class="model-card-pick__name">${escapeHtml(model.displayName || model.endpointId)}</span>
-            <span class="model-card-pick__provider">${escapeHtml(model.provider || '')}</span>
-            <span class="model-card-pick__credit">${model.creditCost} kredi</span>
-        `;
+        // 4. Bottom content (name + provider + credit) — overlay
+        const content = document.createElement('div');
+        content.className = 'model-picker-card__content';
 
-        card.appendChild(media);
-        card.appendChild(info);
+        const name = document.createElement('h3');
+        name.className = 'model-picker-card__name';
+        name.textContent = model.displayName || model.endpointId;
+        content.appendChild(name);
 
+        const meta = document.createElement('div');
+        meta.className = 'model-picker-card__meta';
+
+        const provider = document.createElement('span');
+        provider.className = 'model-picker-card__provider';
+        provider.textContent = model.provider || '';
+        meta.appendChild(provider);
+
+        const credit = document.createElement('span');
+        credit.className = 'model-picker-card__credit';
+        credit.textContent = `${model.creditCost} kredi`;
+        meta.appendChild(credit);
+
+        content.appendChild(meta);
+        card.appendChild(content);
+
+        // Card click → select model
         card.addEventListener('click', () => {
             selectModel(model);
             closeModal();
         });
 
         return card;
+    }
+
+    function buildPlaceholder() {
+        const placeholder = document.createElement('div');
+        placeholder.className = 'model-picker-card__placeholder';
+        placeholder.textContent = '🎨';
+        return placeholder;
     }
 
     function selectModel(model) {
@@ -273,19 +344,6 @@ const ModelPicker = (function () {
         }));
 
         closeModal();
-    }
-
-    function buildMediaFallback() {
-        const fallback = document.createElement('div');
-        fallback.className = 'model-card-pick__media-fallback';
-        fallback.innerHTML = '<i class="fas fa-image"></i>';
-        return fallback;
-    }
-
-    function escapeHtml(str) {
-        const div = document.createElement('div');
-        div.textContent = str == null ? '' : String(str);
-        return div.innerHTML;
     }
 
     // Public API

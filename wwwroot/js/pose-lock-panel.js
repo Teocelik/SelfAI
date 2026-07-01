@@ -6,14 +6,14 @@
  *   - Kapatma: X butonu / backdrop (data-pose-modal-close) / ESC.
  *   - Body scroll lock (.is-pose-modal-open) modal açıkken.
  *
- * ASSET UPLOAD AKIŞI DEĞİŞMEDİ:
- *   dosya → /RenderNet/GetAssetId → asset_id → hidden input (#poseLockAssetId)
- *   + Studio butonu thumbnail swap. Aynı dosya input ID'si (#poseLockPanelImage)
- *   korundu; manuel upload ve preset (uploadFromUrl) akışları aynı.
+ * ASSET UPLOAD AKIŞI (F.M.6 — URL tabanlı):
+ *   dosya → /Assets/UploadReference → fal.ai URL → state (selectedPoseImageUrl)
+ *   + hidden input (#poseLockAssetId) + Studio butonu thumbnail swap. Aynı dosya
+ *   input ID'si (#poseLockPanelImage) korundu; manuel upload ve preset (uploadFromUrl)
+ *   akışları aynı kalır. URL generate payload'una poseImageUrl olarak gider.
  *
- * ORTHOGONAL: Pose Lock, Character ↔ Face Lock mutual exclusivity'sine DOKUNMAZ.
- * Pose görseli seçili olsa bile diğer iki buton/panel durumunu değiştirmez; üçü
- * birlikte aktif olabilir (backend control_net'i facelock/character ile birlikte gönderir).
+ * MUTEX (F.M.6): Pose Lock artık Character ↔ Face Lock ile karşılıklı dışlamalıdır.
+ * Başarılı poz yüklemesinde FeatureMutex.setActive('pose') ile diğer ikisi temizlenir.
  */
 
 const PoseLockPanel = (function () {
@@ -26,7 +26,7 @@ const PoseLockPanel = (function () {
     let uploadZone = null;    // .pose-modal__upload-zone (spinner overlay için)
 
     // ─── Modül State ───
-    let currentAssetId = null;   // yüklenmiş görselin asset_id'si (string|null)
+    let selectedPoseImageUrl = null;   // F.M.6: fal.ai storage URL (generation payload'una gider)
     let isUploading = false;
 
     const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB (Face Lock ile aynı sınır)
@@ -35,9 +35,11 @@ const PoseLockPanel = (function () {
      * Modülü başlat (App.js → initPoseLockPanel çağırır)
      */
     function init() {
-        cacheElements();
-        bindEvents();
-        console.log('[PoseLockPanel] initialized (modal)');
+        // F.M.6 hotfix — Pose Lock geçici devre dışı: fal.ai'da uygun native OpenPose
+        // endpoint yok. UI gizli (Index.cshtml), event binding yapılmaz. Public API korunur
+        // (getPoseImageUrl → null, reset → noop) ki feature-mutex.js/app.js hatasız çalışsın.
+        // Alttaki tam implementasyon F.M.UI.1'de yeniden aktive edilmek üzere duruyor.
+        console.log('[PoseLockPanel] devre dışı (F.M.6 hotfix)');
     }
 
     /**
@@ -87,13 +89,8 @@ const PoseLockPanel = (function () {
     function openPoseModal() {
         if (!modal) return;
 
-        // F.M.3: Pose Lock henüz fal.ai'a bağlanmadı (F.M.6). Poz seçilebilir ama
-        // generation'a etki etmez — kullanıcıyı bilgilendir.
-        Toast.warning(
-            'Pose Lock yakında aktif olacak (F.M.6\'da güncellenecek).',
-            'Pose Lock'
-        );
-
+        // F.M.6: Pose Lock fal.ai Flux ControlNet'e bağlı. Yüklenen poz referansı
+        // /Assets/UploadReference'a gider, dönen URL generation'da poseImageUrl olur.
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('is-pose-modal-open');
@@ -136,7 +133,7 @@ const PoseLockPanel = (function () {
         await uploadAndApply(file);
 
         // Modal içinde preview alanı yok; başarılı seçimden sonra modal kapanır.
-        if (currentAssetId) {
+        if (selectedPoseImageUrl) {
             closePoseModal();
         }
     }
@@ -157,8 +154,9 @@ const PoseLockPanel = (function () {
     }
 
     /**
-     * Dosyayı /RenderNet/GetAssetId'e yükle, başarılıysa hidden input + buton
-     * thumbnail güncelle. Face Lock'un akışıyla birebir (multipart 'formFile' alanı).
+     * F.M.6: Dosyayı /Assets/UploadReference'a yükle (multipart 'file' alanı), başarılıysa
+     * fal.ai URL'ini state'e + hidden input'a yaz, buton thumbnail güncelle.
+     * Başarılı manuel yüklemede FeatureMutex.setActive('pose') ile Character + Face temizlenir.
      */
     async function uploadAndApply(file, options) {
         // silentToast: dış API (preset akışı) kendi Toast'unu gösterdiği için
@@ -175,9 +173,9 @@ const PoseLockPanel = (function () {
 
         try {
             const formData = new FormData();
-            formData.append('formFile', file);
+            formData.append('file', file);  // AssetsController.UploadReference(IFormFile file)
 
-            const response = await fetch('/RenderNet/GetAssetId', {
+            const response = await fetch('/Assets/UploadReference', {
                 method: 'POST',
                 body: formData
             });
@@ -187,10 +185,14 @@ const PoseLockPanel = (function () {
             }
 
             const result = await response.json();
+            const url = result && result.data ? result.data.url : null;
 
-            if (result.success && result.assetId) {
-                currentAssetId = result.assetId;
-                setHiddenValue('poseLockAssetId', result.assetId);
+            if (result.success && url) {
+                selectedPoseImageUrl = url;
+                setHiddenValue('poseLockAssetId', url);
+
+                // Mutex: Pose aktif → Character + Face otomatik temizlenir
+                if (window.FeatureMutex) window.FeatureMutex.setActive('pose');
 
                 // Preview için dosyayı data URL'e çevir → buton thumbnail swap
                 const dataUrl = await readFileAsDataUrl(file);
@@ -199,9 +201,9 @@ const PoseLockPanel = (function () {
                 if (!silentToast) {
                     Toast.success('Poz görseli başarıyla yüklendi!', 'Pose Lock');
                 }
-                console.log('[PoseLockPanel] Asset ID alındı: %s', result.assetId);
+                console.log('[PoseLockPanel] Pose URL alındı: %s', url);
             } else {
-                throw new Error(result.message || 'Asset ID alınamadı.');
+                throw new Error(result.message || 'Görsel yüklenemedi.');
             }
         } catch (error) {
             console.error('[PoseLockPanel] Görsel yükleme hatası:', error);
@@ -262,10 +264,19 @@ const PoseLockPanel = (function () {
      * Seçili poz görselini temizle: state, hidden input ve buton icon'una dön.
      */
     function clearImage() {
-        currentAssetId = null;
+        selectedPoseImageUrl = null;
         setHiddenValue('poseLockAssetId', '');
         if (fileInput) fileInput.value = '';
         updatePoseLockBtnThumbnail(null);
+    }
+
+    /**
+     * F.M.6: FeatureMutex'in çağırdığı tam sıfırlama — görseli temizle + modal'ı kapat.
+     * (Face Lock'un reset() API'siyle simetrik.)
+     */
+    function reset() {
+        clearImage();
+        closePoseModal();
     }
 
     // ═══════════════════════════════════════════════
@@ -318,7 +329,7 @@ const PoseLockPanel = (function () {
     /**
      * PUBLIC: Bir URL'deki görseli (örn. preset şablon) mevcut upload akışına sokar.
      * Görsel blob olarak indirilir, File'a çevrilir ve MEVCUT uploadAndApply akışı
-     * (validasyon → /RenderNet/GetAssetId → hidden input + buton thumbnail)
+     * (validasyon → /Assets/UploadReference → state + hidden input + buton thumbnail)
      * yeniden kullanılır. Tek fark: başarı Toast'u bastırılır (çağıran taraf gösterir).
      *
      * @param {string} presetUrl - İndirilecek görselin URL'si
@@ -346,12 +357,12 @@ const PoseLockPanel = (function () {
             // MEVCUT akışı yeniden kullan (hidden input, thumbnail hepsi içeride).
             await uploadAndApply(file, { silentToast: true });
 
-            // uploadAndApply başarıda currentAssetId set eder, hatada temizler.
-            if (currentAssetId) {
+            // uploadAndApply başarıda selectedPoseImageUrl set eder, hatada temizler.
+            if (selectedPoseImageUrl) {
                 console.log('[PoseLockPanel] Preset uygulandı: %s', presetName);
                 return { success: true };
             }
-            return { success: false, error: 'Asset ID alınamadı.' };
+            return { success: false, error: 'Görsel yüklenemedi.' };
         } catch (error) {
             console.error('[PoseLockPanel] Preset yükleme hatası:', error);
             return { success: false, error: error.message };
@@ -359,10 +370,11 @@ const PoseLockPanel = (function () {
     }
 
     /**
-     * PUBLIC: Yüklü asset_id'yi döndür (debug / dış kontrol için)
+     * F.M.6 PUBLIC: Yüklü poz görselinin fal.ai URL'ini döndür
+     * (generate payload + FeatureMutex.getActive için)
      */
-    function getCurrentAssetId() {
-        return currentAssetId;
+    function getPoseImageUrl() {
+        return selectedPoseImageUrl;
     }
 
     // Public API
@@ -370,7 +382,8 @@ const PoseLockPanel = (function () {
         init,
         updatePoseLockBtnThumbnail,
         uploadFromUrl,
-        getCurrentAssetId,
+        getPoseImageUrl,   // F.M.6 — generate payload + FeatureMutex
+        reset,             // F.M.6 — FeatureMutex çağırır
         isOpen,
         open: openPoseModal,
         close: closePoseModal,
