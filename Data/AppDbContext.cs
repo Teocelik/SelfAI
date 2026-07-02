@@ -18,6 +18,7 @@ namespace SelfAI.Data
         public DbSet<Character> Characters { get; set; }
         public DbSet<ModelCatalogEntry> ModelCatalogEntries { get; set; }
         public DbSet<UserFavoriteModel> UserFavoriteModels { get; set; }
+        public DbSet<Asset> Assets { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -173,15 +174,15 @@ namespace SelfAI.Data
                 e.Property(c => c.LoraTrainingStatus)
                  .HasConversion<int>();
 
-                // FaceReferenceUrls (List<string>) → JSON nvarchar(max).
+                // F.M.7 — FaceReferenceAssetIds (List<Guid>) → JSON nvarchar(max).
                 // ValueComparer: koleksiyon değişikliklerinin doğru tespiti için (EF uyarısı).
-                e.Property(c => c.FaceReferenceUrls)
+                e.Property(c => c.FaceReferenceAssetIds)
                  .HasConversion(
                      v => System.Text.Json.JsonSerializer.Serialize(v, (System.Text.Json.JsonSerializerOptions?)null),
-                     v => System.Text.Json.JsonSerializer.Deserialize<List<string>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<string>(),
-                     new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<string>>(
-                         (a, b) => (a ?? new List<string>()).SequenceEqual(b ?? new List<string>()),
-                         v => v.Aggregate(0, (acc, s) => HashCode.Combine(acc, s.GetHashCode())),
+                     v => System.Text.Json.JsonSerializer.Deserialize<List<Guid>>(v, (System.Text.Json.JsonSerializerOptions?)null) ?? new List<Guid>(),
+                     new Microsoft.EntityFrameworkCore.ChangeTracking.ValueComparer<List<Guid>>(
+                         (a, b) => (a ?? new List<Guid>()).SequenceEqual(b ?? new List<Guid>()),
+                         v => v.Aggregate(0, (acc, id) => HashCode.Combine(acc, id.GetHashCode())),
                          v => v.ToList()))
                  .HasColumnType("nvarchar(max)");
 
@@ -190,6 +191,20 @@ namespace SelfAI.Data
                  .WithMany()
                  .HasForeignKey(c => c.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Asset — kalıcı upload kaydı (F.M.7). Storage-provider bağımsız.
+            mb.Entity<Asset>(e =>
+            {
+                e.HasIndex(x => x.UserId);
+                e.HasIndex(x => new { x.UserId, x.Purpose });
+                e.HasIndex(x => x.DeletedAt);
+                e.Property(x => x.Purpose).HasConversion<int>();
+                e.Property(x => x.Url).HasMaxLength(2000);
+                e.Property(x => x.StorageKey).HasMaxLength(500);
+                e.Property(x => x.StorageProvider).HasMaxLength(50);
+                e.Property(x => x.ContentType).HasMaxLength(100);
+                e.Property(x => x.OriginalFileName).HasMaxLength(500);
             });
 
             // ModelCatalogEntry — dinamik model catalog (F.M.5)

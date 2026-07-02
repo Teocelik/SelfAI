@@ -30,6 +30,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private readonly ICatalogTierResolver _tierResolver;
     private readonly ICreditPricingService _pricingService;
     private readonly ICreditService _creditService;
+    private readonly IAssetService _assetService;
     private readonly IGenerationLogService _logService;
     private readonly IHubContext<GenerationHub> _hubContext;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -40,6 +41,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         ICatalogTierResolver tierResolver,
         ICreditPricingService pricingService,
         ICreditService creditService,
+        IAssetService assetService,
         IGenerationLogService logService,
         IHubContext<GenerationHub> hubContext,
         IServiceScopeFactory scopeFactory,
@@ -49,6 +51,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         _tierResolver = tierResolver;
         _pricingService = pricingService;
         _creditService = creditService;
+        _assetService = assetService;
         _logService = logService;
         _hubContext = hubContext;
         _scopeFactory = scopeFactory;
@@ -71,7 +74,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         //    en fazla biri aktif olabilir. Üçü de tek bir effectiveEndpoint'e route edildiği
         //    için birden fazlası anlamsız; backend güvenlik kapısı olarak reddeder.
         var hasCharacter = request.CharacterId.HasValue;
-        var hasFace = !string.IsNullOrWhiteSpace(request.FaceImageUrl);
+        var hasFace = request.FaceAssetId.HasValue;
         var hasPose = !string.IsNullOrWhiteSpace(request.PoseImageUrl);
 
         // Feature aktifse endpoint override edilir (Character/Face/Pose); model seçimi
@@ -99,6 +102,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         string? loraModelUrl = null;
         string? triggerWord = null;
         decimal? loraWeight = null;
+        string? faceImageUrl = null;  // F.M.7 — AssetId'den resolve edilen URL (aşağıda doldurulur)
 
         if (hasCharacter)
         {
@@ -127,6 +131,21 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         else if (hasFace)
         {
             effectiveEndpoint = FluxPulidGenerator.ModelEndpoint;
+
+            // F.M.7 — AssetId → URL resolve + sahiplik kontrolü. Kredi düşülmeden ÖNCE yapılır;
+            // asset kullanıcıya ait değilse/silinmişse burada 403 döner, kredi düşmez (Senaryo 5).
+            var faceUrlResult = await _assetService.ResolveUrlAsync(
+                request.FaceAssetId!.Value, userId, cancellationToken);
+            if (!faceUrlResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "Face asset resolve edilemedi. | AssetId: {AssetId} | UserId: {UserId}",
+                    request.FaceAssetId, userId);
+                return ServiceResult<GenerationStartedResponse>.Failure(
+                    faceUrlResult.Message, faceUrlResult.StatusCode);
+            }
+            faceImageUrl = faceUrlResult.Data;
+
             _logger.LogInformation(
                 "Face Lock ile generation. | Endpoint: {Endpoint} | UserId: {UserId}",
                 effectiveEndpoint, userId);
@@ -188,7 +207,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
 
         // 8. Fire-and-forget — background task ile fal.ai çağrısı (request scope'u aşar)
         _ = Task.Run(() => ExecuteGenerationBackgroundAsync(
-            request, effectiveEndpoint, loraModelUrl, triggerWord, loraWeight,
+            request, effectiveEndpoint, loraModelUrl, triggerWord, loraWeight, faceImageUrl,
             userId, firebaseUid, generationId, creditsRequired, signalRConnectionId),
             CancellationToken.None);
 
@@ -207,6 +226,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         string? loraModelUrl,
         string? triggerWord,
         decimal? loraWeight,
+        string? faceImageUrl,
         Guid userId,
         string firebaseUid,
         Guid generationId,
@@ -239,8 +259,9 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 LoraModelUrl = loraModelUrl,
                 TriggerWord = triggerWord,
                 LoraWeight = loraWeight,
-                // Face/Pose alanları yalnızca ilgili yolda dolu (F.M.6).
-                FaceImageUrl = request.FaceImageUrl,
+                // Face/Pose alanları yalnızca ilgili yolda dolu (F.M.6/F.M.7).
+                // FaceImageUrl request scope'unda AssetId'den resolve edildi.
+                FaceImageUrl = faceImageUrl,
                 FaceWeight = request.FaceWeight,
                 PoseImageUrl = request.PoseImageUrl,
                 PoseWeight = request.PoseWeight

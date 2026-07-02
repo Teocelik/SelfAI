@@ -49,8 +49,9 @@ namespace SelfAI.Entities
         // Training başarısızsa kullanıcıya gösterilecek güvenli sebep.
         public string? TrainingFailureReason { get; set; }
 
-        // fal.ai storage'a yüklenen yüz görsellerinin URL'leri (DB'de JSON nvarchar(max)).
-        public List<string> FaceReferenceUrls { get; set; } = new();
+        // F.M.7 — training input yüz görsellerinin Asset ID'leri (DB'de JSON nvarchar(max)).
+        // Eski FaceReferenceUrls (inline URL) kaldırıldı; artık Asset entity üzerinden resolve edilir.
+        public List<Guid> FaceReferenceAssetIds { get; set; } = new();
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime? UpdatedAt { get; set; }

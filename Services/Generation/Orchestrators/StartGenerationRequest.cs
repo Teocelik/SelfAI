@@ -20,9 +20,10 @@ public class StartGenerationRequest
     public Guid? CharacterId { get; set; }
     public string? CharacterMode { get; set; }  // "flexible" / "balanced" / "strong"
 
-    // ═══ F.M.6 — Face Lock (PuLID) ═══
-    // FaceImageUrl set ise endpoint "fal-ai/pulid-flux"'a override edilir.
-    public string? FaceImageUrl { get; set; }   // /Assets/UploadReference'tan dönen fal.ai URL
+    // ═══ F.M.6 — Face Lock (PuLID) / F.M.7 — Asset ID ═══
+    // FaceAssetId set ise endpoint "fal-ai/pulid-flux"'a override edilir. Backend AssetId'yi
+    // sahiplik kontrolüyle URL'e resolve eder (frontend artık ham URL göndermez).
+    public Guid? FaceAssetId { get; set; }      // /Assets/Upload?purpose=FaceLock'tan dönen Asset ID
     public decimal? FaceWeight { get; set; }    // PuLID id_weight, default 1.0
 
     // ═══ F.M.6 — Pose Lock (ControlNet) ═══

@@ -57,8 +57,8 @@ const FeatureMutex = (function () {
             return 'character';
         }
         if (window.FaceLockPanel
-            && typeof window.FaceLockPanel.getFaceImageUrl === 'function'
-            && window.FaceLockPanel.getFaceImageUrl()) {
+            && typeof window.FaceLockPanel.getFaceAssetId === 'function'
+            && window.FaceLockPanel.getFaceAssetId()) {
             return 'face';
         }
         if (window.PoseLockPanel

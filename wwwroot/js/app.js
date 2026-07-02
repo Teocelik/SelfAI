@@ -183,11 +183,11 @@
             payload.characterMode = characterModeInput ? characterModeInput.value : 'balanced';
         }
 
-        // F.M.6: Face Lock seçiliyse PuLID'e yönlendir (weight F.M.6'da sabit 1.0).
-        const faceImageUrl = window.FaceLockPanel && window.FaceLockPanel.getFaceImageUrl
-            ? window.FaceLockPanel.getFaceImageUrl() : null;
-        if (faceImageUrl) {
-            payload.faceImageUrl = faceImageUrl;
+        // F.M.7: Face Lock seçiliyse Asset ID gönderilir (backend URL'e resolve eder). Weight sabit 1.0.
+        const faceAssetId = window.FaceLockPanel && window.FaceLockPanel.getFaceAssetId
+            ? window.FaceLockPanel.getFaceAssetId() : null;
+        if (faceAssetId) {
+            payload.faceAssetId = faceAssetId;
             payload.faceWeight = 1.0;
         }
 
@@ -268,8 +268,8 @@
             && window.CharacterPanel.getSelectedCharacterId
             && window.CharacterPanel.getSelectedCharacterId());
         const faceLockActive = !!(window.FaceLockPanel
-            && window.FaceLockPanel.getFaceImageUrl
-            && window.FaceLockPanel.getFaceImageUrl());
+            && window.FaceLockPanel.getFaceAssetId
+            && window.FaceLockPanel.getFaceAssetId());
 
         if (!modelSelected && !characterSelected && !faceLockActive) {
             Toast.warning('Lütfen bir model, karakter veya Face Lock seç', 'Eksik Bilgi');

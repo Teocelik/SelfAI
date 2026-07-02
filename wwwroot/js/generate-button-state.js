@@ -99,8 +99,8 @@ const GenerateButtonState = (function () {
      */
     function checkFaceLockActive() {
         return !!(window.FaceLockPanel
-            && typeof window.FaceLockPanel.getFaceImageUrl === 'function'
-            && window.FaceLockPanel.getFaceImageUrl());
+            && typeof window.FaceLockPanel.getFaceAssetId === 'function'
+            && window.FaceLockPanel.getFaceAssetId());
     }
 
     /**

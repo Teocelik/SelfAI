@@ -75,8 +75,13 @@ builder.Services.Configure<FalAiOptions>(
 
 builder.Services.AddHttpClient<IFalAiClient, FalAiClient>();
 
-// fal.ai storage (asset upload) — F.M.4 minimal (F.M.7'de tam refactor).
+// fal.ai storage (asset upload) — F.M.4 minimal. F.M.7'de FalAiAssetStorageProvider wrap eder.
 builder.Services.AddHttpClient<IFalAiStorageClient, FalAiStorageClient>();
+
+// ═══ F.M.7 — Asset storage abstraction + persistent Asset servisi ═══
+// Default provider: fal.ai (F.7'de S3AssetStorageProvider'a geçilecek — o zaman burası değişir).
+builder.Services.AddScoped<IAssetStorageProvider, FalAiAssetStorageProvider>();
+builder.Services.AddScoped<IAssetService, AssetService>();
 
 // ═══ F.M.3 — Image generation katmanı ═══
 // Credit pricing (tier markup) — config "CreditPricing" section'ından okunur.

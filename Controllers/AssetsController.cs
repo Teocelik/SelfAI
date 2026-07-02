@@ -1,65 +1,100 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using SelfAI.Services.Generation.Abstractions;
+using SelfAI.Entities.Enums;
+using SelfAI.Services.Interfaces;
 
 namespace SelfAI.Controllers
 {
     /// <summary>
-    /// Face Lock / Pose Lock referans görseli upload endpoint'i (F.M.6).
-    /// Kullanıcı tek bir görsel yükler → fal.ai storage'a gider → public URL döner;
-    /// frontend bu URL'i generation request'inde faceImageUrl/poseImageUrl olarak yollar.
+    /// Asset upload/list/delete endpoint'i (F.M.7). Face Lock / Pose Lock / generic upload için
+    /// tek dosyalık akış. Character training upload'ları buradan YASAKLI — /Characters/Create kullanır.
     ///
-    /// HTTP transport only — iş mantığı yok. Storage iletişimi IFalAiStorageClient'ta.
-    /// F.M.7'de Asset entity + library + S3 migration ile tam refactor edilecek.
+    /// HTTP transport only — iş mantığı yok. Upload + persist + resolve IAssetService'te.
     /// </summary>
     [ApiController]
     [Route("Assets")]
     [Authorize]
     public class AssetsController : ControllerBase
     {
-        private const long MaxImageSizeBytes = 10 * 1024 * 1024;  // 10MB
-        private static readonly string[] AllowedContentTypes = { "image/jpeg", "image/png", "image/webp" };
+        private readonly IAssetService _assetService;
 
-        private readonly IFalAiStorageClient _storageClient;
-        private readonly ILogger<AssetsController> _logger;
-
-        public AssetsController(IFalAiStorageClient storageClient, ILogger<AssetsController> logger)
+        public AssetsController(IAssetService assetService)
         {
-            _storageClient = storageClient;
-            _logger = logger;
+            _assetService = assetService;
         }
 
         /// <summary>
-        /// Face Lock veya Pose Lock için tek görsel upload eder, fal.ai storage URL'i döner.
+        /// Face Lock / Pose Lock / generic tek dosya upload. Purpose query parametresiyle amaç belirtilir.
         /// </summary>
-        [HttpPost("UploadReference")]
-        public async Task<IActionResult> UploadReference(IFormFile file, CancellationToken ct)
+        [HttpPost("Upload")]
+        public async Task<IActionResult> Upload(
+            IFormFile file,
+            [FromQuery] string purpose,
+            CancellationToken ct)
         {
-            if (file == null || file.Length == 0)
-                return BadRequest(new { success = false, message = "Dosya boş olamaz." });
+            if (!TryGetUserId(out var userId))
+                return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
 
-            if (file.Length > MaxImageSizeBytes)
-                return BadRequest(new { success = false, message = "Dosya boyutu en fazla 10MB olmalı." });
+            // Purpose parse — kullanıcı input, güvenli parse
+            if (!Enum.TryParse<AssetPurpose>(purpose, ignoreCase: true, out var purposeEnum))
+                return BadRequest(new { success = false, message = "Geçersiz purpose. FaceLock, PoseLock veya Generic olmalı." });
 
-            if (!AllowedContentTypes.Contains(file.ContentType))
-                return BadRequest(new { success = false, message = "Sadece JPEG, PNG veya WebP kabul edilir." });
+            // Character training upload'ı bu endpoint'ten YASAKLI — CharactersController.Create kullanmalı
+            if (purposeEnum == AssetPurpose.CharacterTraining)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Karakter training upload'ları /Characters/Create endpoint'inden yapılır."
+                });
 
-            try
-            {
-                using var stream = file.OpenReadStream();
-                var url = await _storageClient.UploadAsync(stream, file.FileName, file.ContentType, ct);
+            var result = await _assetService.UploadAsync(file, userId, purposeEnum, ct);
 
-                _logger.LogInformation(
-                    "Reference asset upload. | FileName: {File} | Size: {Size} | Url: {Url}",
-                    file.FileName, file.Length, url);
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
 
-                return Ok(new { success = true, data = new { url } });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Reference asset upload hatası. | FileName: {File}", file.FileName);
-                return StatusCode(500, new { success = false, message = "Görsel yüklenemedi." });
-            }
+            return Ok(new { success = true, data = result.Data, message = result.Message });
+        }
+
+        /// <summary>
+        /// Kullanıcının kendi asset'lerini listeler (opsiyonel purpose filtresi).
+        /// </summary>
+        [HttpGet("List")]
+        public async Task<IActionResult> List(
+            [FromQuery] string? purpose,
+            CancellationToken ct)
+        {
+            if (!TryGetUserId(out var userId))
+                return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+
+            AssetPurpose? purposeFilter = null;
+            if (!string.IsNullOrEmpty(purpose) &&
+                Enum.TryParse<AssetPurpose>(purpose, ignoreCase: true, out var parsed))
+                purposeFilter = parsed;
+
+            var result = await _assetService.ListUserAssetsAsync(userId, purposeFilter, ct);
+            return Ok(new { success = true, data = result.Data });
+        }
+
+        /// <summary>Asset silme (soft delete).</summary>
+        [HttpDelete("{assetId:guid}")]
+        public async Task<IActionResult> Delete(Guid assetId, CancellationToken ct)
+        {
+            if (!TryGetUserId(out var userId))
+                return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+
+            var result = await _assetService.DeleteAsync(assetId, userId, ct);
+
+            if (!result.IsSuccess)
+                return StatusCode(result.StatusCode, new { success = false, message = result.Message });
+
+            return Ok(new { success = true, message = result.Message });
+        }
+
+        // AppUser.Id claim'i (DB/cüzdan). RenderNetController + CharactersController ile aynı pattern.
+        private bool TryGetUserId(out Guid userId)
+        {
+            var appUserIdStr = User.FindFirst("AppUserId")?.Value;
+            return Guid.TryParse(appUserIdStr, out userId);
         }
     }
 }

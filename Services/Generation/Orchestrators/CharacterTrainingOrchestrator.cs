@@ -168,6 +168,7 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
     {
         using var scope = _scopeFactory.CreateScope();
         var storageClient = scope.ServiceProvider.GetRequiredService<IFalAiStorageClient>();
+        var assetService = scope.ServiceProvider.GetRequiredService<IAssetService>();
         var trainer = scope.ServiceProvider.GetRequiredService<ICharacterTrainer>();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var creditService = scope.ServiceProvider.GetRequiredService<ICreditService>();
@@ -175,16 +176,25 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
 
         try
         {
-            // Thumbnail/referans için her görseli tekil olarak yükle.
+            // F.M.7 — bireysel yüz görselleri kalıcı Asset olarak persist edilir
+            // (reuse + thumbnail + FaceReferenceAssetIds). Background task'ta IFormFile yerine
+            // bellekteki byte[]'ten stream açılır (IAssetService stream overload).
+            var assetIds = new List<Guid>(images.Count);
             var faceUrls = new List<string>(images.Count);
             foreach (var img in images)
             {
                 using var imgStream = new MemoryStream(img.Bytes);
-                var url = await storageClient.UploadAsync(imgStream, img.FileName, img.ContentType);
-                faceUrls.Add(url);
+                var uploadResult = await assetService.UploadAsync(
+                    imgStream, img.FileName, img.ContentType, img.Bytes.LongLength,
+                    userId, AssetPurpose.CharacterTraining);
+                if (!uploadResult.IsSuccess)
+                    throw new InvalidOperationException($"Asset upload başarısız: {uploadResult.Message}");
+                assetIds.Add(uploadResult.Data!.Id);
+                faceUrls.Add(uploadResult.Data!.Url);
             }
 
-            // Training input ZIP arşivi (fal.ai images_data_url TEK zip URL bekler).
+            // Training input ZIP arşivi (fal.ai images_data_url TEK zip URL bekler). ZIP kalıcı
+            // Asset değil (ephemeral training artifact) — doğrudan storage client ile yüklenir.
             var zipBytes = BuildZipArchive(images);
             using var zipStream = new MemoryStream(zipBytes);
             var zipUrl = await storageClient.UploadAsync(
@@ -197,14 +207,14 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
                 return;
             }
 
-            character.FaceReferenceUrls = faceUrls;
+            character.FaceReferenceAssetIds = assetIds;
             character.ThumbnailUrl = faceUrls.FirstOrDefault();
             character.LoraTrainingStatus = LoraTrainingStatus.Training;
             await db.SaveChangesAsync();
 
             _logger.LogInformation(
-                "Asset upload tamamlandı. | CharId: {CharId} | FaceCount: {Count} | ZipUrl: {ZipUrl}",
-                characterId, faceUrls.Count, zipUrl);
+                "Asset upload tamamlandı. | CharId: {CharId} | FaceCount: {Count} | AssetIds: {AssetIds} | ZipUrl: {ZipUrl}",
+                characterId, faceUrls.Count, string.Join(",", assetIds), zipUrl);
 
             // Training submit
             var submitResult = await trainer.SubmitTrainingAsync(new CharacterTrainingRequest
