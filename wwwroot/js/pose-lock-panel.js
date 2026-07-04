@@ -7,7 +7,7 @@
  *   - Body scroll lock (.is-pose-modal-open) modal açıkken.
  *
  * ASSET UPLOAD AKIŞI (F.M.6 — URL tabanlı):
- *   dosya → /Assets/UploadReference → fal.ai URL → state (selectedPoseImageUrl)
+ *   dosya → /Assets/Upload?purpose=PoseLock → fal.ai URL → state (selectedPoseImageUrl)
  *   + hidden input (#poseLockAssetId) + Studio butonu thumbnail swap. Aynı dosya
  *   input ID'si (#poseLockPanelImage) korundu; manuel upload ve preset (uploadFromUrl)
  *   akışları aynı kalır. URL generate payload'una poseImageUrl olarak gider.
@@ -90,7 +90,7 @@ const PoseLockPanel = (function () {
         if (!modal) return;
 
         // F.M.6: Pose Lock fal.ai Flux ControlNet'e bağlı. Yüklenen poz referansı
-        // /Assets/UploadReference'a gider, dönen URL generation'da poseImageUrl olur.
+        // /Assets/Upload?purpose=PoseLock'a gider, dönen URL generation'da poseImageUrl olur.
         modal.classList.add('is-open');
         modal.setAttribute('aria-hidden', 'false');
         document.body.classList.add('is-pose-modal-open');
@@ -120,7 +120,7 @@ const PoseLockPanel = (function () {
     }
 
     // ═══════════════════════════════════════════════
-    // GÖRSEL UPLOAD (Face Lock akışıyla aynı: dosya → /GetAssetId → asset_id)
+    // GÖRSEL UPLOAD (Face Lock akışıyla aynı: dosya → /Assets/Upload?purpose=PoseLock → URL)
     // ═══════════════════════════════════════════════
 
     /**
@@ -154,7 +154,7 @@ const PoseLockPanel = (function () {
     }
 
     /**
-     * F.M.6: Dosyayı /Assets/UploadReference'a yükle (multipart 'file' alanı), başarılıysa
+     * F.M.6: Dosyayı /Assets/Upload?purpose=PoseLock'a yükle (multipart 'file' alanı), başarılıysa
      * fal.ai URL'ini state'e + hidden input'a yaz, buton thumbnail güncelle.
      * Başarılı manuel yüklemede FeatureMutex.setActive('pose') ile Character + Face temizlenir.
      */
@@ -175,7 +175,7 @@ const PoseLockPanel = (function () {
             const formData = new FormData();
             formData.append('file', file);  // AssetsController.UploadReference(IFormFile file)
 
-            const response = await fetch('/Assets/UploadReference', {
+            const response = await fetch('/Assets/Upload?purpose=PoseLock', {
                 method: 'POST',
                 body: formData
             });
@@ -329,7 +329,7 @@ const PoseLockPanel = (function () {
     /**
      * PUBLIC: Bir URL'deki görseli (örn. preset şablon) mevcut upload akışına sokar.
      * Görsel blob olarak indirilir, File'a çevrilir ve MEVCUT uploadAndApply akışı
-     * (validasyon → /Assets/UploadReference → state + hidden input + buton thumbnail)
+     * (validasyon → /Assets/Upload?purpose=PoseLock → state + hidden input + buton thumbnail)
      * yeniden kullanılır. Tek fark: başarı Toast'u bastırılır (çağıran taraf gösterir).
      *
      * @param {string} presetUrl - İndirilecek görselin URL'si

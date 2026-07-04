@@ -3,7 +3,7 @@
  * Pose Lock modal'ındaki masonry şablon kartlarını (.pose-template) yönetir.
  * Bir karta tıklanınca ilgili görsel, pose-lock-panel.js'in expose ettiği
  * window.PoseLockPanel.uploadFromUrl API'si ile mevcut upload akışına sokulur
- * (görsel → /RenderNet/GetAssetId → asset_id → hidden input + buton thumbnail).
+ * (görsel → /Assets/Upload?purpose=PoseLock → URL → hidden input + buton thumbnail).
  *
  * Backend değişikliği YOK. Var olmayan görseller broken-image handler ile
  * TAMAMEN GİZLENİR (sadece gerçek şablonlar görünür — Affogato davranışı).

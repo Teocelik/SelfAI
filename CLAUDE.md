@@ -10,7 +10,7 @@ Bu dosya, Claude Code'un SelfAI projesinde çalışırken takip etmesi gereken k
 
 ### Migration durumu (Affogato → fal.ai)
 
-Daha önce **Affogato/RenderNet** API kullanılıyordu, ancak Affogato API ticari kullanıma izin vermedi. fal.ai'a tam migration sürmektedir. Affogato kodları geçici olarak `Services/Generation/Providers/Legacy/Affogato/` altında korunmakta, F.M.8 phase'inde tamamen silinecek.
+Daha önce **Affogato/RenderNet** API kullanılıyordu, ancak Affogato API ticari kullanıma izin vermedi. fal.ai'a tam migration sürmektedir. Affogato/RenderNet legacy kodu (servisler, DTO'lar, `RenderNetOptions`) **F.M.8'de tamamen silindi.**
 
 **Migration phase planı:**
 
@@ -48,9 +48,9 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 
 ### Kararlar (kilitli — değiştirme önerme)
 
-- **AI Provider:** fal.ai TEK provider. Affogato/RenderNet deprecated, F.M.8'de tamamen silinecek. Yeni kod hiçbir koşulda Affogato'ya endpoint çağrısı yapmaz.
+- **AI Provider:** fal.ai TEK provider. Başka provider yok. Affogato/RenderNet legacy kodu F.M.8'de tamamen kaldırıldı; yeni kod yalnızca `IFalAiClient` üzerinden gider.
 - **Provider abstraction:** `IFalAiClient` (provider-level HTTP) ve `IImageGenerator/IVideoGenerator/ICharacterTrainer` (domain-level) interface'leri ile katmanlı yapı. İleride başka provider (Replicate, Together vs.) eklemek için skeleton hazır. Şu an SADECE fal.ai implementasyonu var.
-- **Klasör yapısı (SOLID-uyumlu):** Yeni kod `Services/Generation/Abstractions`, `Services/Generation/Orchestrators`, `Services/Generation/Domain`, `Services/Generation/Providers/FalAi` altına yazılır. Affogato kodu `Services/Generation/Providers/Legacy/Affogato/` altında (geçici). Detaylı yapı §3'te.
+- **Klasör yapısı (SOLID-uyumlu):** Yeni kod `Services/Generation/Abstractions`, `Services/Generation/Orchestrators`, `Services/Generation/Domain`, `Services/Generation/Providers/FalAi` altına yazılır. Detaylı yapı §3'te.
 - **Character entity (fal.ai LoRA):** Eski `AffogatoCharacterId` field'ı F.M.8'de silinir. Yeni field'lar: `LoraModelUrl` (string, fal.ai training output), `LoraTrainingStatus` (enum: Pending/Training/Ready/Failed), `LoraTrainingJobId` (string?), `TrainingStartedAt` (DateTime?), `TrainingCompletedAt` (DateTime?), `FaceReferenceAssetIds` (string[], training input). Mode pills (Esnek/Dengeli/Güçlü) → LoRA weight olarak çevrilir (0.4/0.6/0.8).
 - **Affogato karakterleri:** Mevcut DB'de bulunan Affogato karakterleri `Status='Migrated'` işaretlenir, modal'da gösterilmez. Production'a çıkmadığımız için sadece test verisi etkilenir. Migration'a gerek yok (yeni karakterleri kullanıcılar yeniden oluşturur).
 - **Asset storage:** Phase 1 fal.ai storage (basit, `fal.storage.upload()` veya REST endpoint). Phase 2 (ileride) S3/R2/Backblaze'e geçiş düşünülecek. Asset entity'de `StorageProvider` field'ı tutulur (gelecek esneklik için).
@@ -144,14 +144,13 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 ```
 /
 ├── BackgroundServices/        # Arka plan servisleri (IHostedService)
-│   ├── GenerationPollingService.cs   # Generation durumunu periyodik kontrol eder
+│   ├── GenerationPollingService.cs   # SignalR user connection tracker (Affogato polling F.M.8'de kaldırıldı)
 │   └── LoraTrainingPollingService.cs # F.M.4'te eklenir — Character LoRA training status takibi
 ├── Configurations/            # IOptions pattern config sınıfları
 │   ├── FalAiOptions.cs               # ApiKey + BaseUrl (yeni — F.M.2'de eklenir)
 │   ├── CreditPricingOptions.cs       # Tier markup multipliers (yeni — F.M.5)
 │   ├── IyzicoOptions.cs              # ApiKey + SecretKey + BaseUrl
-│   ├── StripeOptions.cs              # SecretKey + PublishableKey + WebhookSecret
-│   └── RenderNetOptions.cs           # DEPRECATED — F.M.8'de silinir
+│   └── StripeOptions.cs              # SecretKey + PublishableKey + WebhookSecret
 ├── Controllers/               # MVC controller'ları (HTTP transport only)
 │   ├── RenderNetController.cs        # Ana controller (UI hâlâ /RenderNet/Index'e bağlı, rename ileride)
 │   ├── CharactersController.cs       # Character CRUD + LoRA training tetikleme
@@ -162,9 +161,7 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
 │   ├── Characters/                   # CharacterDto (LoraModelUrl, Status, vb.)
 │   ├── ModelCatalog/                 # Yeni — dinamik model listesi DTO'ları (F.M.5)
-│   ├── IyzicoPaymentDtos/            # Iyzico
-│   └── Legacy/                       # DEPRECATED — F.M.8'de silinir
-│       └── RenderNet*/               # Eski Affogato DTO'ları
+│   └── IyzicoPaymentDtos/            # Iyzico
 ├── Entities/
 │   ├── Character.cs                  # LoraModelUrl, LoraTrainingStatus, LoraTrainingJobId
 │   ├── ModelCatalogEntry.cs          # F.M.5'te eklenir — model whitelist + pricing cache
@@ -202,14 +199,11 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   │   │   └── CharacterTraining/
 │   │   │       └── FluxLoraTrainer.cs
 │   │   ├── Providers/
-│   │   │   ├── FalAi/
-│   │   │   │   ├── FalAiClient.cs
-│   │   │   │   ├── FalAiStorageClient.cs
-│   │   │   │   ├── FalAiModelCatalog.cs
-│   │   │   │   └── Models/           # fal.ai-spesifik DTO'lar
-│   │   │   └── Legacy/
-│   │   │       └── Affogato/         # ⚠️ DEPRECATED — F.M.8'de silinir
-│   │   │           └── (eski IRenderNetApiClient kodu burada)
+│   │   │   └── FalAi/
+│   │   │       ├── FalAiClient.cs
+│   │   │       ├── FalAiStorageClient.cs
+│   │   │       ├── FalAiModelCatalog.cs
+│   │   │       └── Models/           # fal.ai-spesifik DTO'lar
 │   │   └── Pricing/
 │   │       ├── ModelTier.cs          # enum: Fast/Standard/Premium/CharacterLora/VideoFast/VideoPremium
 │   │       ├── ICreditPricingService.cs
@@ -249,7 +243,6 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 **Klasör konvansiyonları:**
 
 - Yeni AI generation kodu **mutlaka** `Services/Generation/` altına yazılır
-- `Services/Concretes/RenderNet*` ve `Services/Generation/Providers/Legacy/Affogato/` altındaki kod DEPRECATED — yeni eklemeye dokunma, sadece F.M.8'de silinmeye hazırlanıyor
 - DTO'lar kategori bazında alt klasörlerde (Generation, Characters, ModelCatalog, vb.)
 
 ---
@@ -396,12 +389,9 @@ Bu formatı koru. Tüm log mesajları **Türkçe**.
 
 Generation tamamlanmasını beklemek için iki katmanlı bir sistem var:
 
-- **`GenerationPollingService`** (Singleton + HostedService): `ConcurrentDictionary` ile aktif job'ları tutar, 3 saniyede bir fal.ai'a sorar.
+- **`GenerationPollingService`** (Singleton): Şu an yalnızca SignalR user connection tracker (`_userConnections`). Affogato polling F.M.8'de tamamen kaldırıldı. Provider (fal.ai) polling'i artık `FalAiClient.SubmitAndWaitAsync` içinde; sonuç push'ı `GenerationOrchestrator` → SignalR `"GenerationUpdate"` event'iyle yapılır.
 - **`LoraTrainingPollingService`** (F.M.4'te eklenir, Singleton + HostedService): Character LoRA training status'unu periyodik kontrol eder (60s aralık).
 - **`GenerationHub`**: SignalR hub'ı. Frontend `RegisterClient(userId)` çağırır, backend connectionId ile eşleştirir.
-- **`_pendingResults`**: Kullanıcı offline olduğunda tamamlanan sonuçları 24 saat saklar. Frontend geri döndüğünde bekleyen sonuçlar gönderilir.
-
-**Bu mimarinin önemli bir özelliği:** SignalR bağlantısı kopsa bile polling devam eder ve sonuç pending'e yazılır. Bu davranışı **bozma**.
 
 ### 5.7 Frontend modül kalıbı
 
@@ -566,7 +556,7 @@ dotnet user-secrets clear         # Hepsini sil
 3. **Hardcoded model listesi YAZMA.** Studio'da gösterilen modeller `IFalAiModelCatalog` üzerinden dinamik gelir. Frontend asla "Flux Dev" gibi sabit isimleri kart olarak görmez.
 4. **Hardcoded credit cost YAZMA.** Tüm credit hesaplamaları `ICreditPricingService.CalculateUserCredits()` üzerinden gider. Markup multiplier'ları config'den okunur.
 5. **Provider lock-in oluşturma.** Domain service'ler (`FluxDevGenerator`, `FluxLoraTrainer` vb.) `IFalAiClient` interface'ine bağlanır, `FalAiClient` concrete'ine değil. İleride başka provider eklemek için bu disiplin kritik.
-6. **`GenerationPollingService`'in singleton yaşam döngüsünü değiştirme.** `_activeJobs`, `_pendingResults`, `_clientConnections` aynı instance üzerinde tutuluyor.
+6. **`GenerationPollingService` artık yalnızca SignalR user connection tracker'dır** (`_userConnections`). Affogato polling (`_activeJobs`/`_pendingResults`) F.M.8'de kaldırıldı; provider polling `FalAiClient.SubmitAndWaitAsync` içinde, sonuç push'ı `GenerationOrchestrator` → SignalR `"GenerationUpdate"`.
 7. **`Program.cs`'deki HttpClient registration sırasını bozma** — typed client'lar her servis için ayrı kayıtlı, paylaşılmamalı.
 8. **SignalR hub endpoint'ini değiştirme** — `/generationHub`. Frontend buna bağlı.
 9. **Frontend'i framework'leştirme** (React/Vue/Svelte) — IIFE modül kalıbı kasıtlı.
@@ -603,8 +593,6 @@ dotnet user-secrets clear         # Hepsini sil
 ## TECH DEBT
 
 **MARS warning in payment flows** — "Savepoints disabled because MARS enabled." Manual rollback handling expected. Consider refactor to disable MARS or restructure DB context if transactional safety becomes a concern. Not critical now due to existing idempotency + DB lock.
-
-**Affogato legacy code** — `Services/Generation/Providers/Legacy/Affogato/` altındaki tüm kod F.M.8'de silinecek. Bu süre boyunca yeni kod oraya yazılmaz, sadece referans/dokümantasyon amaçlı tutulur.
 
 **Stripe.net + Iyzipay paralel kullanım** — İki ödeme sağlayıcı paralel aktif. Webhook/callback handling'i her ikisinde de idempotent. Tek bir başarısız ödeme rollback'i için ikisinde de unit test ileride yazılmalı.
 

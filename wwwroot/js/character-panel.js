@@ -41,7 +41,7 @@ const CharacterPanel = (function () {
         bindEvents();
         // F.5c: Karakter listesi artık full-screen modal'daki statik (mock) Razor
         // kartlarından geliyor. Gerçek API entegrasyonu (loadCharactersFromBackend →
-        // /RenderNet/GetCharacters) F.6'da yeniden bağlanacak. Bu task'ta çağrı YOK:
+        // /Characters/List) F.6'da yeniden bağlanacak. Bu task'ta çağrı YOK:
         // aksi halde renderGrid() modal'daki mock kartları silerdi (ikisi de #characterGrid).
         // loadCharactersFromBackend();
         console.log('[CharacterPanel] initialized');
@@ -76,10 +76,10 @@ const CharacterPanel = (function () {
     // ═══════════════════════════════════════════════
 
     /**
-     * Backend'den karakterleri yükle (GET /RenderNet/GetCharacters)
+     * Backend'den karakterleri yükle (GET /Characters/List)
      */
     async function loadCharactersFromBackend() {
-        const response = await apiFetch('/RenderNet/GetCharacters?page=1&page_size=50', {
+        const response = await apiFetch('/Characters/List?page=1&pageSize=50', {
             method: 'GET'
         });
 
@@ -364,7 +364,7 @@ const CharacterPanel = (function () {
     }
 
     /**
-     * PUBLIC: Form submit öncesi prompt'taki @Name'leri {Name}'e çevir (RenderNet formatı).
+     * PUBLIC: Form submit öncesi prompt'taki @Name'leri {Name}'e çevir (geçmiş provider formatı).
      * Karakter seçili değilse girişi olduğu gibi döndürür.
      */
     function transformPromptForSubmit(prompt) {

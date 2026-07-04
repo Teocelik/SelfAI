@@ -159,7 +159,7 @@ const Toast = {
  * ÖRNEK KULLANIM:
  * 
  *  // GET isteği
- *  const data = await apiFetch('/RenderNet/GetFluxStyles');
+ *  const data = await apiFetch('/Catalog/Image');
  * 
  *  // POST isteği (JSON)
  *  const result = await apiFetch('/RenderNet/GenerateImage', {
@@ -172,8 +172,8 @@ const Toast = {
  * 
  *  // POST isteği (FormData - dosya yükleme)
  *  const formData = new FormData();
- *  formData.append('formFile', file);
- *  const uploadResult = await apiFetch('/RenderNet/GetAssetId', {
+ *  formData.append('file', file);
+ *  const uploadResult = await apiFetch('/Assets/Upload?purpose=Generic', {
  *      method: 'POST',
  *      body: formData,
  *      successMessage: 'Dosya yüklendi!',

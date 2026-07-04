@@ -10,7 +10,6 @@ using SelfAI.Hubs;
 using SelfAI.Middlewares;
 using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
-using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using SelfAI.Services.Generation.Abstractions;
 using SelfAI.Services.Generation.Providers.FalAi;
 using SelfAI.Services.Generation.Pricing;
@@ -63,13 +62,7 @@ builder.Services.AddSignalR();
 // Böylece bir kullanıcının TÜM aktif bağlantılarına (multi-tab) tek seferde yayın yapılabilir.
 builder.Services.AddSingleton<IUserIdProvider, FirebaseUserIdProvider>();
 
-// LEGACY — Affogato/RenderNet registrations (F.M.8'de silinecek)
-builder.Services.AddHttpClient<IRenderNetAssetService, RenderNetAssetService>();
-builder.Services.AddHttpClient<IRenderNetGenerationService, RenderNetGenerationService>();
-builder.Services.AddHttpClient<IRenderNetCharacterService, RenderNetCharacterService>();
-builder.Services.AddHttpClient<IRenderNetResourcesService, RenderNetResourcesService>();
-
-// NEW — fal.ai provider registrations (F.M.2+ phases)
+// fal.ai provider registrations (F.M.2+ phases)
 builder.Services.Configure<FalAiOptions>(
     builder.Configuration.GetSection("FalAiOptions"));
 
@@ -144,7 +137,7 @@ builder.Services.AddScoped<IPackageService, PackageService>();
 // Abonelik yaşam döngüsü: başlatma/aktivasyon/iptal + cüzdan top-up (DbContext scoped).
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
 
-// Karakter yönetimi business servisi — DB + Affogato API orkestrasyonu (F.6.1, DbContext scoped).
+// Karakter yönetimi business servisi — DB-only (F.6.1 + F.M.4, DbContext scoped).
 builder.Services.AddScoped<ICharacterService, CharacterService>();
 
 // Iyzico CheckoutForm ödeme servisi — mevcut IyzicoOptions config'ini kullanır (D.3.2).
@@ -190,10 +183,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         };
     });
 
-// Background Polling Service (Singleton olarak �al���r)
+// SignalR bağlantı takibi servisi (Singleton). GenerationHub buna bağlı.
+// NOT (F.M.8): Artık BackgroundService değil — Affogato queue-polling kaldırıldığı için
+// hosted loop'a gerek kalmadı. fal.ai polling'i FalAiClient.SubmitAndWaitAsync içinde.
 builder.Services.AddSingleton<GenerationPollingService>();
-builder.Services.AddHostedService(provider =>
-    provider.GetRequiredService<GenerationPollingService>());
 
 // F.M.4 — Character LoRA training polling (Singleton + HostedService dual registration:
 // orchestrator RegisterTrainingJob'u doğrudan çağırabilsin diye).
@@ -205,8 +198,6 @@ builder.Services.AddHostedService(provider =>
 // stale Pending subscription/payment'ları temizler. Scoped DbContext'i scope factory ile kullanır (D.3.3).
 builder.Services.AddHostedService<SubscriptionLifecycleService>();
 
-// RenderNet API ayarlar�n� yap�land�rma(konfig�rasyon)
-builder.Services.Configure<RenderNetOptions>(builder.Configuration.GetSection("RenderNetOptions"));
 // Iyzico(�deme y�ntemi) API ayarlar�n� yap�land�rma(konfig�rasyon)
 builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoOptions"));
 

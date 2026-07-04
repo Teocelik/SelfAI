@@ -28,6 +28,6 @@ public class StartGenerationRequest
 
     // ═══ F.M.6 — Pose Lock (ControlNet) ═══
     // PoseImageUrl set ise endpoint "fal-ai/flux-controlnet"'e override edilir.
-    public string? PoseImageUrl { get; set; }   // /Assets/UploadReference'tan dönen fal.ai URL
+    public string? PoseImageUrl { get; set; }   // /Assets/Upload?purpose=PoseLock'tan dönen fal.ai URL
     public decimal? PoseWeight { get; set; }    // ControlNet scale, default 0.6
 }

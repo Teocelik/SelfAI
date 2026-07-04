@@ -12,6 +12,8 @@ namespace SelfAI.Entities
     {
         public Guid Id { get; set; } = Guid.NewGuid();
         public Guid UserId { get; set; }
+        // Provider generation ID (fal.ai queue request ID). İsim geçmiş provider'dan kalma,
+        // F.7'de rename edilebilir (DB kolonu canlı veri uyumu için korunuyor).
         public string RenderNetGenerationId { get; set; }
         public int Cost { get; set; }
         public GenerationStatus Status { get; set; } = GenerationStatus.Pending;

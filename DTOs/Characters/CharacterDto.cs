@@ -3,16 +3,16 @@ namespace SelfAI.DTOs.Characters
     // Frontend'e dönen karakter temsili (modal listesi + create sonucu).
     public class CharacterDto
     {
-        // F.6.5 — artık Guid değil string: kullanıcı karakterleri için Guid.ToString(),
-        // sistem karakterleri için Affogato'nun "chr_xxx" ID'si. Generation endpoint
-        // CharacterId'yi zaten string aldığı için her iki format da uyumlu.
+        // F.6.5 — artık Guid değil string: kullanıcı karakterleri için Guid.ToString().
+        // (Geçmiş provider'da sistem karakterleri "chr_xxx" formatındaydı.) Generation
+        // endpoint CharacterId'yi zaten string aldığı için her iki format da uyumlu.
         public string Id { get; set; }
         public string Name { get; set; }
         public string Prompt { get; set; }
         public string ThumbnailUrl { get; set; }
         public string CharacterType { get; set; }  // "realistic" | "stylized"
 
-        // F.6.5 — true ise Affogato'nun default sistem karakteri. F.M.4 sonrası daima false
+        // F.6.5 — true ise geçmiş provider'ın default sistem karakteri. F.M.4 sonrası daima false
         // (sistem karakteri kavramı kaldırıldı), frontend uyumluluğu için tutulur.
         public bool IsSystemCharacter { get; set; }
 

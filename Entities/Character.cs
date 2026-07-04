@@ -9,11 +9,12 @@ namespace SelfAI.Entities
         // AppUser FK — karakterin sahibi
         public Guid UserId { get; set; }
 
-        // ⚠️ DEPRECATED (F.M.8'de silinir) — Affogato'nun döndürdüğü character id.
-        // fal.ai karakterlerinde null olur (artık required değil).
+        // ⚠️ DEPRECATED — geçmiş provider'ın (Affogato) döndürdüğü character id.
+        // fal.ai karakterlerinde null olur (artık required değil). Kullanılmıyor;
+        // DB kolonu canlı veri uyumu için tutuluyor, ileride ayrı migration ile kaldırılabilir.
         public string? AffogatoCharacterId { get; set; }
 
-        // ⚠️ DEPRECATED (F.M.8'de silinir) — Affogato'ya gönderilen unique name.
+        // ⚠️ DEPRECATED — geçmiş provider'a (Affogato) gönderilen unique name. Kullanılmıyor.
         public string? AffogatoCharacterName { get; set; }
 
         // Kullanıcı dostu görünür isim ("Mira")

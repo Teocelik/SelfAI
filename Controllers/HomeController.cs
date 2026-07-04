@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
 using SelfAI.Models;
-using SelfAI.Services.Interfaces;
-using SelfAI.Services.Generation.Providers.Legacy.Affogato;
 using SelfAI.ViewModels;
 
 namespace SelfAI.Controllers
@@ -13,17 +11,13 @@ namespace SelfAI.Controllers
     {
         private readonly ILogger<HomeController> _logger;
 
-        //TEST FÝELD
-        private readonly IRenderNetAssetService _renderNetService;
-
-        public HomeController(ILogger<HomeController> logger, IRenderNetAssetService renderNetService)
+        public HomeController(ILogger<HomeController> logger)
         {
             _logger = logger;
-            _renderNetService = renderNetService;
         }
 
-        #region Home sayfasý iþlemleri
-        //Home sayfasýný açar!
+        #region Home sayfasï¿½ iï¿½lemleri
+        //Home sayfasï¿½nï¿½ aï¿½ar!
         public IActionResult Index()
         {
             
@@ -36,7 +30,7 @@ namespace SelfAI.Controllers
             return View();
         }
 
-        //Home sayfasýndaki formu gönderir!
+        //Home sayfasï¿½ndaki formu gï¿½nderir!
         [HttpPost]
         public IActionResult Index(UserEmailViewModel model)
         {
@@ -46,10 +40,10 @@ namespace SelfAI.Controllers
             }
 
             /*
-             * Burada, modele girilen e - posta adresini ilk olarak Cloudflare API üzerinden bot olup olmadýðýný kontrol edeceðiz.
+             * Burada, modele girilen e - posta adresini ilk olarak Cloudflare API ï¿½zerinden bot olup olmadï¿½ï¿½ï¿½nï¿½ kontrol edeceï¿½iz.
 
-             * Eðer bot deðilse, e-posta adresini FireBase Auth API'yi üzerinden, kayýtlý deðilse
-             * kardedeceðiz veya kayýtlý ise oturumu açacaðýz.(FiraBase Auth bunu otomatik yapar)
+             * Eï¿½er bot deï¿½ilse, e-posta adresini FireBase Auth API'yi ï¿½zerinden, kayï¿½tlï¿½ deï¿½ilse
+             * kardedeceï¿½iz veya kayï¿½tlï¿½ ise oturumu aï¿½acaï¿½ï¿½z.(FiraBase Auth bunu otomatik yapar)
              */
 
             return View();
@@ -64,20 +58,20 @@ namespace SelfAI.Controllers
         // Global hata yakalama metodu
         public IActionResult Error()
         {
-            // Hata bilgilerini alalým
+            // Hata bilgilerini alalï¿½m
             var context = HttpContext.Features.Get<IExceptionHandlerFeature>();
 
-            // Hata nesnesini alalým
-            var exception = context?.Error; // Null olma durumu için null kontrolü yapýyoruz(?)
+            // Hata nesnesini alalï¿½m
+            var exception = context?.Error; // Null olma durumu iï¿½in null kontrolï¿½ yapï¿½yoruz(?)
 
-            // Hata detaylarýný loglayalým
-            _logger.LogError(exception, "Global hata yakalandý: {Message}", exception?.Message);
+            // Hata detaylarï¿½nï¿½ loglayalï¿½m
+            _logger.LogError(exception, "Global hata yakalandï¿½: {Message}", exception?.Message);
 
-            //Kullanýcýya gösterilecek hata sayfasý modeli
+            //Kullanï¿½cï¿½ya gï¿½sterilecek hata sayfasï¿½ modeli
             var errorViewModel = new ErrorViewModel
             {
-                Title = "Bir hata oluþtu",
-                Message = "Üzgünüz, iþleminizi tamamlayamadýk. Lütfen tekrar deneyiniz."
+                Title = "Bir hata oluï¿½tu",
+                Message = "ï¿½zgï¿½nï¿½z, iï¿½leminizi tamamlayamadï¿½k. Lï¿½tfen tekrar deneyiniz."
             };
 
             return View(errorViewModel);
