@@ -82,6 +82,10 @@
         signalRConnection.on('CharacterTrainingUpdate', function (payload) {
             console.log('[SignalR] CharacterTrainingUpdate:', payload);
 
+            // F.M.UI.1b — Training tamamlandı (Ready/Failed) → ekran altı progress bar'ı gizle.
+            const trainingBar = document.getElementById('trainingProgress');
+            if (trainingBar) trainingBar.hidden = true;
+
             const name = payload.name || 'Karakter';
 
             if (payload.status === 'Ready') {

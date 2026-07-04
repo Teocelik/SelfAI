@@ -21,12 +21,17 @@
     <!-- Main Container -->
     <div class="studio-page flex h-screen w-full">
         <!-- Main Canvas Area -->
-        <div class="flex-1 p-6 overflow-hidden order-1 transition-all duration-300 ease-out" id="mainCanvas">
+        <div class="flex-1 p-6 overflow-hidden order-1 transition-all duration-300 ease-out flex flex-col" id="mainCanvas">
             @* F.4.4: Studio'nun kendi <header>'ı kaldırıldı. Logo, credit pill,
                kullanıcı adı ve logout artık _AppLayout'taki paylaşılan üst nav'da. *@
 
+            @* F.M.UI.1b — Studio hero (minimal başlık). CSS: generated-results.css *@
+            <header class="studio-hero">
+                <h1 class="studio-hero__title">Yaratmaya başlayın</h1>
+            </header>
+
             <!-- Canvas Area -->
-            <div class="glass-canvas p-8 h-full max-h-[calc(100vh-140px)] flex items-center justify-center relative overflow-hidden">
+            <div class="glass-canvas p-8 flex-1 min-h-0 flex items-center justify-center relative overflow-hidden">
                 <!-- Default State -->
                 <div id="defaultState" class="text-center">
                     <div class="w-24 h-24 bg-surface-elevated rounded-full flex items-center justify-center mb-6 mx-auto">
@@ -235,12 +240,15 @@
                             
                         </div>
 
-                        <!-- Image Preview -->
-                        <div id="faceLockPanelPreview" class="hidden flex flex-col items-center">
-                            <img id="faceLockPanelPreviewImg" src="" alt="Face Lock Preview" class="w-[90px] h-[110px] object-cover rounded-lg border border-[#00CED1]" />
-                            <button type="button" id="removeFaceLockPanelImage" class="mt-3 text-[10px] text-[#EF4444] hover:text-[#DC2626] transition-colors flex items-center">
-                                <i class="fas fa-trash-alt mr-1 text-[8px]"></i>Remove
-                            </button>
+                        <!-- Image Preview (F.M.UI.1b — büyük kart + Değiştir/Kaldır overlay) -->
+                        <div id="faceLockPanelPreview" class="hidden w-full flex flex-col items-center">
+                            <div class="face-lock-preview">
+                                <img id="faceLockPanelPreviewImg" src="" alt="Face Lock Preview" class="face-lock-preview__image" />
+                                <div class="face-lock-preview__actions">
+                                    <button type="button" id="faceLockReplaceBtn" class="face-lock-preview__action">Değiştir</button>
+                                    <button type="button" id="removeFaceLockPanelImage" class="face-lock-preview__action face-lock-preview__action--danger">Kaldır</button>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -730,9 +738,27 @@
         </div>
     </div>
 
+    @* F.M.UI.1b — Karakter LoRA training progress bar. Ekran altında sabit;
+       submit'te character-modal.js gösterir (modal AÇIK kalır), CharacterTrainingUpdate
+       (SignalR) gelince app.js gizler. *@
+    <div class="training-progress" id="trainingProgress" hidden>
+        <div class="training-progress__content">
+            <div class="training-progress__spinner"></div>
+            <div class="training-progress__text">
+                <div class="training-progress__title" id="trainingProgressTitle">
+                    Karakter eğitiliyor
+                </div>
+                <div class="training-progress__subtitle" id="trainingProgressSubtitle">
+                    Bu işlem 3-5 dakika sürer, arka planda devam edecek.
+                </div>
+            </div>
+        </div>
+    </div>
+
     @section Styles {
         <link rel="stylesheet" href="~/css/character-modal.css" />
         <link rel="stylesheet" href="~/css/model-picker.css" />
+        <link rel="stylesheet" href="~/css/generated-results.css" />
     }
 
     <!-- JavaScript Files -->

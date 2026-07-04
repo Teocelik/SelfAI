@@ -17,6 +17,7 @@ const FaceLockPanel = (function () {
     let faceLockPanelPreview = null;
     let faceLockPanelPreviewImg = null;
     let removeFaceLockPanelImage = null;
+    let faceLockReplaceBtn = null; // 🆕 F.M.UI.1b — preview "Değiştir" butonu
     let faceLockToggle = null;
     let faceLockHiddenInput = null;
     let faceLockAssetIdInput = null; // 🆕 Asset ID hidden input
@@ -51,6 +52,7 @@ const FaceLockPanel = (function () {
         faceLockPanelPreview = document.getElementById('faceLockPanelPreview');
         faceLockPanelPreviewImg = document.getElementById('faceLockPanelPreviewImg');
         removeFaceLockPanelImage = document.getElementById('removeFaceLockPanelImage');
+        faceLockReplaceBtn = document.getElementById('faceLockReplaceBtn'); // 🆕
         faceLockToggle = document.getElementById('faceLockToggle');
         faceLockHiddenInput = document.getElementById('faceLockImage');
         faceLockAssetIdInput = document.getElementById('faceLockAssetId'); // 🆕
@@ -86,6 +88,15 @@ const FaceLockPanel = (function () {
         // Remove button
         if (removeFaceLockPanelImage) {
             removeFaceLockPanelImage.addEventListener('click', handleRemoveImage);
+        }
+
+        // 🆕 F.M.UI.1b — "Değiştir": dosya seçiciyi aç. stopPropagation ile upload
+        // area click handler'ının ikinci kez tetiklenmesini önler (çift dialog).
+        if (faceLockReplaceBtn) {
+            faceLockReplaceBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                if (faceLockPanelImage && !isUploading) faceLockPanelImage.click();
+            });
         }
 
         // Close on outside click

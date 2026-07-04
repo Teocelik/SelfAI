@@ -1,0 +1,285 @@
+/* ============================================================================
+   F.M.UI.1b — Studio görsel iyileştirmeleri
+   Bu dosya SADECE additive Studio UI class'larını içerir. main.css (Tailwind
+   derlemesi) üretilen dosya olduğu için elle düzenlenmez; yeni class'lar burada.
+   Bölümler: (A) Sonuç kartları + grid, (B) Studio hero, (C) Training progress,
+   (D) Face Lock preview.
+   Design token'lar: accent #00CED1, border rgba(255,255,255,0.12).
+   Lightbox stilleri lightbox.css'te (yeniden kullanılıyor) — burada YOK.
+   ============================================================================ */
+
+/* ─── A. GENERATED RESULT CARDS ─────────────────────────────────────────────
+   #imageContainer (canvas) içine render edilir. showGeneratedImages grid'i
+   data-output-gallery/data-output-card attribute'ları ile üretir; mevcut
+   lightbox.js delegation'ı bu attribute'ları yakalar (yeni lightbox YOK). */
+
+.generated-results-wrap {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-height: 0; /* flex child scroll için */
+}
+
+.generated-results__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 4px;
+    flex-shrink: 0;
+}
+
+.generated-results__title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    color: #FFFFFF;
+    margin: 0;
+}
+
+.generated-results__clear {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: rgba(255, 255, 255, 0.7);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.generated-results__clear:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.25);
+}
+
+.generated-results__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(220px, 100%), 1fr));
+    gap: 12px;
+    overflow-y: auto;
+    align-content: start;
+    padding: 2px;
+    min-height: 0;
+    flex: 1;
+}
+
+.generated-card {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    cursor: pointer;
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
+}
+
+.generated-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(0, 206, 209, 0.4);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.generated-card__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.generated-card__actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 2;
+}
+
+.generated-card:hover .generated-card__actions {
+    opacity: 1;
+}
+
+.generated-card__action {
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.7);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    font-size: 0.85rem;
+    transition: background 0.2s, transform 0.15s;
+}
+
+.generated-card__action:hover {
+    background: rgba(0, 0, 0, 0.9);
+    transform: scale(1.08);
+}
+
+.generated-card__action--delete:hover {
+    background: rgba(220, 38, 38, 0.9);
+}
+
+/* ─── B. STUDIO HERO ────────────────────────────────────────────────────── */
+
+.studio-hero {
+    padding: 4px 4px 16px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.studio-hero__title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #FFFFFF;
+    margin: 0;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #FFFFFF 0%, #B0B0B0 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+@media (max-width: 720px) {
+    .studio-hero {
+        padding: 2px 4px 12px;
+    }
+
+    .studio-hero__title {
+        font-size: 1.2rem;
+    }
+}
+
+/* ─── C. TRAINING PROGRESS BAR ──────────────────────────────────────────────
+   Ekran altında sabit. Character modal submit'te gösterilir, modal açık kalır;
+   CharacterTrainingUpdate (SignalR) gelince gizlenir. z-index 900: side panel
+   (100) üstünde, lightbox (1000) altında — hiyerarşiye uygun. */
+
+.training-progress[hidden] {
+    display: none;
+}
+
+.training-progress {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 900;
+    padding: 14px 22px;
+    background: rgba(20, 20, 20, 0.95);
+    border: 1px solid rgba(0, 206, 209, 0.3);
+    border-radius: 12px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(0, 206, 209, 0.1);
+    max-width: 90vw;
+}
+
+.training-progress__content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.training-progress__spinner {
+    width: 24px;
+    height: 24px;
+    border: 2px solid rgba(0, 206, 209, 0.2);
+    border-top-color: #00CED1;
+    border-radius: 50%;
+    animation: training-spin 1s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes training-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.training-progress__title {
+    color: #FFFFFF;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.training-progress__subtitle {
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.78rem;
+    margin-top: 2px;
+}
+
+/* ─── D. FACE LOCK PREVIEW (büyük kart) ─────────────────────────────────────
+   Mevcut #faceLockPanelPreview yapısı korunur; sadece görsel büyütülür ve
+   Değiştir/Kaldır aksiyonları eklenir. Panel genişliği 260px, preview responsive
+   (max 200px). */
+
+.face-lock-preview {
+    position: relative;
+    width: 100%;
+    max-width: 200px;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(0, 206, 209, 0.5);
+    box-shadow: 0 4px 16px rgba(0, 206, 209, 0.15);
+    background: rgba(255, 255, 255, 0.03);
+}
+
+.face-lock-preview__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.face-lock-preview__actions {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    gap: 4px;
+    padding: 8px;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.face-lock-preview:hover .face-lock-preview__actions {
+    opacity: 1;
+}
+
+.face-lock-preview__action {
+    flex: 1;
+    padding: 6px 8px;
+    background: rgba(255, 255, 255, 0.15);
+    color: #FFFFFF;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: background 0.2s;
+}
+
+.face-lock-preview__action:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+.face-lock-preview__action--danger:hover {
+    background: rgba(220, 38, 38, 0.85);
+}

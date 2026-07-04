@@ -850,6 +850,10 @@
             const msg = successJson.message || 'Karakter eğitimi başlatıldı. Yaklaşık 5 dakika sürer.';
             showToast('success', msg);
 
+            // F.M.UI.1b — Ekran altı progress bar. Modal AÇIK kalır (karar); bar
+            // arka planda görünür, CharacterTrainingUpdate (SignalR) gelince app.js gizler.
+            showTrainingProgress(name);
+
             resetCreationForm();
 
             // Yeni karakter "Eğitiliyor" badge'iyle grid'e dahil olsun diye listeyi taze çek
@@ -886,6 +890,16 @@
     function getAntiForgeryToken() {
         const tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
         return tokenEl ? tokenEl.value : '';
+    }
+
+    // F.M.UI.1b — Ekran altı training progress bar'ı göster. Gizleme app.js'te
+    // CharacterTrainingUpdate (SignalR) handler'ında yapılır (Ready/Failed).
+    function showTrainingProgress(characterName) {
+        const progress = document.getElementById('trainingProgress');
+        const title = document.getElementById('trainingProgressTitle');
+        if (!progress) return;
+        if (title) title.textContent = '"' + characterName + '" eğitiliyor';
+        progress.hidden = false;
     }
 
     function showToast(type, message) {

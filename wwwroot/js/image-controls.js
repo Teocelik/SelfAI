@@ -407,11 +407,17 @@ const ImageControls = (function () {
     }
 
     /**
-     * 🆕 Birden fazla görseli canvas'a render et (multi-model üretimi)
+     * 🆕 F.M.UI.1b — Üretilen görselleri "Sonuçlar" grid'inde kart olarak göster.
      *
-     * showGeneratedImage tek bir <img>'i güncellerken, bu metot imageContainer'ın
-     * içeriğini baştan kurarak N görseli basit bir grid içinde gösterir.
-     * Tek görselde tek sütun, 2+ görselde 2 sütunlu responsive grid kullanılır.
+     * Mevcut multi-image akışını zenginleştirir: header (Sonuçlar + Temizle),
+     * her kartta hover'da indir/sil aksiyonları. Yeni sonuçlar başa eklenir
+     * (session içi birikir); "Temizle" tümünü kaldırır. data-output-gallery /
+     * data-output-card attribute'ları KORUNUR → mevcut lightbox.js (F.7)
+     * delegation'ı kartları yakalar (yeni lightbox oluşturulmaz).
+     *
+     * Aksiyon butonları <button> olduğu için lightbox delegation'ı
+     * (e.target.closest('button, a') → return) kart görseline tıklamayı
+     * lightbox'a, buton tıklamasını ilgili aksiyona yönlendirir.
      *
      * @param {string[]} urls - başarıyla üretilmiş görsel URL'leri
      */
@@ -427,32 +433,145 @@ const ImageControls = (function () {
         if (loadingState) loadingState.classList.add('hidden');
         imageContainer.classList.remove('hidden');
 
-        // Tek görsel → tek sütun, çoklu görsel → 2 sütunlu grid
-        const gridColsClass = urls.length === 1 ? 'grid-cols-1' : 'grid-cols-2';
+        const grid = ensureResultsGrid();
+        // Yeni sonuçlar başa eklenir (en yeni üstte)
+        urls.forEach((url, index) => {
+            grid.insertBefore(buildResultCard(url, index), grid.firstChild);
+        });
+    }
 
-        const grid = document.createElement('div');
-        grid.className = `grid ${gridColsClass} gap-4 w-full h-full overflow-auto p-2`;
-        // 🆕 F.7: lightbox event delegation bu container'dan generation görsellerini toplar
+    /**
+     * Sonuç wrapper'ı (header + grid) yoksa oluşturur, grid'i döndürür.
+     * Var olan grid'e yeni kartlar eklenerek sonuçlar birikir.
+     */
+    function ensureResultsGrid() {
+        let grid = imageContainer.querySelector('[data-output-gallery]');
+        if (grid) return grid;
+
+        // İlk üretim — canvas'taki statik placeholder markup'ı temizlenip
+        // sonuç yapısı kurulur.
+        imageContainer.innerHTML = '';
+
+        const wrap = document.createElement('div');
+        wrap.className = 'generated-results-wrap';
+
+        const header = document.createElement('div');
+        header.className = 'generated-results__header';
+
+        const title = document.createElement('h2');
+        title.className = 'generated-results__title';
+        title.textContent = 'Sonuçlar';
+
+        const clearBtn = document.createElement('button');
+        clearBtn.type = 'button';
+        clearBtn.className = 'generated-results__clear';
+        clearBtn.textContent = 'Temizle';
+        clearBtn.title = 'Tümünü temizle';
+        clearBtn.addEventListener('click', clearResults);
+
+        header.appendChild(title);
+        header.appendChild(clearBtn);
+
+        grid = document.createElement('div');
+        grid.className = 'generated-results__grid';
+        // F.7: lightbox event delegation bu container'dan generation görsellerini toplar
         grid.setAttribute('data-output-gallery', '');
 
-        urls.forEach((url, index) => {
-            const wrapper = document.createElement('div');
-            wrapper.className = 'relative flex items-center justify-center';
-            // 🆕 F.7: kart tıklaması lightbox açar (markup/oluşturma mantığı aynı, sadece attribute)
-            wrapper.setAttribute('data-output-card', '');
+        wrap.appendChild(header);
+        wrap.appendChild(grid);
+        imageContainer.appendChild(wrap);
 
-            const img = document.createElement('img');
-            img.src = url;
-            img.alt = `Generated AI Image ${index + 1}`;
-            img.className = 'max-w-full max-h-full object-contain rounded-lg shadow-lg';
+        return grid;
+    }
 
-            wrapper.appendChild(img);
-            grid.appendChild(wrapper);
+    /**
+     * Tek bir sonuç kartı (görsel + indir/sil aksiyonları) oluşturur.
+     */
+    function buildResultCard(url, index) {
+        const card = document.createElement('div');
+        card.className = 'generated-card';
+        // F.7: kart tıklaması lightbox açar
+        card.setAttribute('data-output-card', '');
+
+        const img = document.createElement('img');
+        img.className = 'generated-card__image';
+        img.src = url;
+        img.alt = `Generated AI Image ${index + 1}`;
+        img.loading = 'lazy';
+        card.appendChild(img);
+
+        const actions = document.createElement('div');
+        actions.className = 'generated-card__actions';
+
+        const downloadBtn = document.createElement('button');
+        downloadBtn.type = 'button';
+        downloadBtn.className = 'generated-card__action generated-card__action--download';
+        downloadBtn.title = 'İndir';
+        downloadBtn.innerHTML = '<i class="fas fa-download"></i>';
+        downloadBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            downloadImage(url);
         });
+        actions.appendChild(downloadBtn);
 
-        // imageContainer'ı temizleyip yeni grid'i yerleştir
+        const deleteBtn = document.createElement('button');
+        deleteBtn.type = 'button';
+        deleteBtn.className = 'generated-card__action generated-card__action--delete';
+        deleteBtn.title = 'Sil';
+        deleteBtn.innerHTML = '<i class="fas fa-times"></i>';
+        deleteBtn.addEventListener('click', function (e) {
+            e.stopPropagation();
+            removeResultCard(card);
+        });
+        actions.appendChild(deleteBtn);
+
+        card.appendChild(actions);
+        return card;
+    }
+
+    /**
+     * Tek kartı grid'den kaldırır; son kart da gidince canvas default state'e döner.
+     */
+    function removeResultCard(card) {
+        const grid = card.parentElement;
+        card.remove();
+        if (grid && grid.children.length === 0) {
+            clearResults();
+        }
+    }
+
+    /**
+     * Tüm sonuçları temizler ve canvas'ı boş (default) state'e döndürür.
+     */
+    function clearResults() {
         imageContainer.innerHTML = '';
-        imageContainer.appendChild(grid);
+        showDefaultState();
+    }
+
+    /**
+     * Görseli blob olarak indirir (CORS destekliyse). Hata olursa yeni sekmede açar.
+     */
+    async function downloadImage(url) {
+        try {
+            const response = await fetch(url);
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = objectUrl;
+            const ext = (blob.type.split('/')[1] || 'jpg').toLowerCase();
+            a.download = `selfai-${Date.now()}.${ext}`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(objectUrl);
+
+            if (typeof Toast !== 'undefined' && Toast.success) Toast.success('Görsel indirildi.');
+        } catch (err) {
+            console.error('İndirme hatası:', err);
+            // CORS vb. — fallback: yeni sekmede aç
+            window.open(url, '_blank', 'noopener');
+        }
     }
 
     /**
