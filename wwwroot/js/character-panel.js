@@ -189,9 +189,9 @@ const CharacterPanel = (function () {
         setHiddenValue('characterId', id);
         setHiddenValue('characterMode', selectedMode);
 
-        // ─── Mutex: Character aktif → Face Lock + Pose Lock otomatik temizlenir (F.M.6) ───
-        // F.M.4'teki inline Face-disable mantığının yerini FeatureMutex aldı; artık üç
-        // feature (Character/Face/Pose) tek noktadan karşılıklı dışlanır.
+        // ─── Mutex: Character aktif → Face Lock otomatik temizlenir (F.M.6) ───
+        // F.M.4'teki inline Face-disable mantığının yerini FeatureMutex aldı; artık iki
+        // feature (Character/Face) tek noktadan karşılıklı dışlanır.
         if (window.FeatureMutex) window.FeatureMutex.setActive('character');
 
         // F.M.6 hotfix: Generate button state için değişimi bildir

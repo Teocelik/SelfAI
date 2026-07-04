@@ -6,7 +6,7 @@ using SelfAI.Services.Interfaces;
 namespace SelfAI.Controllers
 {
     /// <summary>
-    /// Asset upload/list/delete endpoint'i (F.M.7). Face Lock / Pose Lock / generic upload için
+    /// Asset upload/list/delete endpoint'i (F.M.7). Face Lock / generic upload için
     /// tek dosyalık akış. Character training upload'ları buradan YASAKLI — /Characters/Create kullanır.
     ///
     /// HTTP transport only — iş mantığı yok. Upload + persist + resolve IAssetService'te.
@@ -24,7 +24,7 @@ namespace SelfAI.Controllers
         }
 
         /// <summary>
-        /// Face Lock / Pose Lock / generic tek dosya upload. Purpose query parametresiyle amaç belirtilir.
+        /// Face Lock / generic tek dosya upload. Purpose query parametresiyle amaç belirtilir.
         /// </summary>
         [HttpPost("Upload")]
         public async Task<IActionResult> Upload(
@@ -37,7 +37,7 @@ namespace SelfAI.Controllers
 
             // Purpose parse — kullanıcı input, güvenli parse
             if (!Enum.TryParse<AssetPurpose>(purpose, ignoreCase: true, out var purposeEnum))
-                return BadRequest(new { success = false, message = "Geçersiz purpose. FaceLock, PoseLock veya Generic olmalı." });
+                return BadRequest(new { success = false, message = "Geçersiz purpose. FaceLock veya Generic olmalı." });
 
             // Character training upload'ı bu endpoint'ten YASAKLI — CharactersController.Create kullanmalı
             if (purposeEnum == AssetPurpose.CharacterTraining)

@@ -12,9 +12,7 @@ public enum AssetPurpose
     /// <summary>Face Lock reference (tek yüz görseli).</summary>
     FaceLock = 1,
 
-    /// <summary>Pose Lock reference (tek poz görseli). F.M.6'da deferred.</summary>
-    PoseLock = 2,
-
     /// <summary>Genel amaçlı upload (F.M.7 sonrası kullanılabilir).</summary>
+    /// <remarks>Değer 3 stabildir — F.M.UI.1a'da kaldırılan 2 numaralı değerin yerine geri kaymaz.</remarks>
     Generic = 3
 }

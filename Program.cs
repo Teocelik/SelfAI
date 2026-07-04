@@ -98,7 +98,6 @@ builder.Services.AddScoped<IModelCatalogOrchestrator, ModelCatalogOrchestrator>(
 builder.Services.AddScoped<DynamicImageGenerator>();
 builder.Services.AddScoped<FluxLoraGenerator>();  // Karakter LoRA inference (orchestrator seçer).
 builder.Services.AddScoped<FluxPulidGenerator>();        // F.M.6 — Face Lock (orchestrator seçer).
-builder.Services.AddScoped<FluxControlNetGenerator>();   // F.M.6 — Pose Lock (orchestrator seçer).
 
 // Generation orchestrator — kredi düşme + history + SignalR koordinasyonu.
 builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();

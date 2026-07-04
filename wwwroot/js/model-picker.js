@@ -60,7 +60,7 @@ const ModelPicker = (function () {
             btn.addEventListener('click', () => setFilter(btn.dataset.filter, btn));
         });
 
-        // F.M.6 hotfix: Character/Face aktifken trigger'da override rozeti göster.
+        // Character/Face aktifken trigger'da override rozeti göster.
         document.addEventListener('feature-mutex-changed', function (e) {
             updateTriggerOverride(e.detail ? e.detail.active : null);
         });
@@ -70,9 +70,8 @@ const ModelPicker = (function () {
     }
 
     /**
-     * F.M.6 hotfix: Feature (character/face) aktifken model seçiminin override
-     * edildiğini trigger butonunda rozetle gösterir. Pose UI gizli olduğu için
-     * 'pose' gelmez; gelse bile default'ta rozet render edilmez.
+     * Feature (character/face) aktifken model seçiminin otomatik override edildiğini
+     * trigger butonunda rozetle gösterir. Bilinmeyen feature'da rozet render edilmez.
      */
     function updateTriggerOverride(activeFeature) {
         if (!trigger) return;
@@ -87,13 +86,13 @@ const ModelPicker = (function () {
         let badgeText;
         switch (activeFeature) {
             case 'character':
-                badgeText = 'Karakter aktif · Flux LoRA';
+                badgeText = 'Otomatik: Flux LoRA';
                 break;
             case 'face':
-                badgeText = 'Face Lock aktif · PuLID Flux';
+                badgeText = 'Otomatik: PuLID Flux';
                 break;
             default:
-                // Bilinmeyen/gizli feature (ör. pose) → rozet gösterme
+                // Bilinmeyen feature → rozet gösterme
                 if (existing) existing.remove();
                 trigger.classList.remove('is-overridden');
                 return;

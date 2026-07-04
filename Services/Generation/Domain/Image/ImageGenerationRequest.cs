@@ -22,8 +22,4 @@ public class ImageGenerationRequest
     // ═══ F.M.6 — Face Lock alanları (yalnızca FluxPulidGenerator kullanır) ═══
     public string? FaceImageUrl { get; set; }   // fal.ai storage URL (reference_image_url)
     public decimal? FaceWeight { get; set; }    // PuLID id_weight, 0.5–1.5, default 1.0
-
-    // ═══ F.M.6 — Pose Lock alanları (yalnızca FluxControlNetGenerator kullanır) ═══
-    public string? PoseImageUrl { get; set; }   // fal.ai storage URL (control_image_url)
-    public decimal? PoseWeight { get; set; }    // ControlNet scale, 0.3–0.9, default 0.6
 }

@@ -846,15 +846,13 @@ $$ {
     ================================================ */
 
     #characterBtn,
-    #faceLockBtn,
-    #poseLockBtn {
+    #faceLockBtn {
         min-width: 0;
         flex: 1 1 0%;
     }
 
     #characterBtn .flex-col span,
-    #faceLockBtn .flex-col span,
-    #poseLockBtn .flex-col span {
+    #faceLockBtn .flex-col span {
     white-space: nowrap;
     font-size: 0.75rem;
     }
@@ -1082,28 +1080,6 @@ $$ {
     #characterPanel.open {
         transform: translateX(0) !important;
         opacity: 1 !important;
-    }
-
-/* ================================================
-   POSE LOCK PANEL STYLES (Face Lock paneliyle aynı dil)
-   ================================================ */
-#poseLockPanel {
-    /* F.4.3: yüzey gölgesi .glass-panel'e taşındı; burada yalnızca açılış animasyonu kalır */
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-    #poseLockPanel.open {
-        transform: translateX(0) !important;
-        opacity: 1 !important;
-    }
-
-#poseLockPanelUploadArea {
-    transition: all 0.2s ease;
-}
-
-    #poseLockPanelUploadArea:hover {
-        border-color: #00CED1;
-        background-color: rgba(0, 206, 209, 0.05);
     }
 
 /* Face Lock Upload Area */
@@ -1362,8 +1338,7 @@ END FACE LOCK PANEL STYLES
    ile otomatik kare. align-self:center, parent'ın stretch'ini iptal edip
    aspect-ratio'nun kareyi vermesini sağlar (markup/parent'a dokunmadan). */
 #characterBtn,
-#faceLockBtn,
-#poseLockBtn {
+#faceLockBtn {
     /* Flat yüzey — minimal lift, glass yok */
     background: rgba(255, 255, 255, 0.025);
     backdrop-filter: none;
@@ -1389,40 +1364,34 @@ END FACE LOCK PANEL STYLES
     position: relative;
     cursor: pointer;
 }
-/* Bu 3 butonda pseudo-element kalıntısı olmasın — flat dili koru */
+/* Bu 2 butonda pseudo-element kalıntısı olmasın — flat dili koru */
 #characterBtn::before, #characterBtn::after,
-#faceLockBtn::before, #faceLockBtn::after,
-#poseLockBtn::before, #poseLockBtn::after {
+#faceLockBtn::before, #faceLockBtn::after {
     content: none;
 }
 #characterBtn:hover,
-#faceLockBtn:hover,
-#poseLockBtn:hover {
+#faceLockBtn:hover {
     background: rgba(255, 255, 255, 0.05);
     border-color: rgba(255, 255, 255, 0.08);
 }
 #characterBtn:active,
-#faceLockBtn:active,
-#poseLockBtn:active {
+#faceLockBtn:active {
     background: rgba(255, 255, 255, 0.02);
     transition-duration: 80ms;
 }
 #characterBtn:focus-visible,
-#faceLockBtn:focus-visible,
-#poseLockBtn:focus-visible {
+#faceLockBtn:focus-visible {
     outline: 2px solid rgba(0, 206, 209, 0.5);
     outline-offset: 2px;
 }
 /* Selected — asset seçili: subtle turkuaz tint, glow/shadow YOK */
 #characterBtn.is-selected, #characterBtn[data-has-asset="true"],
-#faceLockBtn.is-selected, #faceLockBtn[data-has-asset="true"],
-#poseLockBtn.is-selected, #poseLockBtn[data-has-asset="true"] {
+#faceLockBtn.is-selected, #faceLockBtn[data-has-asset="true"] {
     background: rgba(0, 206, 209, 0.06);
     border-color: rgba(0, 206, 209, 0.25);
 }
 #characterBtn.is-selected:hover, #characterBtn[data-has-asset="true"]:hover,
-#faceLockBtn.is-selected:hover, #faceLockBtn[data-has-asset="true"]:hover,
-#poseLockBtn.is-selected:hover, #poseLockBtn[data-has-asset="true"]:hover {
+#faceLockBtn.is-selected:hover, #faceLockBtn[data-has-asset="true"]:hover {
     background: rgba(0, 206, 209, 0.09);
     border-color: rgba(0, 206, 209, 0.35);
 }
@@ -1577,11 +1546,11 @@ END FACE LOCK PANEL STYLES
 
 /* ================================================
    F.4.3 — FLOATING PANELS LIQUID GLASS
-   Character / Face Lock / Pose Lock panelleri solid #1E1E1E + #333 +
+   Character / Face Lock panelleri solid #1E1E1E + #333 +
    hardcoded turkuaz yüzeyden Liquid Glass diline geçer. Tek accent: #00CED1.
    design-tokens.md PART 2 referans.
-   KISIT: JS modüllerine (face-lock-panel.js, character-panel.js,
-   pose-lock-panel.js) ve inline positioning'e DOKUNULMADI. JS'in toggle
+   KISIT: JS modüllerine (face-lock-panel.js, character-panel.js) ve inline
+   positioning'e DOKUNULMADI. JS'in toggle
    ettiği class'lar (.character-card, border-[#00CED1], bg-[#00CED1],
    bg-[#2A2A2A], ...) bu CSS'te kancalanarak cam görünüm kazandı; davranış
    birebir korunur.

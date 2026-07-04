@@ -2,8 +2,8 @@ namespace SelfAI.Services.Generation.Orchestrators;
 
 /// <summary>
 /// Studio frontend'in JSON gövdesi. Model + prompt + aspect ratio (F.M.3) +
-/// opsiyonel Character (F.M.4) / Face Lock / Pose Lock (F.M.6) kişiselleştirme.
-/// Character/Face/Pose üçünden en fazla biri set olabilir (mutex — orchestrator doğrular).
+/// opsiyonel Character (F.M.4) / Face Lock (F.M.6) kişiselleştirme.
+/// Character/Face ikisinden en fazla biri set olabilir (mutex — orchestrator doğrular).
 /// </summary>
 public class StartGenerationRequest
 {
@@ -25,9 +25,4 @@ public class StartGenerationRequest
     // sahiplik kontrolüyle URL'e resolve eder (frontend artık ham URL göndermez).
     public Guid? FaceAssetId { get; set; }      // /Assets/Upload?purpose=FaceLock'tan dönen Asset ID
     public decimal? FaceWeight { get; set; }    // PuLID id_weight, default 1.0
-
-    // ═══ F.M.6 — Pose Lock (ControlNet) ═══
-    // PoseImageUrl set ise endpoint "fal-ai/flux-controlnet"'e override edilir.
-    public string? PoseImageUrl { get; set; }   // /Assets/Upload?purpose=PoseLock'tan dönen fal.ai URL
-    public decimal? PoseWeight { get; set; }    // ControlNet scale, default 0.6
 }

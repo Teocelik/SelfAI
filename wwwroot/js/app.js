@@ -21,7 +21,6 @@
         initImageControls();
         initSeedHandler();
         initCharacterPanel();
-        initPoseLockPanel();
         initGenerateButtonState();
         initFormHandler();
         initSignalR();
@@ -160,8 +159,8 @@
         ImageControls.setGenerateButtonState(true);
 
         // 🆕 F.M.4/F.M.6: Payload modelEndpoint + prompt + aspectRatio (+ numImages) +
-        // opsiyonel characterId/characterMode (LoRA) veya faceImageUrl (PuLID) veya
-        // poseImageUrl (ControlNet). Üçü mutex; biri set ise backend endpoint'i override eder.
+        // opsiyonel characterId/characterMode (LoRA) veya faceAssetId (PuLID).
+        // İkisi mutex; biri set ise backend endpoint'i override eder.
         const promptInput = document.getElementById('promptInput');
         const modelInput = document.getElementById('selectedModelValue');
         const aspectSelect = document.querySelector('select[name="AspectRatio"]');
@@ -189,14 +188,6 @@
         if (faceAssetId) {
             payload.faceAssetId = faceAssetId;
             payload.faceWeight = 1.0;
-        }
-
-        // F.M.6: Pose Lock seçiliyse ControlNet'e yönlendir (weight F.M.6'da sabit 0.6).
-        const poseImageUrl = window.PoseLockPanel && window.PoseLockPanel.getPoseImageUrl
-            ? window.PoseLockPanel.getPoseImageUrl() : null;
-        if (poseImageUrl) {
-            payload.poseImageUrl = poseImageUrl;
-            payload.poseWeight = 0.6;
         }
 
         // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
@@ -316,11 +307,6 @@
     function initCharacterPanel() {
         if (typeof CharacterPanel !== 'undefined') CharacterPanel.init();
         else console.warn('CharacterPanel module not found');
-    }
-
-    function initPoseLockPanel() {
-        if (typeof PoseLockPanel !== 'undefined') PoseLockPanel.init();
-        else console.warn('PoseLockPanel module not found');
     }
 
     function initGenerateButtonState() {

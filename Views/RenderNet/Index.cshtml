@@ -263,10 +263,6 @@
            (bkz. view sonundaki #characterModal). Studio'daki Character BUTONU
            (#characterBtn, Consistency Controls içinde) aynen yerinde kalır. *@
 
-        @* F.5b: Pose Lock side panel'i kaldırıldı; yerine full-screen modal geldi
-           (bkz. view sonundaki #poseLockModal). Studio'daki Pose Lock BUTONU
-           (#poseLockBtn, Consistency Controls içinde) aynen yerinde kalır. *@
-
         <!-- Right Sidebar -->
         <div class="w-96 bg-surface border-l border-border h-screen overflow-y-auto custom-scrollbar order-3 flex-shrink-0 transition-all duration-300 ease-out" id="rightSidebar">
 
@@ -288,16 +284,6 @@
                                 <div class="flex flex-col items-center space-y-2">
                                     <i class="fas fa-user-lock text-xl text-text-secondary group-hover-accent"></i>
                                     <span class="text-sm text-text-secondary group-hover-accent">Face Lock</span>
-                                </div>
-                            </button>
-                            
-                            @* F.M.6 hotfix: Pose Lock geçici gizli — fal.ai'da uygun native OpenPose
-                               endpoint yok. Backend generator kodu ileride için duruyor; F.M.UI.1'de
-                               değerlendirilecek. Buton + modal (#poseLockModal) display:none. *@
-                            <button type="button" id="poseLockBtn" style="display: none;" class="flex-1 glass-control-btn rounded-lg p-4 text-center transition-all duration-200 group">
-                                <div class="flex flex-col items-center space-y-2">
-                                    <i class="fas fa-running text-xl text-text-secondary group-hover-accent"></i>
-                                    <span class="text-sm text-text-secondary group-hover-accent">Pose Lock</span>
                                 </div>
                             </button>
                         </div>
@@ -329,7 +315,6 @@
                     <!-- Model Selection (F.M.5 — dinamik catalog modal trigger) -->
                     <div class="space-y-3">
                         <input type="hidden" id="faceLockAssetId" name="FaceLockAssetId" value="" />
-                        <input type="hidden" id="poseLockAssetId" name="PoseLockAssetId" value="" />
                         <input type="hidden" id="characterId" name="CharacterId" value="" />
                         <input type="hidden" id="characterMode" name="CharacterMode" value="balanced" />
                         <input type="hidden" id="selectedModelValue" name="Model" value="" />
@@ -482,67 +467,6 @@
                     </button>
             </form>
 
-        </div>
-    </div>
-
-    @* ═══ F.5b: Pose Lock Full-Screen Modal ═══
-       Studio'daki Pose Lock butonu (#poseLockBtn) tıklanınca JS bu modal'ı açar.
-       Başlangıçta gizli (.pose-modal display:none); .is-open ile gösterilir.
-       Şablon görselleri /img/pose-presets/pose-XX.jpg; var olmayan görselleri
-       pose-presets.js broken-image handler'ı gizler. *@
-    @{
-        var poseTemplates = Enumerable.Range(1, 30).Select(i => new {
-            Url = $"/img/pose-presets/pose-{i:D2}.jpg",
-            Name = $"Pose {i}"
-        }).ToList();
-    }
-
-    @* F.M.6 hotfix: Pose Lock geçici gizli (bkz. #poseLockBtn). Modal DOM ileride için
-       duruyor ama display:none ile hiçbir koşulda açılmaz. *@
-    <div class="pose-modal" id="poseLockModal" style="display: none;" role="dialog" aria-modal="true" aria-labelledby="poseLockModalTitle" aria-hidden="true">
-        <div class="pose-modal__backdrop" data-pose-modal-close></div>
-
-        <div class="pose-modal__container">
-            <button type="button" class="pose-modal__close" data-pose-modal-close aria-label="Kapat">
-                <i class="fas fa-times"></i>
-            </button>
-
-            <header class="pose-modal__header">
-                <h2 class="pose-modal__title" id="poseLockModalTitle">Pose Lock</h2>
-                <p class="pose-modal__subtitle">
-                    Kendi referansını yükle veya bir şablon seç — pozu üretimi yönlendirir.
-                </p>
-            </header>
-
-            <div class="pose-modal__upload">
-                @* ID korunuyor: pose-lock-panel.js dosya input'una #poseLockPanelImage
-                   ile bağlı. Modal içine taşındı ama ID aynı kaldı. *@
-                <label class="pose-modal__upload-zone" for="poseLockPanelImage">
-                    <i class="fas fa-upload pose-modal__upload-icon"></i>
-                    <div class="pose-modal__upload-text">
-                        <strong>Bir görsel yükle veya assets'lerinden seç</strong>
-                        <span>PNG / JPG / WebP, en fazla 10MB</span>
-                    </div>
-                </label>
-                <input type="file" id="poseLockPanelImage" accept="image/*" hidden />
-            </div>
-
-            <div class="pose-modal__scroll">
-                <section class="pose-modal__templates">
-                    <h3 class="pose-modal__templates-title">ŞABLONLAR</h3>
-                    <div class="pose-modal__grid">
-                        @foreach (var template in poseTemplates)
-                        {
-                            <button type="button"
-                                    class="pose-template"
-                                    data-preset-url="@template.Url"
-                                    data-preset-name="@template.Name">
-                                <img src="@template.Url" alt="@template.Name" loading="lazy" />
-                            </button>
-                        }
-                    </div>
-                </section>
-            </div>
         </div>
     </div>
 
@@ -807,7 +731,6 @@
     </div>
 
     @section Styles {
-        <link rel="stylesheet" href="~/css/pose-modal.css" />
         <link rel="stylesheet" href="~/css/character-modal.css" />
         <link rel="stylesheet" href="~/css/model-picker.css" />
     }
@@ -822,10 +745,8 @@
     <script src="~/js/image-controls.js"></script>
     <script src="~/js/seed-handler.js"></script>
     <script src="~/js/character-panel.js"></script>
-    <script src="~/js/pose-lock-panel.js"></script>
-    <script src="~/js/pose-presets.js"></script>
     <script src="~/js/character-modal.js"></script>
-    @* F.M.6: Character/Face/Pose mutex — panellerden sonra, app.js'ten önce yüklenmeli. *@
+    @* F.M.6: Character/Face mutex — panellerden sonra, app.js'ten önce yüklenmeli. *@
     <script src="~/js/feature-mutex.js"></script>
     <script src="~/js/generate-button-state.js"></script>
     <script src="~/js/app.js"></script>

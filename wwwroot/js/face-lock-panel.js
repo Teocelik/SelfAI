@@ -241,7 +241,7 @@ const FaceLockPanel = (function () {
     /**
      * F.M.7: Görseli /Assets/Upload?purpose=FaceLock'a yükler; dönen Asset ID (payload) +
      * public URL (önizleme) saklanır. Başarılı olunca FeatureMutex.setActive('face') ile
-     * Character + Pose temizlenir.
+     * Character temizlenir.
      */
     async function uploadReference(file) {
         if (isUploading) return;
@@ -276,7 +276,7 @@ const FaceLockPanel = (function () {
                     faceLockAssetIdInput.value = assetId;
                 }
 
-                // Mutex: Face aktif → Character + Pose otomatik temizlenir
+                // Mutex: Face aktif → Character otomatik temizlenir
                 if (window.FeatureMutex) window.FeatureMutex.setActive('face');
 
                 // F.M.6 hotfix: Generate button state için değişimi bildir
@@ -567,7 +567,7 @@ const FaceLockPanel = (function () {
 })();
 
 // F.M.6: FeatureMutex window.FaceLockPanel üzerinden erişir (top-level const window'a
-// otomatik bağlanmaz). character-panel/pose-panel ile aynı pattern.
+// otomatik bağlanmaz). character-panel ile aynı pattern.
 if (typeof window !== 'undefined') {
     window.FaceLockPanel = FaceLockPanel;
 }

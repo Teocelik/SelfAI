@@ -70,35 +70,33 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return ServiceResult<GenerationStartedResponse>.Failure("Prompt boş olamaz.", 400);
 
-        // 2. Kişiselleştirme mutex (F.M.6) — Character / Face Lock / Pose Lock üçünden
-        //    en fazla biri aktif olabilir. Üçü de tek bir effectiveEndpoint'e route edildiği
-        //    için birden fazlası anlamsız; backend güvenlik kapısı olarak reddeder.
+        // 2. Kişiselleştirme mutex (F.M.6) — Character / Face Lock ikisinden en fazla biri
+        //    aktif olabilir. İkisi de tek bir effectiveEndpoint'e route edildiği için
+        //    birden fazlası anlamsız; backend güvenlik kapısı olarak reddeder.
         var hasCharacter = request.CharacterId.HasValue;
         var hasFace = request.FaceAssetId.HasValue;
-        var hasPose = !string.IsNullOrWhiteSpace(request.PoseImageUrl);
 
-        // Feature aktifse endpoint override edilir (Character/Face/Pose); model seçimi
+        // Feature aktifse endpoint override edilir (Character/Face); model seçimi
         // ZORUNLU DEĞİL. Yalnızca hiçbir feature yokken (generic yol) model gerekir.
-        if (!hasCharacter && !hasFace && !hasPose
+        if (!hasCharacter && !hasFace
             && string.IsNullOrWhiteSpace(request.ModelEndpoint))
             return ServiceResult<GenerationStartedResponse>.Failure("Model seçilmedi.", 400);
 
-        var activeFeatures = (hasCharacter ? 1 : 0) + (hasFace ? 1 : 0) + (hasPose ? 1 : 0);
-        if (activeFeatures > 1)
+        if (hasCharacter && hasFace)
         {
             _logger.LogWarning(
-                "Birden fazla kişiselleştirme aynı anda seçildi. | Char: {C} | Face: {F} | Pose: {P} | UserId: {UserId}",
-                hasCharacter, hasFace, hasPose, userId);
+                "Birden fazla kişiselleştirme aynı anda seçildi. | Char: {C} | Face: {F} | UserId: {UserId}",
+                hasCharacter, hasFace, userId);
             return ServiceResult<GenerationStartedResponse>.Failure(
-                "Aynı anda sadece bir kişiselleştirme seçilebilir (Karakter, Face Lock veya Pose Lock).", 400);
+                "Aynı anda sadece bir kişiselleştirme seçilebilir (Karakter veya Face Lock).", 400);
         }
 
         // 3. Endpoint çözümü — feature aktifse kullanıcının model seçimi OVERRIDE edilir.
-        //    Character→flux-lora, Face→pulid-flux, Pose→flux-controlnet. Bu üç endpoint
-        //    catalog'da Pending (kullanıcıya gizli) olarak seed'lidir; cost/tier lookup için
-        //    DB'de bulunur ama isInternalPath sayesinde Approved guard'ından muaf tutulur.
+        //    Character→flux-lora, Face→pulid-flux. Bu iki endpoint catalog'da Pending
+        //    (kullanıcıya gizli) olarak seed'lidir; cost/tier lookup için DB'de bulunur ama
+        //    isInternalPath sayesinde Approved guard'ından muaf tutulur.
         var effectiveEndpoint = request.ModelEndpoint;
-        var isInternalPath = hasCharacter || hasFace || hasPose;
+        var isInternalPath = hasCharacter || hasFace;
         string? loraModelUrl = null;
         string? triggerWord = null;
         decimal? loraWeight = null;
@@ -150,16 +148,9 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 "Face Lock ile generation. | Endpoint: {Endpoint} | UserId: {UserId}",
                 effectiveEndpoint, userId);
         }
-        else if (hasPose)
-        {
-            effectiveEndpoint = FluxControlNetGenerator.ModelEndpoint;
-            _logger.LogInformation(
-                "Pose Lock ile generation. | Endpoint: {Endpoint} | UserId: {UserId}",
-                effectiveEndpoint, userId);
-        }
 
         // 4. Catalog lookup — endpoint DB'de var mı? Maliyet/tier DB'den okunur.
-        //    Internal path (character/face/pose) Pending kaydı kullanır (kullanıcıya görünmez
+        //    Internal path (character/face) Pending kaydı kullanır (kullanıcıya görünmez
         //    ama cost lookup için seed'lidir); doğrudan kullanıcı seçimi Approved olmalıdır.
         var entry = await _db.ModelCatalogEntries
             .AsNoTracking()
@@ -238,7 +229,6 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         var dynamicGenerator = scope.ServiceProvider.GetRequiredService<DynamicImageGenerator>();
         var loraGenerator = scope.ServiceProvider.GetRequiredService<FluxLoraGenerator>();
         var pulidGenerator = scope.ServiceProvider.GetRequiredService<FluxPulidGenerator>();
-        var controlNetGenerator = scope.ServiceProvider.GetRequiredService<FluxControlNetGenerator>();
         var creditService = scope.ServiceProvider.GetRequiredService<ICreditService>();
         var logService = scope.ServiceProvider.GetRequiredService<IGenerationLogService>();
 
@@ -259,17 +249,15 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                 LoraModelUrl = loraModelUrl,
                 TriggerWord = triggerWord,
                 LoraWeight = loraWeight,
-                // Face/Pose alanları yalnızca ilgili yolda dolu (F.M.6/F.M.7).
+                // Face alanları yalnızca Face Lock yolunda dolu (F.M.6/F.M.7).
                 // FaceImageUrl request scope'unda AssetId'den resolve edildi.
                 FaceImageUrl = faceImageUrl,
-                FaceWeight = request.FaceWeight,
-                PoseImageUrl = request.PoseImageUrl,
-                PoseWeight = request.PoseWeight
+                FaceWeight = request.FaceWeight
             };
 
             // effectiveEndpoint'e göre domain generator seçilir (orchestrator step 3'te override edildi).
             //   flux-lora → FluxLoraGenerator, pulid-flux → FluxPulidGenerator,
-            //   flux-controlnet → FluxControlNetGenerator, aksi halde generic DynamicImageGenerator.
+            //   aksi halde generic DynamicImageGenerator.
             ImageGenerationResult result;
             switch (effectiveEndpoint)
             {
@@ -278,9 +266,6 @@ public class GenerationOrchestrator : IGenerationOrchestrator
                     break;
                 case FluxPulidGenerator.ModelEndpoint:
                     result = await pulidGenerator.GenerateAsync(genRequest);
-                    break;
-                case FluxControlNetGenerator.ModelEndpoint:
-                    result = await controlNetGenerator.GenerateAsync(genRequest);
                     break;
                 default:
                     result = await dynamicGenerator.GenerateAsync(effectiveEndpoint, genRequest);

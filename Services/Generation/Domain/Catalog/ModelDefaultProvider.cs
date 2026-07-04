@@ -41,8 +41,6 @@ public class ModelDefaultProvider : IModelDefaultProvider
         },
         // F.M.6 — Face Lock (PuLID) internal endpoint'i. Catalog'da Pending (kullanıcıya
         // gizli); payload'ı FluxPulidGenerator'da kurulur, burada generic merge için default.
-        // NOT: fal-ai/flux-controlnet (Pose Lock) F.M.6 hotfix'te kaldırıldı — fal.ai'da
-        // uygun native OpenPose endpoint yok; backend generator kodu ileride için duruyor.
         ["fal-ai/flux-pulid"] = new()
         {
             ["num_inference_steps"] = 20,
