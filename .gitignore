@@ -370,3 +370,4 @@ appsettings.Development.json
 
 # Firebase credentials (contains sensitive information)
 firebase-credentials.json
+Properties/launchSettings.json

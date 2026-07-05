@@ -18,6 +18,25 @@
       "dotnetRunMessages": true,
       "applicationUrl": "https://localhost:7117;http://localhost:5175"
     },
+    "https-production": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": true,
+      "applicationUrl": "https://localhost:7117;http://localhost:5175",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production",
+        "Firebase__CredentialsPath": "C:/Users/aalih/source/repos/SelfAI/firebase-credentials.json",
+        "ConnectionStrings__DefaultConnection": "Server=(localdb)\\mssqllocaldb;Database=SelfAIDb;Trusted_Connection=True;TrustServerCertificate=True",
+        "R2__AccessKeyId": "2c607d39c21779fc94bceff76f4341a0",
+        "R2__SecretAccessKey": "0163aa9c07cf4a8fd55e7e70343014b36af742fed1bf3a843c50eb3dd94203b9",
+        "R2__Endpoint": "https://513e154033f35739df7ef69c6f07924e.r2.cloudflarestorage.com",
+        "R2__BucketName": "selfai-assets",
+        "FalAiOptions__ApiKey": "23d8cca3-93ed-45e0-96ed-0b4a9900a365:049d980ad2b0aba8d5cf19f861c21dda",
+        "FalAiOptions__BaseUrl": "https://queue.fal.run",
+        "IyzicoOptions__ApiKey": "sandbox-DCdBWzJKEyASZ8DcSFrgOHqv7JbagKts",
+        "IyzicoOptions__SecretKey": "sandbox-UNaxEMkOf1MHRvWcBqGhBnq3bi1xlILw"
+      }
+    },
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,

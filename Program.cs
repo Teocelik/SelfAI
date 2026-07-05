@@ -1,8 +1,11 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using SelfAI.BackgroundServices;
 using SelfAI.Configurations;
 using SelfAI.Data;
@@ -12,6 +15,7 @@ using SelfAI.Services.Concretes;
 using SelfAI.Services.Interfaces;
 using SelfAI.Services.Generation.Abstractions;
 using SelfAI.Services.Generation.Providers.FalAi;
+using SelfAI.Services.Generation.Providers.S3;
 using SelfAI.Services.Generation.Pricing;
 using SelfAI.Services.Generation.Domain.Image;
 using SelfAI.Services.Generation.Domain.Catalog;
@@ -72,8 +76,69 @@ builder.Services.AddHttpClient<IFalAiClient, FalAiClient>();
 builder.Services.AddHttpClient<IFalAiStorageClient, FalAiStorageClient>();
 
 // ═══ F.M.7 — Asset storage abstraction + persistent Asset servisi ═══
-// Default provider: fal.ai (F.7'de S3AssetStorageProvider'a geçilecek — o zaman burası değişir).
-builder.Services.AddScoped<IAssetStorageProvider, FalAiAssetStorageProvider>();
+// F.7.1 — Environment-based storage provider seçimi (runtime toggle YOK, startup'ta kararlaştırılır):
+//   Development + Staging: fal.ai (24 saat retention, test için yeterli)
+//   Production: Cloudflare R2 (sonsuz retention, presigned URL 24 saat)
+
+// Fail-fast: Production ortamında R2 config eksikse startup'ta net hata ver.
+// Configure<R2Options> bind'inden ÖNCE çalışır.
+if (builder.Environment.IsProduction())
+{
+    var r2Section = builder.Configuration.GetSection(R2Options.SectionName);
+    var r2AccessKey = r2Section["AccessKeyId"];
+    var r2SecretKey = r2Section["SecretAccessKey"];
+    var r2Endpoint = r2Section["Endpoint"];
+    var r2Bucket = r2Section["BucketName"];
+
+    if (string.IsNullOrEmpty(r2AccessKey) ||
+        string.IsNullOrEmpty(r2SecretKey) ||
+        string.IsNullOrEmpty(r2Endpoint) ||
+        string.IsNullOrEmpty(r2Bucket))
+    {
+        throw new InvalidOperationException(
+            "Production ortamında R2 konfigürasyonu eksik. R2:AccessKeyId, " +
+            "R2:SecretAccessKey, R2:Endpoint ve R2:BucketName User Secrets " +
+            "veya appsettings.Production.json içinde tanımlı olmalı.");
+    }
+}
+
+builder.Services.Configure<R2Options>(
+    builder.Configuration.GetSection(R2Options.SectionName));
+
+// IAmazonS3 singleton (thread-safe, connection reuse). R2 endpoint config'liyse kaydedilir.
+// Development'ta genelde kayıt olmaz; S3AssetStorageProvider yalnızca Production'da register
+// edildiği için sorun değil.
+if (!string.IsNullOrEmpty(builder.Configuration[$"{R2Options.SectionName}:Endpoint"]))
+{
+    builder.Services.AddSingleton<IAmazonS3>(sp =>
+    {
+        var options = sp.GetRequiredService<IOptions<R2Options>>().Value;
+
+        var config = new AmazonS3Config
+        {
+            ServiceURL = options.Endpoint,
+            ForcePathStyle = true,          // R2 için gerekli — virtual-hosted style desteklenmez.
+            AuthenticationRegion = "auto"   // R2 region konsepti yok, "auto" standart.
+        };
+
+        var credentials = new BasicAWSCredentials(
+            options.AccessKeyId,
+            options.SecretAccessKey);
+
+        return new AmazonS3Client(credentials, config);
+    });
+}
+
+// Provider seçimi environment'a göre (D — Dependency Inversion: consumer'lar IAssetStorageProvider'a bağlı).
+if (builder.Environment.IsProduction())
+{
+    builder.Services.AddScoped<IAssetStorageProvider, S3AssetStorageProvider>();
+}
+else
+{
+    builder.Services.AddScoped<IAssetStorageProvider, FalAiAssetStorageProvider>();
+}
+
 builder.Services.AddScoped<IAssetService, AssetService>();
 
 // ═══ F.M.3 — Image generation katmanı ═══
