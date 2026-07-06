@@ -6,6 +6,13 @@ namespace SelfAI.Configurations;
 /// </summary>
 public class FalAiOptions
 {
+    /// <summary>
+    /// Configuration section adı — Program.cs bind'inde kullanılır (magic string yerine).
+    /// NOT: Değer "FalAiOptions" olarak korunur; User Secrets / appsettings anahtarları
+    /// ("FalAiOptions:ApiKey") ile uyumluluk için değiştirilmez.
+    /// </summary>
+    public const string SectionName = "FalAiOptions";
+
     /// <summary>fal.ai API anahtarı. Authorization: Key &lt;ApiKey&gt; header'ında kullanılır.</summary>
     public string ApiKey { get; set; } = string.Empty;
 

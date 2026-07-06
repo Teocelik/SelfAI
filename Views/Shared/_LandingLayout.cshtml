@@ -1,0 +1,67 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"]</title>
+    <meta name="description" content="@(ViewData["Description"] ?? "AI ile sosyal medya için hızlı içerik üretimi. Karakter tutarlılığı, yüz kopyalama ve 10+ AI model.")" />
+    <meta name="keywords" content="AI görsel üretimi, TikTok içerik, Instagram, YouTube Shorts, yapay zeka görsel, karakter tutarlılığı, face swap AI" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="SelfAI" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="@ViewData["Title"]" />
+    <meta property="og:description" content="@(ViewData["Description"] ?? "AI ile sosyal medya için hızlı içerik üretimi.")" />
+    <meta property="og:image" content="@Url.Content("~/img/landing/og-image.jpg")" />
+    <meta property="og:url" content="@ViewContext.HttpContext.Request.Scheme://@ViewContext.HttpContext.Request.Host" />
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="@ViewData["Title"]" />
+    <meta name="twitter:description" content="@(ViewData["Description"] ?? "AI ile sosyal medya için hızlı içerik üretimi.")" />
+    <meta name="twitter:image" content="@Url.Content("~/img/landing/og-image.jpg")" />
+
+    <link rel="canonical" href="@ViewContext.HttpContext.Request.Scheme://@ViewContext.HttpContext.Request.Host" />
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+
+    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+
+    @{
+        var gaId = ViewContext.HttpContext.RequestServices
+            .GetService<IConfiguration>()?["Analytics:MeasurementId"];
+    }
+    @if (!string.IsNullOrEmpty(gaId))
+    {
+        <script async src="https://www.googletagmanager.com/gtag/js?id=@gaId"></script>
+        <script>
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', '@gaId');
+        </script>
+    }
+</head>
+<body class="landing-body">
+    <nav class="landing-nav">
+        <div class="landing-nav__inner">
+            <a href="/" class="landing-nav__logo">
+                <span class="landing-nav__logo-text">SelfAI</span>
+            </a>
+            <div class="landing-nav__actions">
+                <a href="@Url.Action("Login", "Account")" class="landing-nav__link">Giriş</a>
+                <a href="@Url.Action("Login", "Account")" class="landing-nav__cta">Ücretsiz Dene</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="landing-main">
+        @RenderBody()
+    </main>
+
+    <script src="~/js/landing.js" asp-append-version="true"></script>
+    @RenderSection("Scripts", required: false)
+</body>
+</html>

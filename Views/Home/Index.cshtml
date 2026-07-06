@@ -1,121 +1,185 @@
 @{
-    ViewData["Title"] = "SelfAI - AI Görsel Stüdyosu";
-    Layout = "_Layout";
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
+    ViewData["Title"] = "SelfAI — AI ile sosyal medya için hızlı içerik üretimi";
+    ViewData["Description"] = "TikTok, Instagram, YouTube için AI-destekli görsel üretimi. Karakter tutarlılığı, yüz kopyalama ve 10+ AI model — dakikalar içinde.";
 }
 
-@section Styles {
-    <link rel="stylesheet" href="~/css/landing.css" />
-}
-
-@* ═══════════════════════ NAV (sticky glass) ═══════════════════════ *@
-<nav class="landing-nav">
-    <div class="landing-nav__container">
-        <a href="/" class="landing-nav__logo">SelfAI</a>
-
-        <div class="landing-nav__links">
-            <a asp-controller="Pricing" asp-action="Index" class="landing-nav__link">
-                Paketler
-            </a>
-
-            @if (User.Identity?.IsAuthenticated == true)
-            {
-                <a asp-controller="RenderNet" asp-action="Index" class="landing-nav__cta">
-                    Stüdyoya Dön
-                </a>
-            }
-            else
-            {
-                <a asp-controller="Account" asp-action="Login" class="landing-nav__cta">
-                    Giriş Yap
-                </a>
-            }
-        </div>
-    </div>
-</nav>
-
-@* ═══════════════════════ HERO ═══════════════════════ *@
-<section class="landing-hero">
-    <div class="landing-hero__container">
-        <h1 class="landing-hero__headline">
-            Vizyonunu Saniyeler İçinde Görsele Çevir.
-        </h1>
-        <p class="landing-hero__subline">
-            AI ile profesyonel kalitede görseller. Karakter tutarlılığı,
-            sahne kontrolü, sınırsız stil.
-        </p>
-
-        @if (User.Identity?.IsAuthenticated == true)
-        {
-            <a asp-controller="RenderNet" asp-action="Index" class="landing-cta">
-                Stüdyoya Dön
-                <i class="fas fa-arrow-right" aria-hidden="true"></i>
-            </a>
-        }
-        else
-        {
-            <a asp-controller="Account" asp-action="Login" class="landing-cta">
-                Hemen Başla
-                <i class="fas fa-arrow-right" aria-hidden="true"></i>
-            </a>
-            <p class="landing-hero__trust">
-                Ücretsiz hesabınla 5 credit kazanırsın
+<section class="hero">
+    <div class="hero__container">
+        <div class="hero__content">
+            <h1 class="hero__title">
+                TikTok, Instagram, YouTube için
+                <span class="hero__title-accent">içerik üretimini basitleştir</span>
+            </h1>
+            <p class="hero__subtitle">
+                Karakter tutarlılığı, yüz kopyalama ve 10+ AI model ile sosyal
+                medya görsellerini dakikalar içinde üret. Video ve otomatik
+                gönderi — yakında.
             </p>
-        }
-    </div>
-</section>
-
-@* ═══════════════════════ SHOWCASE ═══════════════════════ *@
-<section class="landing-showcase">
-    <div class="landing-showcase__grid">
-        <div class="showcase-card showcase-card--portrait">
-            <i class="fas fa-user-tie" aria-hidden="true"></i>
-            <span>Portre</span>
+            <div class="hero__actions">
+                <a href="@Url.Action("Login", "Account")" class="hero__cta hero__cta--primary">Ücretsiz Başla</a>
+                <a href="#features" class="hero__cta hero__cta--secondary">Özellikleri Gör</a>
+            </div>
+            <div class="hero__meta">
+                <span class="hero__meta-item">✓ Kredi kartı gerekmez</span>
+                <span class="hero__meta-item">✓ Anında başla</span>
+                <span class="hero__meta-item">✓ Türkçe destek</span>
+            </div>
         </div>
-        <div class="showcase-card showcase-card--nature">
-            <i class="fas fa-tree" aria-hidden="true"></i>
-            <span>Doğa</span>
-        </div>
-        <div class="showcase-card showcase-card--product">
-            <i class="fas fa-box-open" aria-hidden="true"></i>
-            <span>Ürün</span>
-        </div>
-        <div class="showcase-card showcase-card--scene">
-            <i class="fas fa-mountain" aria-hidden="true"></i>
-            <span>Sahne</span>
-        </div>
-        <div class="showcase-card showcase-card--character">
-            <i class="fas fa-mask" aria-hidden="true"></i>
-            <span>Karakter</span>
-        </div>
-        <div class="showcase-card showcase-card--abstract">
-            <i class="fas fa-palette" aria-hidden="true"></i>
-            <span>Soyut</span>
+        <div class="hero__showcase">
+            <div class="hero__slider" id="heroSlider">
+                <img src="~/img/landing/hero-1.jpg" alt="AI generated character" class="hero__slide hero__slide--active" />
+                <img src="~/img/landing/hero-2.jpg" alt="Character in different scene" class="hero__slide" />
+                <img src="~/img/landing/hero-3.jpg" alt="AI generated portrait" class="hero__slide" />
+            </div>
+            <div class="hero__slider-indicators" id="heroIndicators">
+                <button class="hero__indicator hero__indicator--active" data-index="0" aria-label="Slide 1"></button>
+                <button class="hero__indicator" data-index="1" aria-label="Slide 2"></button>
+                <button class="hero__indicator" data-index="2" aria-label="Slide 3"></button>
+            </div>
         </div>
     </div>
 </section>
 
-@* ═══════════════════════ FEATURES ═══════════════════════ *@
-<section class="landing-features">
-    <h2 class="landing-features__title">Neler Yapabilirsin?</h2>
-    <div class="landing-features__grid">
-        <div class="feature-card">
-            <i class="fas fa-user-friends" aria-hidden="true"></i>
-            <h3>Karakter Tutarlılığı</h3>
-            <p>Aynı karakteri farklı sahnelerde, farklı stillerde üret.</p>
+<section class="features" id="features">
+    <div class="features__container">
+        <div class="features__header">
+            <h2 class="features__title">Bugün elimizde olanlar</h2>
+            <p class="features__subtitle">
+                Sosyal medyaya hazır görselleri üretmen için gereken temel araçlar
+            </p>
         </div>
-        <div class="feature-card">
-            <i class="fas fa-lock" aria-hidden="true"></i>
-            <h3>Face &amp; Pose Lock</h3>
-            <p>Yüz ifadesini ve pozisyonu referans görselden kilitle.</p>
-        </div>
-        <div class="feature-card">
-            <i class="fas fa-layer-group" aria-hidden="true"></i>
-            <h3>Multi-Model</h3>
-            <p>Tek prompt'la birden fazla model ve stilde paralel üret.</p>
+        <div class="features__grid">
+
+            <article class="feature-card">
+                <div class="feature-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                        <circle cx="12" cy="7" r="4"/>
+                    </svg>
+                </div>
+                <h3 class="feature-card__title">Karakterin, her sahnede</h3>
+                <p class="feature-card__description">
+                    Yüzünü veya karakterini eğit, sonra farklı prompt'larla
+                    farklı sahnelerde tut. Instagram gönderisinden reklam
+                    kampanyasına.
+                </p>
+                <div class="feature-card__visual">
+                    <img src="~/img/landing/feature-character.jpg" alt="Karakter tutarlılığı örneği" loading="lazy" />
+                </div>
+            </article>
+
+            <article class="feature-card">
+                <div class="feature-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0-6 0"/>
+                        <path d="M17.657 16.657 13.414 20.9a1.998 1.998 0 0 1-2.827 0l-4.244-4.243a8 8 0 1 1 11.314 0z"/>
+                    </svg>
+                </div>
+                <h3 class="feature-card__title">Bir yüz, sonsuz sahne</h3>
+                <p class="feature-card__description">
+                    Tek fotoğraf yükle, o kişiyi istediğin kompozisyonda üret.
+                    Eğitim yok, dakikalar içinde sonuç.
+                </p>
+                <div class="feature-card__visual">
+                    <img src="~/img/landing/feature-face-lock.jpg" alt="Face Lock örneği" loading="lazy" />
+                </div>
+            </article>
+
+            <article class="feature-card">
+                <div class="feature-card__icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M13 2 3 14h9l-1 8 10-12h-9l1-8z"/>
+                    </svg>
+                </div>
+                <h3 class="feature-card__title">Her ihtiyaca özel model</h3>
+                <p class="feature-card__description">
+                    FLUX, Ideogram, Seedream, Recraft ve daha fazlası. Fotoğraf
+                    gerçekçiliği mi, sanat mı, tipografi mi — sen seç.
+                </p>
+                <div class="feature-card__visual">
+                    <img src="~/img/landing/feature-multi-model.jpg" alt="Multi-model örnekleri" loading="lazy" />
+                </div>
+            </article>
+
         </div>
     </div>
 </section>
 
-@section Scripts {
-    <script src="~/js/landing.js" asp-append-version="true"></script>
-}
+<section class="coming-soon">
+    <div class="coming-soon__container">
+        <div class="coming-soon__header">
+            <span class="coming-soon__badge">Yakında</span>
+            <h2 class="coming-soon__title">Ürün nereye gidiyor</h2>
+            <p class="coming-soon__subtitle">
+                Bugün görsel, yarın video, sonraki gün tam pipeline. Erken
+                kullanıcıların önerileri ile yön veriyoruz.
+            </p>
+        </div>
+        <div class="coming-soon__grid">
+            <div class="coming-soon__item">
+                <div class="coming-soon__icon">🎬</div>
+                <h3 class="coming-soon__item-title">AI Video</h3>
+                <p class="coming-soon__item-description">
+                    Veo 3, Kling ile karakterin videoda konuşsun ve hareket etsin
+                </p>
+            </div>
+            <div class="coming-soon__item">
+                <div class="coming-soon__icon">📱</div>
+                <h3 class="coming-soon__item-title">TikTok & Reels</h3>
+                <p class="coming-soon__item-description">
+                    9:16 format, hazır şablonlar, tek tıkla üret ve indir
+                </p>
+            </div>
+            <div class="coming-soon__item">
+                <div class="coming-soon__icon">🚀</div>
+                <h3 class="coming-soon__item-title">Otomatik Gönderi</h3>
+                <p class="coming-soon__item-description">
+                    Ürettiğin içeriği doğrudan sosyal medya hesaplarına
+                    zamanla ve gönder
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="cta-bottom">
+    <div class="cta-bottom__container">
+        <h2 class="cta-bottom__title">Denemeye hazır mısın?</h2>
+        <p class="cta-bottom__subtitle">
+            Kayıt ol, ilk kredilerin hazır. Kredi kartı istemiyoruz.
+        </p>
+        <a href="@Url.Action("Login", "Account")" class="cta-bottom__button">Ücretsiz Başla</a>
+    </div>
+</section>
+
+<footer class="landing-footer">
+    <div class="landing-footer__container">
+        <div class="landing-footer__brand">
+            <div class="landing-footer__logo">SelfAI</div>
+            <p class="landing-footer__tagline">AI ile sosyal medya için hızlı içerik üretimi</p>
+        </div>
+        <div class="landing-footer__links">
+            <div class="landing-footer__group">
+                <h4 class="landing-footer__group-title">Ürün</h4>
+                <a href="#features" class="landing-footer__link">Özellikler</a>
+                <a href="@Url.Action("Login", "Account")" class="landing-footer__link">Giriş yap</a>
+                <a href="@Url.Action("Login", "Account")" class="landing-footer__link">Kayıt ol</a>
+            </div>
+            <div class="landing-footer__group">
+                <h4 class="landing-footer__group-title">Yasal</h4>
+                <a href="@Url.Action("Privacy", "Home")" class="landing-footer__link">Gizlilik</a>
+                <a href="#" class="landing-footer__link" title="Yakında">Kullanım Şartları</a>
+                <a href="#" class="landing-footer__link" title="Yakında">KVKK</a>
+                <a href="#" class="landing-footer__link" title="Yakında">Çerezler</a>
+            </div>
+            <div class="landing-footer__group">
+                <h4 class="landing-footer__group-title">İletişim</h4>
+                <a href="mailto:destek@selfai.com" class="landing-footer__link">destek@selfai.com</a>
+            </div>
+        </div>
+    </div>
+    <div class="landing-footer__bottom">
+        <span>&copy; @DateTime.UtcNow.Year SelfAI. Tüm hakları saklıdır.</span>
+    </div>
+</footer>

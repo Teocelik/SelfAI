@@ -97,6 +97,10 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **Kilitli design token kararları:** (1) Tek accent rengi `#00CED1`. (2) Tek page background `#0A0A0A`. (3) Subtle radial gradient: `radial-gradient(ellipse at top, rgba(0, 206, 209, 0.05), #0A0A0A 60%)`. (4) Glass surface alpha: beyaz/nötr alpha (rgba(255,255,255,X)); turkuaz tint yalnızca aktif/seçili öğelerde. (5) Border solid gerektiğinde `rgba(255, 255, 255, 0.12)`. (6) Tailwind strategy: paralel `glass-*` class'ları, eski class'lar fırsat buldukça migrate edilir. (7) Inter font weight 700 import edilir. (8) Focus state: `:focus-visible` ile 2px ring `rgba(0, 206, 209, 0.5)` + glow.
 - **Z-Index hierarchy:** Regular content <50, sticky header/nav 50, side panels (Face Lock) 100, Pose Lock modal + Character modal 150, Lightbox 200, Character undo toast 250.
 - **Sayfa yapısı:** (a) `/` route: Landing page (marketing/showcase, CTA butonu). (b) `/Account/Login`: Dedicated full-page login (sol hero + sağ form split layout). (c) `/RenderNet/Index` (Studio): Ana uygulama, Login sonrası landing. Route adı `/Studio`'ya rename ileride değerlendirilir. Sidebar nav: Studio / Canvas / Characters / Pricing.
+- **Landing redirect (F.7.2):** `HomeController.Index` authenticated kullanıcıyı `RenderNetController.Index`'e redirect eder, anonim kullanıcı `Views/Home/Index` (landing MVP) görür.
+- **Landing layout (F.7.2):** Landing sayfası `_LandingLayout.cshtml` kullanır (dark theme, minimal nav, sticky header). Studio için ayrı `_AppLayout.cshtml` korunur, dokunulmaz.
+- **SEO (F.7.2):** `robots.txt` + `sitemap.xml` `wwwroot/` altında; meta tag'ler `_LandingLayout.cshtml` içinde (description, keywords, OG, Twitter Card, canonical URL).
+- **Analytics (F.7.2):** GA4 conditional script yalnızca `_LandingLayout`'ta yüklenir (`Analytics:MeasurementId` dolu ise). Studio (`_AppLayout`) tracking'siz. Kullanıcı davranışı takibi F.9 admin panelinde ele alınır.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -213,9 +217,12 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 ├── Views/
 │   ├── RenderNet/Index.cshtml        # Ana üretim UI'ı (Studio)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
+│   ├── Shared/
+│   │   └── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
 │   └── Account/                      # Login, Register, vb.
 ├── wwwroot/
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
+│   │   └── landing.css               # F.7.2 — Landing sayfası stilleri
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator
 │   │   ├── toast.js                  # Bildirim sistemi
@@ -227,7 +234,14 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   │   ├── prompt-handler.js
 │   │   ├── generate-button-state.js  # Generate button enable/disable logic
 │   │   ├── image-controls.js
+│   │   ├── landing.js                # F.7.2 — Landing etkileşimleri (IIFE)
 │   │   └── ...
+│   ├── img/
+│   │   └── landing/                  # F.7.2 — 7 görsel: hero-1/2/3.jpg, feature-character.jpg,
+│   │                                 #   feature-face-lock.jpg, feature-multi-model.jpg, og-image.jpg
+│   │                                 #   (deploy öncesi Studio'da üretilecek)
+│   ├── robots.txt                    # F.7.2 — SEO
+│   ├── sitemap.xml                   # F.7.2 — SEO
 │   └── images/, lib/
 ├── Migrations/                       # EF Core migration'ları
 ├── Properties/launchSettings.json
@@ -361,6 +375,10 @@ return ServiceResult<MyDto>.Failure("Kullanıcıya gösterilecek güvenli mesaj"
 ### 5.2 IOptions pattern
 
 Konfigürasyon `Program.cs`'de `Configure<TOptions>` ile bağlanır, servislerde `IOptions<TOptions>` enjekte edilir. **Hardcode API key/URL yazma.** Yeni bir dış servis eklersen yeni bir `XOptions` sınıfı yarat.
+
+**Options SectionName standardizasyonu (F.7.2):** Her Options sınıfında `public const string SectionName` tanımlı olmalı; `Program.cs` bind'i bu const'ı kullanır (magic string yok). F.7.2'de mevcut isimler korundu: `FalAiOptions='FalAiOptions'`, `IyzicoOptions='IyzicoOptions'`, `CreditPricingOptions='CreditPricing'`, `R2Options='R2'`. Rename (kısa isme çevirme) F.9 admin refactor'unda değerlendirilecek.
+
+**Firebase istisnası (F.7.2):** Firebase için Options sınıfı YOK, `Program.cs` raw okuma yapıyor (`builder.Configuration["Firebase:CredentialsPath"]`). F.9 admin phase'ine kadar bu pattern korunur.
 
 ### 5.3 HttpClient enjeksiyonu
 
@@ -513,6 +531,8 @@ dotnet user-secrets remove <key>  # Belirli bir key'i sil
 dotnet user-secrets clear         # Hepsini sil
 ```
 
+**Rename migration notu (F.7.2):** User Secrets key isimleri Options `SectionName` ile eşleşir. Şu an kullanılan: `'FalAiOptions:ApiKey'`, `'IyzicoOptions:ApiKey'`, `'IyzicoOptions:SecretKey'`. İleride kısa isme rename olursa (`'FalAi:*'`, `'Iyzico:*'`), User Secrets + `launchSettings.json` environment variable'ları da güncellenmeli.
+
 ---
 
 ## 7. Bilinen eksiklikler / TODO
@@ -587,6 +607,17 @@ dotnet user-secrets clear         # Hepsini sil
 - **Yarım iş bırakma:** Bir dosyayı düzenlerken `// TODO`, `// FIXME`, `throw new NotImplementedException()` ekleyeceksen önce sor — gerçekten gerekli mi, yoksa o anda tamamlanabilir mi?
 - **Kritik dosyalara dokunmadan önce uyar:** `Program.cs`, `GenerationPollingService.cs`, `GenerationHub.cs`, `ExceptionHandlingMiddleware.cs`, `IFalAiClient.cs` (F.M.2 sonrası), `IGenerationOrchestrator.cs` — bunlardan birinde değişiklik gerekiyorsa "şu dosyaya şu nedenle dokunacağım, onaylıyor musun?" diye sor.
 - **Migration phase disiplini:** Yeni özellik talep edildiğinde, hangi phase'in (F.M.X) parçası olduğunu netleştir. Phase atlamaya çalışma — örn. F.M.4 (Character LoRA) yapılmadan F.M.5'e (Multi-model UI) geçme.
+
+---
+
+## 10. Marka mesajlaşması (Brand Messaging)
+
+Landing hero copy'si kalıcı olarak dokümante edilmiştir (F.7.2). Bu metinler landing'in ana değer önerisidir — tutarlılık için kaynak referans burasıdır.
+
+- **Ana başlık:** "TikTok, Instagram, YouTube için içerik üretimini basitleştir"
+- **Alt yazı:** "Karakter tutarlılığı, yüz kopyalama ve 10+ AI model ile sosyal medya görsellerini dakikalar içinde üret. Video ve otomatik gönderi — yakında."
+- **Vizyon:** SelfAI sadece AI görsel üretimi değil, sosyal medya için içerik pipeline'ı. Şu an: görsel + karakter + face lock. Yakında: video, TikTok/Reels şablonları, otomatik gönderi zamanlama.
+- **Değişim kuralı:** Bu mesajlaşma değişirse (pivot, rebranding) CLAUDE.md güncellenir.
 
 ---
 

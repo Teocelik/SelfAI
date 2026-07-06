@@ -31,8 +31,9 @@ var firebaseCredentialsPath = builder.Configuration["Firebase:CredentialsPath"];
 if (string.IsNullOrWhiteSpace(firebaseCredentialsPath))
 {
     throw new InvalidOperationException(
-        "Firebase:CredentialsPath User Secrets'te tanımlı değil. " +
-        "Lütfen Firebase Admin SDK service account JSON dosyasının yolunu ekleyin."
+        "Firebase:CredentialsPath konfigürasyonu bulunamadı. " +
+        "User Secrets, appsettings.json veya Firebase__CredentialsPath env variable'ında " +
+        "tanımlanmalı (Firebase Admin SDK service account JSON dosyasının yolu)."
     );
 }
 
@@ -68,7 +69,7 @@ builder.Services.AddSingleton<IUserIdProvider, FirebaseUserIdProvider>();
 
 // fal.ai provider registrations (F.M.2+ phases)
 builder.Services.Configure<FalAiOptions>(
-    builder.Configuration.GetSection("FalAiOptions"));
+    builder.Configuration.GetSection(FalAiOptions.SectionName));
 
 builder.Services.AddHttpClient<IFalAiClient, FalAiClient>();
 
@@ -144,7 +145,7 @@ builder.Services.AddScoped<IAssetService, AssetService>();
 // ═══ F.M.3 — Image generation katmanı ═══
 // Credit pricing (tier markup) — config "CreditPricing" section'ından okunur.
 builder.Services.Configure<CreditPricingOptions>(
-    builder.Configuration.GetSection("CreditPricing"));
+    builder.Configuration.GetSection(CreditPricingOptions.SectionName));
 builder.Services.AddScoped<ICreditPricingService, CreditPricingService>();
 
 // ═══ F.M.5 — Dynamic catalog ═══
@@ -182,7 +183,10 @@ builder.Services.AddSingleton<IFirebaseAuthService, FirebaseAuthService>();
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(
         builder.Configuration.GetConnectionString("DefaultConnection")
-            ?? throw new InvalidOperationException("DefaultConnection User Secrets'te tanımlı değil.")
+            ?? throw new InvalidOperationException(
+                "ConnectionStrings:DefaultConnection konfigürasyonu bulunamadı. " +
+                "User Secrets, appsettings.json veya ConnectionStrings__DefaultConnection " +
+                "env variable'ında tanımlanmalı.")
     )
 );
 
@@ -263,7 +267,7 @@ builder.Services.AddHostedService(provider =>
 builder.Services.AddHostedService<SubscriptionLifecycleService>();
 
 // Iyzico(�deme y�ntemi) API ayarlar�n� yap�land�rma(konfig�rasyon)
-builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection("IyzicoOptions"));
+builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection(IyzicoOptions.SectionName));
 
 
 

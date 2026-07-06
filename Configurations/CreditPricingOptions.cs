@@ -7,6 +7,9 @@ namespace SelfAI.Configurations;
 /// </summary>
 public class CreditPricingOptions
 {
+    /// <summary>Configuration section adı — Program.cs bind'inde kullanılır (magic string yerine).</summary>
+    public const string SectionName = "CreditPricing";
+
     /// <summary>1 credit'in USD karşılığı (örn. 0.005 = $0.005).</summary>
     public decimal UsdPerCredit { get; set; } = 0.005m;
 

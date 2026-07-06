@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /Assets/
+Disallow: /Characters/
+Disallow: /RenderNet/
+Disallow: /Account/
+Disallow: /Subscription/
+Disallow: /Payment/
+
+Sitemap: https://selfai.com/sitemap.xml

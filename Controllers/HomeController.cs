@@ -20,9 +20,13 @@ namespace SelfAI.Controllers
         //Home sayfas�n� a�ar!
         public IActionResult Index()
         {
-            
+            // Giriş yapmış kullanıcı landing yerine doğrudan Studio'ya yönlendirilir.
+            if (User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "RenderNet");
+            }
+
             return View();
-            
         }
 
         public IActionResult UploadImageAsync()
