@@ -20,6 +20,12 @@ namespace SelfAI.Entities
         public Guid? RelatedGenerationId { get; set; } // D.2'de Generation entity gelince ilişki kurulur
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
+        // ═══ F.7.3 — Admin audit alanları ═══
+        // Admin panelinden yapılan kredi ekleme işlemlerinin izlenmesi için.
+        // Normal (kullanıcı kaynaklı) işlemlerde null kalır.
+        public Guid? AdminUserId { get; set; }         // İşlemi yapan admin'in AppUser.Id'si (null = normal işlem)
+        public string? AdminNote { get; set; }         // Admin'in eklediği opsiyonel not (audit)
+
         // Navigation
         public AppUser User { get; set; }
     }

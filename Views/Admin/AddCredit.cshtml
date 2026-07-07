@@ -1,0 +1,55 @@
+@model SelfAI.ViewModels.Admin.AddCreditViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Kredi Ekle";
+}
+
+<div class="admin-page-header">
+    <a href="@Url.Action("Users", "Admin", new { email = Model.TargetEmail })"
+       class="admin-page-header__back">← Geri</a>
+    <h1 class="admin-page-title">Kredi Ekle</h1>
+</div>
+
+<div class="admin-target-card">
+    <div class="admin-target-card__info">
+        <span class="admin-target-card__label">Hedef Kullanıcı</span>
+        <span class="admin-target-card__email">@Model.TargetEmail</span>
+    </div>
+    <div class="admin-target-card__balance">
+        <span class="admin-target-card__balance-label">Mevcut Bakiye</span>
+        <span class="admin-target-card__balance-value">@Model.CurrentBalance kredi</span>
+    </div>
+</div>
+
+<form asp-action="AddCredit" method="post" class="admin-panel">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="TargetUserId" />
+    <input type="hidden" asp-for="TargetEmail" />
+    <input type="hidden" asp-for="CurrentBalance" />
+
+    <div asp-validation-summary="ModelOnly" class="admin-form__error"></div>
+
+    <div class="admin-form__row admin-form__row--vertical">
+        <label asp-for="Amount" class="admin-form__label">Miktar (kredi)</label>
+        <input asp-for="Amount" class="admin-form__input"
+               type="number" min="1" max="10000"
+               placeholder="Örn: 100" autofocus />
+        <span asp-validation-for="Amount" class="admin-form__error"></span>
+        <small class="admin-form__hint">1 - 10000 arası, tam sayı</small>
+    </div>
+
+    <div class="admin-form__row admin-form__row--vertical">
+        <label asp-for="Note" class="admin-form__label">Not (opsiyonel)</label>
+        <textarea asp-for="Note" class="admin-form__textarea"
+                  rows="3" maxlength="500"
+                  placeholder="Örn: Beta test bonusu, kayıp iade, promosyon"></textarea>
+        <span asp-validation-for="Note" class="admin-form__error"></span>
+        <small class="admin-form__hint">En fazla 500 karakter — audit için önerilir</small>
+    </div>
+
+    <div class="admin-form__actions">
+        <a href="@Url.Action("Users", "Admin", new { email = Model.TargetEmail })"
+           class="admin-button admin-button--secondary">İptal</a>
+        <button type="submit" class="admin-button admin-button--primary">Kredi Ekle</button>
+    </div>
+</form>

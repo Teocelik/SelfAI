@@ -1,0 +1,70 @@
+@model SelfAI.ViewModels.Admin.AdminUsersViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Kullanıcı Yönetimi";
+}
+
+<h1 class="admin-page-title">Kullanıcı Arama</h1>
+
+<div class="admin-panel">
+    <form asp-action="SearchUser" method="post" class="admin-form">
+        @Html.AntiForgeryToken()
+        <div class="admin-form__row">
+            <label asp-for="SearchEmail" class="admin-form__label">Email adresi</label>
+            <input asp-for="SearchEmail" class="admin-form__input"
+                   placeholder="ornek@email.com" autocomplete="off" />
+            <button type="submit" class="admin-form__submit">Ara</button>
+        </div>
+        <span asp-validation-for="SearchEmail" class="admin-form__error"></span>
+    </form>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.NotFoundMessage))
+{
+    <div class="admin-alert admin-alert--error">
+        <span class="admin-alert__icon">⚠</span>
+        <span>@Model.NotFoundMessage</span>
+    </div>
+}
+
+@if (Model.FoundUser != null)
+{
+    <div class="admin-user-card">
+        <div class="admin-user-card__header">
+            <div class="admin-user-card__identity">
+                <h2 class="admin-user-card__email">@Model.FoundUser.Email</h2>
+                @if (!string.IsNullOrEmpty(Model.FoundUser.DisplayName))
+                {
+                    <p class="admin-user-card__name">@Model.FoundUser.DisplayName</p>
+                }
+                @if (Model.FoundUser.IsAdmin)
+                {
+                    <span class="admin-user-card__admin-badge">Admin</span>
+                }
+            </div>
+            <div class="admin-user-card__balance">
+                <span class="admin-user-card__balance-label">Mevcut Bakiye</span>
+                <span class="admin-user-card__balance-value">@Model.FoundUser.CurrentBalance</span>
+                <span class="admin-user-card__balance-unit">kredi</span>
+            </div>
+        </div>
+
+        <div class="admin-user-card__meta">
+            <div class="admin-user-card__meta-item">
+                <span class="admin-user-card__meta-label">Kullanıcı ID</span>
+                <code class="admin-user-card__meta-value">@Model.FoundUser.Id</code>
+            </div>
+            <div class="admin-user-card__meta-item">
+                <span class="admin-user-card__meta-label">Kayıt Tarihi</span>
+                <span class="admin-user-card__meta-value">@Model.FoundUser.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+            </div>
+        </div>
+
+        <div class="admin-user-card__actions">
+            <a href="@Url.Action("AddCredit", "Admin", new { userId = Model.FoundUser.Id })"
+               class="admin-button admin-button--primary">
+                Kredi Ekle
+            </a>
+        </div>
+    </div>
+}

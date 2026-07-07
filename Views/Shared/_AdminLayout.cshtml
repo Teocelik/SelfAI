@@ -1,0 +1,44 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - SelfAI Admin</title>
+    <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+</head>
+<body class="admin-body">
+    <nav class="admin-nav">
+        <div class="admin-nav__inner">
+            <div class="admin-nav__brand">
+                <span class="admin-nav__logo">SelfAI</span>
+                <span class="admin-nav__badge">Admin</span>
+            </div>
+            <div class="admin-nav__actions">
+                <a href="@Url.Action("Users", "Admin")" class="admin-nav__link">Kullanıcılar</a>
+                <a href="@Url.Action("Index", "RenderNet")" class="admin-nav__link">Studio</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" class="admin-nav__logout">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="admin-nav__logout-btn">Çıkış</button>
+                </form>
+            </div>
+        </div>
+    </nav>
+
+    <main class="admin-main">
+        <div class="admin-container">
+            @if (TempData["AdminSuccess"] != null)
+            {
+                <div class="admin-alert admin-alert--success">
+                    <span class="admin-alert__icon">✓</span>
+                    <span>@TempData["AdminSuccess"]</span>
+                </div>
+            }
+            @RenderBody()
+        </div>
+    </main>
+</body>
+</html>

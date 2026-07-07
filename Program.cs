@@ -3,7 +3,9 @@ using Amazon.S3;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
+using SelfAI.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using SelfAI.BackgroundServices;
@@ -268,6 +270,20 @@ builder.Services.AddHostedService<SubscriptionLifecycleService>();
 
 // Iyzico(�deme y�ntemi) API ayarlar�n� yap�land�rma(konfig�rasyon)
 builder.Services.Configure<IyzicoOptions>(builder.Configuration.GetSection(IyzicoOptions.SectionName));
+
+// ═══ F.7.3 — Mini-admin (kredi ekleme + email-whitelist yetkilendirme) ═══
+// Admin yetkisi: ASP.NET Core Identity Role YOK (CLAUDE.md #14 — Firebase Auth aktif).
+// "Admin" policy, cookie'deki email claim'ini AdminOptions.AllowedEmails'e karşı kontrol eder.
+builder.Services.Configure<AdminOptions>(
+    builder.Configuration.GetSection(AdminOptions.SectionName));
+
+builder.Services.AddScoped<IAdminService, AdminService>();
+
+builder.Services.AddSingleton<IAuthorizationHandler, AdminAuthorizationHandler>();
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Admin", policy => policy.Requirements.Add(new AdminRequirement()));
+});
 
 
 

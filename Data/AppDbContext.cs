@@ -56,6 +56,10 @@ namespace SelfAI.Data
                  .HasForeignKey(t => t.UserId)
                  .OnDelete(DeleteBehavior.Cascade);
                 e.Property(t => t.Description).HasMaxLength(512);
+
+                // F.7.3 — Admin audit alanları
+                e.Property(t => t.AdminNote).HasMaxLength(500);
+                e.HasIndex(t => t.AdminUserId);
             });
 
             // Generation — her API çağrısı için audit kaydı
