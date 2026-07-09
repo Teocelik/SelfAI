@@ -34,10 +34,10 @@ public class FalAiImage
     public string Url { get; set; } = string.Empty;
 
     [JsonPropertyName("width")]
-    public int Width { get; set; }
+    public int? Width { get; set; }
 
     [JsonPropertyName("height")]
-    public int Height { get; set; }
+    public int? Height { get; set; }
 
     [JsonPropertyName("content_type")]
     public string? ContentType { get; set; }

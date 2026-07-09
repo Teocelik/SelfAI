@@ -324,13 +324,13 @@ app.UseAuthorization();// Yetki kontrol� yap (Login olmu� mu?).
 // ?? SignalR Hub endpoint'ini map'le
 app.MapHub<GenerationHub>("/generationHub");
 
-app.MapControllerRoute(
-        name: "default",
-        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
-
 //app.MapControllerRoute(
 //        name: "default",
-//        pattern: "{controller=Home}/{action=Index}");
+//        pattern: "{controller=RenderNet}/{action=Index}/{id?}");
+
+app.MapControllerRoute(
+        name: "default",
+        pattern: "{controller=Home}/{action=Index}");
 
 //app.MapControllerRoute(
 //        name: "default",
@@ -344,7 +344,7 @@ static bool IsApiRequest(HttpRequest request)
 {
     return request.Headers["X-Requested-With"] == "XMLHttpRequest"
         || request.Headers["Accept"].Any(h => h?.Contains("application/json") == true)
-        || request.Path.StartsWithSegments("/RenderNet")
+        || request.Path.StartsWithSegments("/Studio")
         || request.Path.StartsWithSegments("/Prompt")
         || request.Path.StartsWithSegments("/Characters");
 }

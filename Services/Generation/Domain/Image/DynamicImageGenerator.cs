@@ -76,8 +76,8 @@ public class DynamicImageGenerator
             Images = response.Images.Select(i => new GeneratedImage
             {
                 Url = i.Url,
-                Width = i.Width,
-                Height = i.Height,
+                Width = i.Width ?? 0,
+                Height = i.Height ?? 0,
                 ContentType = i.ContentType
             }).ToList(),
             Seed = response.Seed,

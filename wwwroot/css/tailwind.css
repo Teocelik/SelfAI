@@ -1109,11 +1109,16 @@ $$ {
     }
 
 
-/* Face Lock Button - Sabit Boyut */
+/* Face Lock Button - Boyut
+   F.M.UI.1c: Eski sabit 88px yükseklik clamp'i kaldırıldı. Bu clamp yalnızca
+   faceLockBtn'e uygulandığı için, ortak "#characterBtn, #faceLockBtn"
+   aspect-ratio:1/1 kare kuralını sadece bu butonda kırıyordu (characterBtn
+   kare, faceLockBtn ~88px basık). Artık her iki buton aynı kare boyutunu alır.
+   Yalnızca boyut property'leri değişti; renk/hover/selected/ikon dokunulmadı. */
 #faceLockBtn {
     min-width: 80px;
-    min-height: 88px;
-    max-height: 88px;
+    min-height: 0;
+    max-height: none;
     box-sizing: border-box;
 }
 

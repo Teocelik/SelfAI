@@ -195,7 +195,7 @@
         }
 
         // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
-        const result = await apiFetch('/RenderNet/GenerateImage', {
+        const result = await apiFetch('/Studio/Image/GenerateImage', {
             method: 'POST',
             body: JSON.stringify(payload),
             headers: {

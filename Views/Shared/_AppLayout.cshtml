@@ -2,6 +2,14 @@
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+
+    // F.M.Arch.1: Studio artık çok controller'lı (Hub + Image/Templates/Music/Video sekmeleri).
+    // "Studio" nav item hangi sekmede olursa olsun aktif highlight alır.
+    var isStudioActive = currentController == "StudioHub"
+        || currentController == "ImageStudio"
+        || currentController == "TemplatesStudio"
+        || currentController == "MusicStudio"
+        || currentController == "VideoStudio";
 }
 <!DOCTYPE html>
 <html lang="tr">
@@ -31,8 +39,8 @@
             </a>
 
             <div class="app-nav__links" id="appNavLinks">
-                <a asp-controller="RenderNet" asp-action="Index"
-                   class="app-nav__link @(currentController == "RenderNet" ? "app-nav__link--active" : "")">
+                <a asp-controller="StudioHub" asp-action="Index"
+                   class="app-nav__link @(isStudioActive ? "app-nav__link--active" : "")">
                     <i class="fas fa-wand-magic-sparkles"></i>
                     <span>Studio</span>
                 </a>

@@ -30,6 +30,7 @@
     <Folder Include="DTOs\RenderNetGenerationDto\" />
     <Folder Include="Views\Account\" />
     <Folder Include="wwwroot\images\models\flux\" />
+    <Folder Include="wwwroot\img\landing\" />
   </ItemGroup>
 
 </Project>

@@ -23,7 +23,7 @@ namespace SelfAI.Controllers
             // Giriş yapmış kullanıcı landing yerine doğrudan Studio'ya yönlendirilir.
             if (User.Identity?.IsAuthenticated == true)
             {
-                return RedirectToAction("Index", "RenderNet");
+                return RedirectToAction("Index", "StudioHub");
             }
 
             return View();

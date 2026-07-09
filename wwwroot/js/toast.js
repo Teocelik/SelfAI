@@ -162,7 +162,7 @@ const Toast = {
  *  const data = await apiFetch('/Catalog/Image');
  * 
  *  // POST isteği (JSON)
- *  const result = await apiFetch('/RenderNet/GenerateImage', {
+ *  const result = await apiFetch('/Studio/Image/GenerateImage', {
  *      method: 'POST',
  *      headers: { 'Content-Type': 'application/json' },
  *      body: JSON.stringify(payload),

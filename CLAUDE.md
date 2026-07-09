@@ -101,6 +101,10 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **Landing layout (F.7.2):** Landing sayfası `_LandingLayout.cshtml` kullanır (dark theme, minimal nav, sticky header). Studio için ayrı `_AppLayout.cshtml` korunur, dokunulmaz.
 - **SEO (F.7.2):** `robots.txt` + `sitemap.xml` `wwwroot/` altında; meta tag'ler `_LandingLayout.cshtml` içinde (description, keywords, OG, Twitter Card, canonical URL).
 - **Analytics (F.7.2):** GA4 conditional script yalnızca `_LandingLayout`'ta yüklenir (`Analytics:MeasurementId` dolu ise). Studio (`_AppLayout`) tracking'siz. Kullanıcı davranışı takibi F.9 admin panelinde ele alınır.
+- **Admin yetkilendirme (F.7.3):** ASP.NET Core Identity Role (`'Admin'`), `AdminOptions.AllowedEmails` whitelist üzerinden `AdminSeedHostedService` ile startup'ta atanır. Firebase auth'tan bağımsız Identity-side rol sistemi.
+- **Admin operasyon audit (F.7.3):** `TokenTransaction.AdminUserId` + `AdminNote` column'ları admin işlemlerini izler. `Type='AdminGrant'` filter'ı ile admin işlemleri ayrıştırılır.
+- **F.7.3 mini-admin scope:** sadece FindUserByEmail + AddCredit. Tam admin paneli (kullanıcı listesi paginated, transaction history UI, kredi çıkarma, ödeme yönetimi, analytics dashboard) F.9'a ertelendi.
+- **AddCredit validation (F.7.3):** miktar 1-10000, not max 500 karakter, DB transaction ile atomik (wallet update + transaction insert aynı transaction'da).
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -154,17 +158,20 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   ├── FalAiOptions.cs               # ApiKey + BaseUrl (yeni — F.M.2'de eklenir)
 │   ├── CreditPricingOptions.cs       # Tier markup multipliers (yeni — F.M.5)
 │   ├── IyzicoOptions.cs              # ApiKey + SecretKey + BaseUrl
-│   └── StripeOptions.cs              # SecretKey + PublishableKey + WebhookSecret
+│   ├── StripeOptions.cs              # SecretKey + PublishableKey + WebhookSecret
+│   └── AdminOptions.cs               # F.7.3 — AllowedEmails whitelist (Admin rol atama)
 ├── Controllers/               # MVC controller'ları (HTTP transport only)
 │   ├── RenderNetController.cs        # Ana controller (UI hâlâ /RenderNet/Index'e bağlı, rename ileride)
 │   ├── CharactersController.cs       # Character CRUD + LoRA training tetikleme
 │   ├── PaymentController.cs          # Iyzico + Stripe ödeme flow
 │   ├── AccountController.cs          # Firebase Auth callback'leri
+│   ├── AdminController.cs            # F.7.3 — mini-admin (FindUserByEmail + AddCredit)
 │   └── HomeController.cs
 ├── DTOs/                      # API request/response DTO'ları
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
 │   ├── Characters/                   # CharacterDto (LoraModelUrl, Status, vb.)
 │   ├── ModelCatalog/                 # Yeni — dinamik model listesi DTO'ları (F.M.5)
+│   ├── Admin/                        # F.7.3 — AdminUserDto, AdminGrantResultDto
 │   └── IyzicoPaymentDtos/            # Iyzico
 ├── Entities/
 │   ├── Character.cs                  # LoraModelUrl, LoraTrainingStatus, LoraTrainingJobId
@@ -181,7 +188,10 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   └── Payment/                      # Iyzico + Stripe modelleri
 ├── Services/
 │   ├── Interfaces/                   # Cross-cutting interfaces (IPaymentService, ICreditService vb.)
+│   │   └── IAdminService.cs          # F.7.3 — mini-admin servis kontratı
 │   ├── Concretes/                    # Cross-cutting implementations
+│   │   ├── AdminService.cs           # F.7.3 — FindUserByEmail + AddCredit iş mantığı
+│   │   └── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
 │   ├── Generation/                   # 🆕 fal.ai generation katmanı (F.M.1+)
 │   │   ├── Abstractions/
 │   │   │   ├── IGenerationOrchestrator.cs
@@ -214,15 +224,21 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   │       └── CreditPricingService.cs
 │   └── ...
 ├── ViewModels/
+│   └── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
 ├── Views/
 │   ├── RenderNet/Index.cshtml        # Ana üretim UI'ı (Studio)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
+│   ├── Admin/                        # F.7.3 — mini-admin sayfaları
+│   │   ├── Users.cshtml              # FindUserByEmail arama sonucu
+│   │   └── AddCredit.cshtml          # Kredi ekleme formu
 │   ├── Shared/
-│   │   └── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
+│   │   ├── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
+│   │   └── _AdminLayout.cshtml       # F.7.3 — Admin panel layout
 │   └── Account/                      # Login, Register, vb.
 ├── wwwroot/
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
-│   │   └── landing.css               # F.7.2 — Landing sayfası stilleri
+│   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
+│   │   └── admin.css                 # F.7.3 — Admin panel stilleri
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator
 │   │   ├── toast.js                  # Bildirim sistemi
@@ -380,6 +396,8 @@ Konfigürasyon `Program.cs`'de `Configure<TOptions>` ile bağlanır, servislerde
 
 **Firebase istisnası (F.7.2):** Firebase için Options sınıfı YOK, `Program.cs` raw okuma yapıyor (`builder.Configuration["Firebase:CredentialsPath"]`). F.9 admin phase'ine kadar bu pattern korunur.
 
+**Admin konfigürasyonu (F.7.3):** `AdminOptions.AllowedEmails` (`List<string>`) User Secrets'ta indexed key ile (`Admin:AllowedEmails:0`). Production env variable: `Admin__AllowedEmails__0`. Bootstrap süreci: 1) email User Secrets'a eklenir, 2) hedef kullanıcı Firebase login yapar, 3) app restart → `AdminSeedHostedService` rolü otomatik atar.
+
 ### 5.3 HttpClient enjeksiyonu
 
 Her dış servis için `AddHttpClient<TInterface, TImpl>()` ile typed HttpClient kayıtlı. Yeni dış servisler için aynı kalıbı izle — `HttpClientFactory`'yi direkt kullanma, `HttpClient`'ı `new`'leme.
@@ -536,6 +554,12 @@ dotnet user-secrets clear         # Hepsini sil
 ---
 
 ## 7. Bilinen eksiklikler / TODO
+
+### Durum (F.7.3 sonrası)
+
+- **F.7 tamamlandı.** F.7 = Landing + Production Prep (R2, environment separation, SEO, Analytics, mini-admin). Beta launch teknik olarak hazır. Deploy adımları: landing görselleri + SmarterASP env variable setup + Firebase JSON upload.
+- **Sıradaki:** 1) Landing görselleri (Studio'da Character LoRA + Face Lock ile üretim, ~1 saat), 2) SmarterASP production deploy (~2-3 saat). Beta launch invite-only, 10-20 kişi hedeflendi.
+- **F.M.9+** (video generation, sosyal medya post şablonları, otomatik gönderi) beta kullanıcı geri bildirimine göre önceliklendirilecek. Vizyon landing'de "Yakında" badge ile bildirildi ama kod eklenmedi.
 
 ### Migration TODO (öncelikli)
 

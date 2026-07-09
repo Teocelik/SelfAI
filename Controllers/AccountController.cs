@@ -40,7 +40,7 @@ namespace SelfAI.Controllers
             // Zaten giriş yapmış kullanıcı doğrudan studio'ya yönlendirilir.
             if (User.Identity?.IsAuthenticated == true)
             {
-                return Redirect(string.IsNullOrEmpty(returnUrl) ? "/RenderNet/Index" : returnUrl);
+                return Redirect(string.IsNullOrEmpty(returnUrl) ? "/Studio" : returnUrl);
             }
 
             ViewBag.ReturnUrl = returnUrl;

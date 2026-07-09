@@ -19,7 +19,7 @@
             </div>
             <div class="admin-nav__actions">
                 <a href="@Url.Action("Users", "Admin")" class="admin-nav__link">Kullanıcılar</a>
-                <a href="@Url.Action("Index", "RenderNet")" class="admin-nav__link">Studio</a>
+                <a href="@Url.Action("Index", "StudioHub")" class="admin-nav__link">Studio</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="admin-nav__logout">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="admin-nav__logout-btn">Çıkış</button>

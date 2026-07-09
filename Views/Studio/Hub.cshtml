@@ -1,0 +1,108 @@
+@{
+    ViewData["Title"] = "Studio — SelfAI";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/studio-hub.css" asp-append-version="true" />
+}
+
+<section class="studio-hub">
+    <div class="studio-hub__header">
+        <h1 class="studio-hub__title">Ne üretmek istiyorsun?</h1>
+        <p class="studio-hub__subtitle">
+            SelfAI ile sosyal medya için içerik üretmenin tüm yolları
+        </p>
+    </div>
+
+    <div class="studio-hub__grid">
+
+        <a href="/Studio/Image" class="studio-hub__card">
+            <div class="studio-hub__card-visual">
+                <img src="~/img/landing/feature-character.jpg"
+                     alt="Görsel üretimi"
+                     class="studio-hub__card-image"
+                     loading="lazy" />
+                <div class="studio-hub__card-gradient"></div>
+            </div>
+            <div class="studio-hub__card-content">
+                <div class="studio-hub__card-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                        <circle cx="8.5" cy="8.5" r="1.5" />
+                        <polyline points="21 15 16 10 5 21" />
+                    </svg>
+                </div>
+                <h3 class="studio-hub__card-title">Görsel Üret</h3>
+                <p class="studio-hub__card-description">
+                    Karakter, yüz kopyalama ve 10+ AI model ile portre, sahne,
+                    ürün görselleri
+                </p>
+                <span class="studio-hub__card-cta">Başla →</span>
+            </div>
+        </a>
+
+        <a href="/Studio/Templates" class="studio-hub__card studio-hub__card--coming-soon">
+            <div class="studio-hub__card-visual">
+                <div class="studio-hub__card-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" />
+                        <line x1="3" y1="9" x2="21" y2="9" />
+                        <line x1="9" y1="21" x2="9" y2="9" />
+                    </svg>
+                </div>
+            </div>
+            <div class="studio-hub__card-content">
+                <span class="studio-hub__card-badge">Yakında</span>
+                <h3 class="studio-hub__card-title">Sosyal Medya Postu</h3>
+                <p class="studio-hub__card-description">
+                    Instagram post, Story, Reels cover, YouTube thumbnail —
+                    her platform için hazır şablon
+                </p>
+                <span class="studio-hub__card-cta">Detaylar →</span>
+            </div>
+        </a>
+
+        <a href="/Studio/Music" class="studio-hub__card studio-hub__card--coming-soon">
+            <div class="studio-hub__card-visual">
+                <div class="studio-hub__card-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M9 18V5l12-2v13" />
+                        <circle cx="6" cy="18" r="3" />
+                        <circle cx="18" cy="16" r="3" />
+                    </svg>
+                </div>
+            </div>
+            <div class="studio-hub__card-content">
+                <span class="studio-hub__card-badge">Yakında</span>
+                <h3 class="studio-hub__card-title">Müzik Üret</h3>
+                <p class="studio-hub__card-description">
+                    Video için backing track veya kendi şarkın — otomatik
+                    albüm kapağı ile
+                </p>
+                <span class="studio-hub__card-cta">Detaylar →</span>
+            </div>
+        </a>
+
+        <a href="/Studio/Video" class="studio-hub__card studio-hub__card--coming-soon">
+            <div class="studio-hub__card-visual">
+                <div class="studio-hub__card-placeholder">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7" />
+                        <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                </div>
+            </div>
+            <div class="studio-hub__card-content">
+                <span class="studio-hub__card-badge">Yakında</span>
+                <h3 class="studio-hub__card-title">Video Üret</h3>
+                <p class="studio-hub__card-description">
+                    Karakterin videoda konuşsun, hareket etsin —
+                    TikTok/Reels/Shorts için 9:16
+                </p>
+                <span class="studio-hub__card-cta">Detaylar →</span>
+            </div>
+        </a>
+
+    </div>
+</section>

@@ -20,7 +20,7 @@ document.getElementById("googleLoginBtn").addEventListener("click", function () 
                 // Açık yönlendirme koruması: yalnızca site içi göreli yollara izin ver.
                 const params = new URLSearchParams(window.location.search);
                 const raw = params.get('returnUrl');
-                const returnUrl = (raw && raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/RenderNet/Index';
+                const returnUrl = (raw && raw.startsWith('/') && !raw.startsWith('//')) ? raw : '/Studio';
                 window.location.href = returnUrl;
             } else {
                 return response.json().then(err => {

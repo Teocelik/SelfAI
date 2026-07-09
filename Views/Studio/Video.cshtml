@@ -1,0 +1,25 @@
+@{
+    ViewData["Title"] = "Video Üret — Yakında";
+    Layout = "~/Views/Shared/_AppLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/studio-hub.css" asp-append-version="true" />
+}
+
+<section class="studio-coming-soon">
+    <a href="/Studio" class="studio-coming-soon__back">← Studio</a>
+    <div class="studio-coming-soon__content">
+        <svg class="studio-coming-soon__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="23 7 16 12 23 17 23 7" />
+            <rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+        </svg>
+        <h1 class="studio-coming-soon__title">Video Üret</h1>
+        <p class="studio-coming-soon__description">
+            Karakterinin videoda hareket etmesini, konuşmasını sağla.
+            9:16 TikTok/Reels/Shorts formatı, 16:9 YouTube formatı.
+            Veo 3, Kling 2.5, Sora 2 gibi modeller.
+        </p>
+        <p class="studio-coming-soon__eta">Bu özellik yakında geliyor.</p>
+    </div>
+</section>
