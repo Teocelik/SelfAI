@@ -19,6 +19,27 @@ public class DynamicImageGenerator
     private readonly IModelDefaultProvider _defaultProvider;
     private readonly ILogger<DynamicImageGenerator> _logger;
 
+    // ═══ Aspect-ratio-native modeller (F.M.10a) ═══
+    // Bazı fal.ai modelleri (örn. nano-banana) "image_size" enum'unu KABUL ETMEZ, yalnızca
+    // "aspect_ratio" bekler. Bu modeller için common payload'daki image_size, karşılık gelen
+    // aspect_ratio string'ine çevrilir. image_size-native modeller (ideogram/flux/recraft)
+    // bu bloktan ETKİLENMEZ — mevcut davranış birebir korunur.
+    private static readonly HashSet<string> _aspectRatioNativeEndpoints = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "fal-ai/nano-banana"
+    };
+
+    // fal.ai image_size enum → aspect_ratio string (nano-banana schema değerleri).
+    private static readonly Dictionary<string, string> _imageSizeToAspectRatio = new()
+    {
+        ["square_hd"] = "1:1",
+        ["square"] = "1:1",
+        ["portrait_16_9"] = "9:16",
+        ["portrait_4_3"] = "3:4",
+        ["landscape_16_9"] = "16:9",
+        ["landscape_4_3"] = "4:3"
+    };
+
     public DynamicImageGenerator(
         IFalAiClient falAiClient,
         IModelDefaultProvider defaultProvider,
@@ -60,6 +81,20 @@ public class DynamicImageGenerator
         {
             if (!payload.ContainsKey(kv.Key))
                 payload[kv.Key] = kv.Value;
+        }
+
+        // Aspect-ratio-native modeller (F.M.10a): image_size → aspect_ratio çevirisi.
+        // Diğer modeller image_size'ı olduğu gibi kullanmaya devam eder.
+        if (_aspectRatioNativeEndpoints.Contains(endpointId) && payload.ContainsKey("image_size"))
+        {
+            var imageSize = payload["image_size"]?.ToString() ?? "square_hd";
+            var aspectRatio = _imageSizeToAspectRatio.TryGetValue(imageSize, out var ar) ? ar : "1:1";
+            payload.Remove("image_size");
+            payload["aspect_ratio"] = aspectRatio;
+
+            _logger.LogInformation(
+                "Aspect-ratio-native model. | Endpoint: {Endpoint} | image_size={ImageSize} → aspect_ratio={Aspect}",
+                endpointId, imageSize, aspectRatio);
         }
 
         _logger.LogInformation(

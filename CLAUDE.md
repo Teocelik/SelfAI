@@ -105,6 +105,11 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **Admin operasyon audit (F.7.3):** `TokenTransaction.AdminUserId` + `AdminNote` column'ları admin işlemlerini izler. `Type='AdminGrant'` filter'ı ile admin işlemleri ayrıştırılır.
 - **F.7.3 mini-admin scope:** sadece FindUserByEmail + AddCredit. Tam admin paneli (kullanıcı listesi paginated, transaction history UI, kredi çıkarma, ödeme yönetimi, analytics dashboard) F.9'a ertelendi.
 - **AddCredit validation (F.7.3):** miktar 1-10000, not max 500 karakter, DB transaction ile atomik (wallet update + transaction insert aynı transaction'da).
+- **Studio bilgi mimarisi (F.M.Arch.1):** `/Studio` hub (`StudioHubController`) + `/Studio/{Image,Templates,Music,Video}` sekmeler. Her sekme ayrı controller (`Controllers/Studio/` klasörü), ayrı view (`Views/Studio/`), paylaşılan servisler (credit, asset, generation orchestrator, `IFalAiClient`).
+- **/RenderNet redirect-only backward compat (F.M.Arch.1):** `/RenderNet/Index` → `/Studio/Image`. `RenderNetController` class korundu, action gövdesi sadece `RedirectToAction("Index", "ImageStudio")`. F.M.9+'da tam kaldırılabilir.
+- **View çözümleme pattern (F.M.Arch.1):** `Controllers/Studio/*Controller`'lar ortak `Views/Studio/` klasörünü kullanır. Convention `Views/{ControllerName}/`'ı arar → uyumsuz. Her action explicit path verir: `return View("~/Views/Studio/{ViewName}.cshtml")`.
+- **Studio Index anonim erişim (F.M.Arch.1):** mevcut `RenderNetController` davranışı korundu, `[AllowAnonymous]` attribute Studio ana ekranında (`Image.cshtml`) aktif. Login zorunlu değil — kullanıcı sonuçları alamaz ama arayüzü görebilir.
+- **Nav active highlight (F.M.Arch.1):** tüm `Studio*` controller'ları kapsar: `StudioHub`, `ImageStudio`, `TemplatesStudio`, `MusicStudio`, `VideoStudio`.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -112,7 +117,7 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 
 Üretim asenkron olduğu için arka planda **polling + SignalR** ile sonuç kullanıcıya push edilir.
 
-Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygulama açıldığında `RenderNetController.Index()` çalışır (controller adı historical, rename ileride değerlendirilir).
+Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index` authenticated kullanıcıyı Studio'ya yönlendirir, anonim kullanıcıya landing gösterir. Eski `{controller=RenderNet}` default route'u devre dışı (Program.cs'de comment'li, F.M.Arch.1). `RenderNetController` artık redirect-only backward compat kabuğu (`/RenderNet/Index` → `/Studio/Image`).
 
 ---
 
@@ -161,7 +166,13 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 │   ├── StripeOptions.cs              # SecretKey + PublishableKey + WebhookSecret
 │   └── AdminOptions.cs               # F.7.3 — AllowedEmails whitelist (Admin rol atama)
 ├── Controllers/               # MVC controller'ları (HTTP transport only)
-│   ├── RenderNetController.cs        # Ana controller (UI hâlâ /RenderNet/Index'e bağlı, rename ileride)
+│   ├── Studio/                       # 🆕 F.M.Arch.1 — Studio sekme controller'ları (ortak Views/Studio/)
+│   │   ├── StudioHubController.cs        # /Studio hub (sekme seçim ekranı)
+│   │   ├── ImageStudioController.cs      # /Studio/Image (mevcut RenderNet davranışı taşındı)
+│   │   ├── TemplatesStudioController.cs  # /Studio/Templates (placeholder, F.M.10a)
+│   │   ├── MusicStudioController.cs      # /Studio/Music (placeholder, F.M.10c)
+│   │   └── VideoStudioController.cs      # /Studio/Video (placeholder, F.M.9)
+│   ├── RenderNetController.cs        # F.M.Arch.1 — redirect-only backward compat (/RenderNet/Index → /Studio/Image)
 │   ├── CharactersController.cs       # Character CRUD + LoRA training tetikleme
 │   ├── PaymentController.cs          # Iyzico + Stripe ödeme flow
 │   ├── AccountController.cs          # Firebase Auth callback'leri
@@ -226,7 +237,12 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 ├── ViewModels/
 │   └── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
 ├── Views/
-│   ├── RenderNet/Index.cshtml        # Ana üretim UI'ı (Studio)
+│   ├── Studio/                       # 🆕 F.M.Arch.1 — ortak view klasörü (Studio/* controller'ları explicit path ile çözer)
+│   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı
+│   │   ├── Image.cshtml                  # Ana üretim UI'ı (eski RenderNet/Index içeriği taşındı)
+│   │   ├── Templates.cshtml              # placeholder (F.M.10a)
+│   │   ├── Music.cshtml                  # placeholder (F.M.10c)
+│   │   └── Video.cshtml                  # placeholder (F.M.9)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
 │   ├── Admin/                        # F.7.3 — mini-admin sayfaları
 │   │   ├── Users.cshtml              # FindUserByEmail arama sonucu
@@ -238,7 +254,8 @@ Varsayılan route: `{controller=RenderNet}/{action=Index}/{id?}` — yani uygula
 ├── wwwroot/
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
 │   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
-│   │   └── admin.css                 # F.7.3 — Admin panel stilleri
+│   │   ├── admin.css                 # F.7.3 — Admin panel stilleri
+│   │   └── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator
 │   │   ├── toast.js                  # Bildirim sistemi
@@ -561,6 +578,22 @@ dotnet user-secrets clear         # Hepsini sil
 - **Sıradaki:** 1) Landing görselleri (Studio'da Character LoRA + Face Lock ile üretim, ~1 saat), 2) SmarterASP production deploy (~2-3 saat). Beta launch invite-only, 10-20 kişi hedeflendi.
 - **F.M.9+** (video generation, sosyal medya post şablonları, otomatik gönderi) beta kullanıcı geri bildirimine göre önceliklendirilecek. Vizyon landing'de "Yakında" badge ile bildirildi ama kod eklenmedi.
 
+### Karma yaklaşım — 4 haftalık plan (F.M.Arch.1 sonrası, şirket kurulumu paralel)
+
+- **Hafta 1:** F.M.10a Post Templates + F.7.4 Landing kalan görseller
+- **Hafta 2:** F.M.10b Post Templates gelişmiş + F.9a admin panel
+- **Hafta 3:** F.M.UI.2 Studio polish + F.9b admin genişletme
+- **Hafta 4a (2 gün):** F.M.10c AI Müzik + Albüm Kapağı
+- **Hafta 4b (2 gün):** F.7.5 Legal sayfalar + FAQ + bugfix
+- **Buffer:** 3-4 gün şirket kurulum + tampon
+
+### F.M.10c Music kararları (kilitli)
+
+- **Mode:** Backing Track (15-60sn enstrümantal) + Full Song (30-180sn vokal+lyrics), kullanıcı seçer.
+- **Albüm kapağı:** otomatik üretim, prompt'tan yola çıkarak.
+- **Kapak formatları:** kullanıcı seçer (1:1, 9:16, 16:9, 4:5).
+- **Provider:** Sonilo (ticari lisanslı, Shutterstock kataloğu). MiniMax ve ACE-Step F.M.10c sonrası eklenebilir.
+
 ### Migration TODO (öncelikli)
 
 - **F.M.1 Foundation refactor** — `Services/Generation/*` klasör yapısı + interface skeleton + DI registration. Affogato kodu legacy klasöre taşıma. **Functional değişiklik YOK.**
@@ -652,3 +685,14 @@ Landing hero copy'si kalıcı olarak dokümante edilmiştir (F.7.2). Bu metinler
 **Stripe.net + Iyzipay paralel kullanım** — İki ödeme sağlayıcı paralel aktif. Webhook/callback handling'i her ikisinde de idempotent. Tek bir başarısız ödeme rollback'i için ikisinde de unit test ileride yazılmalı.
 
 **fal.ai cost monitoring** — Admin paneli (F.9) yapılana kadar fal.ai havuz kapasitesi manuel izleniyor. Aşırı satım riski (kullanıcılara dağıtılan toplam credit > fal.ai havuzu) admin'in sorumluluğunda.
+
+---
+
+## BUGFIX HISTORY
+
+**FalAi image response nullable Width/Height (F.M.Arch.1 test sırasında bulundu)**
+
+- fal.ai bazı modeller (nano-banana) image response'ta `width`/`height` null döndürür.
+- DTO'da `Width`/`Height` `int?` (nullable) tanımlanır.
+- `DynamicImageGenerator`, `FluxLoraGenerator`, `FluxPulidGenerator` `Width`/`Height` için `?? 0` fallback kullanır.
+- Downstream (`Generation` entity, DB) 0 kaydeder.
