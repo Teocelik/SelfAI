@@ -1,70 +1,112 @@
-@model SelfAI.ViewModels.Admin.AdminUsersViewModel
+@model SelfAI.ViewModels.Admin.AdminUsersListViewModel
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
-    ViewData["Title"] = "Kullanıcı Yönetimi";
+    ViewData["Title"] = "Kullanıcılar";
 }
 
-<h1 class="admin-page-title">Kullanıcı Arama</h1>
+<h1 class="admin-page-title">Kullanıcılar</h1>
 
-<div class="admin-panel">
-    <form asp-action="SearchUser" method="post" class="admin-form">
-        @Html.AntiForgeryToken()
-        <div class="admin-form__row">
-            <label asp-for="SearchEmail" class="admin-form__label">Email adresi</label>
-            <input asp-for="SearchEmail" class="admin-form__input"
-                   placeholder="ornek@email.com" autocomplete="off" />
-            <button type="submit" class="admin-form__submit">Ara</button>
+<form asp-action="Users" method="get" class="admin-panel admin-filter-form">
+    <div class="admin-filter-form__row">
+        <div class="admin-filter-form__field">
+            <input type="text"
+                   name="searchTerm"
+                   value="@Model.SearchTerm"
+                   placeholder="Email veya isim ara..."
+                   class="admin-form__input"
+                   autocomplete="off" />
         </div>
-        <span asp-validation-for="SearchEmail" class="admin-form__error"></span>
-    </form>
-</div>
+        <div class="admin-filter-form__field admin-filter-form__field--select">
+            <select name="dateFilter" class="admin-form__input">
+                <option value="all" selected="@(Model.DateFilter == "all")">Tüm zamanlar</option>
+                <option value="7d" selected="@(Model.DateFilter == "7d")">Son 7 gün</option>
+                <option value="30d" selected="@(Model.DateFilter == "30d")">Son 30 gün</option>
+            </select>
+        </div>
+        <button type="submit" class="admin-button admin-button--primary">Filtrele</button>
+    </div>
+</form>
 
-@if (!string.IsNullOrEmpty(Model.NotFoundMessage))
+@if (Model.UserList == null || !Model.UserList.Users.Any())
 {
-    <div class="admin-alert admin-alert--error">
-        <span class="admin-alert__icon">⚠</span>
-        <span>@Model.NotFoundMessage</span>
+    <div class="admin-empty">
+        <p>Kullanıcı bulunamadı.</p>
     </div>
 }
-
-@if (Model.FoundUser != null)
+else
 {
-    <div class="admin-user-card">
-        <div class="admin-user-card__header">
-            <div class="admin-user-card__identity">
-                <h2 class="admin-user-card__email">@Model.FoundUser.Email</h2>
-                @if (!string.IsNullOrEmpty(Model.FoundUser.DisplayName))
-                {
-                    <p class="admin-user-card__name">@Model.FoundUser.DisplayName</p>
-                }
-                @if (Model.FoundUser.IsAdmin)
-                {
-                    <span class="admin-user-card__admin-badge">Admin</span>
-                }
-            </div>
-            <div class="admin-user-card__balance">
-                <span class="admin-user-card__balance-label">Mevcut Bakiye</span>
-                <span class="admin-user-card__balance-value">@Model.FoundUser.CurrentBalance</span>
-                <span class="admin-user-card__balance-unit">kredi</span>
-            </div>
+    <div class="admin-user-table-wrap">
+        <div class="admin-user-table-meta">
+            Toplam @Model.UserList.TotalCount kullanıcı — Sayfa @Model.UserList.Page / @Model.UserList.TotalPages
         </div>
 
-        <div class="admin-user-card__meta">
-            <div class="admin-user-card__meta-item">
-                <span class="admin-user-card__meta-label">Kullanıcı ID</span>
-                <code class="admin-user-card__meta-value">@Model.FoundUser.Id</code>
-            </div>
-            <div class="admin-user-card__meta-item">
-                <span class="admin-user-card__meta-label">Kayıt Tarihi</span>
-                <span class="admin-user-card__meta-value">@Model.FoundUser.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
-            </div>
-        </div>
+        <table class="admin-user-table">
+            <thead>
+                <tr>
+                    <th>Email</th>
+                    <th>İsim</th>
+                    <th class="admin-user-table__num">Bakiye</th>
+                    <th class="admin-user-table__num">Üretim</th>
+                    <th class="admin-user-table__num">Kullanılan</th>
+                    <th>Kayıt</th>
+                    <th>Rol</th>
+                    <th>Aksiyon</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.UserList.Users)
+                {
+                    <tr>
+                        <td class="admin-user-table__email">@user.Email</td>
+                        <td>@(user.DisplayName ?? "-")</td>
+                        <td class="admin-user-table__num">@user.CurrentBalance</td>
+                        <td class="admin-user-table__num">@user.TotalGenerations</td>
+                        <td class="admin-user-table__num">@user.TotalCreditsUsed</td>
+                        <td class="admin-user-table__date">@user.CreatedAt.ToString("dd.MM.yyyy")</td>
+                        <td>
+                            @if (user.IsAdmin)
+                            {
+                                <span class="admin-user-table__badge admin-user-table__badge--admin">Admin</span>
+                            }
+                        </td>
+                        <td class="admin-user-table__actions">
+                            <a href="@Url.Action("UserDetail", "Admin", new { userId = user.Id })"
+                               class="admin-user-table__action">Detay</a>
+                            <a href="@Url.Action("AddCredit", "Admin", new { userId = user.Id })"
+                               class="admin-user-table__action admin-user-table__action--primary">Kredi Ekle</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
 
-        <div class="admin-user-card__actions">
-            <a href="@Url.Action("AddCredit", "Admin", new { userId = Model.FoundUser.Id })"
-               class="admin-button admin-button--primary">
-                Kredi Ekle
-            </a>
-        </div>
+        @if (Model.UserList.TotalPages > 1)
+        {
+            <nav class="admin-pagination">
+                @if (Model.UserList.HasPrevious)
+                {
+                    <a href="@Url.Action("Users", new { searchTerm = Model.SearchTerm, dateFilter = Model.DateFilter, page = Model.UserList.Page - 1 })"
+                       class="admin-pagination__link">← Önceki</a>
+                }
+                else
+                {
+                    <span></span>
+                }
+
+                <span class="admin-pagination__info">
+                    Sayfa @Model.UserList.Page / @Model.UserList.TotalPages
+                </span>
+
+                @if (Model.UserList.HasNext)
+                {
+                    <a href="@Url.Action("Users", new { searchTerm = Model.SearchTerm, dateFilter = Model.DateFilter, page = Model.UserList.Page + 1 })"
+                       class="admin-pagination__link">Sonraki →</a>
+                }
+                else
+                {
+                    <span></span>
+                }
+            </nav>
+        }
     </div>
 }

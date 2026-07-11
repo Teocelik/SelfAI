@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.DTOs.Templates;
+using SelfAI.Services.Generation.Abstractions;
+using SelfAI.Services.Generation.Orchestrators;
 using SelfAI.Services.Interfaces;
 using SelfAI.ViewModels.Templates;
 using System.Security.Claims;
@@ -10,23 +12,25 @@ namespace SelfAI.Controllers.Studio;
 /// <summary>
 /// Post Templates sekmesi (/Studio/Templates) — F.M.10a. Format-first sosyal medya
 /// üretimi. Controller yalnızca HTTP transport: claim çözümü, header okuma, ModelState
-/// validation, ServiceResult → HTTP dönüşümü. İş mantığı orchestrator'da.
+/// validation, ServiceResult → HTTP dönüşümü. Format → StartGenerationRequest çevirisi
+/// <see cref="TemplateStartRequestBuilder"/>'da; kredi/log/SignalR mevcut
+/// <see cref="IGenerationOrchestrator"/> pipeline'ında (ayrı orchestrator YOK, DRY).
 /// </summary>
 [Authorize]
 [Route("Studio/Templates")]
 public class TemplatesStudioController : Controller
 {
     private readonly ITemplateCatalogService _catalog;
-    private readonly ITemplateGenerationOrchestrator _orchestrator;
+    private readonly IGenerationOrchestrator _generationOrchestrator;
     private readonly ILogger<TemplatesStudioController> _logger;
 
     public TemplatesStudioController(
         ITemplateCatalogService catalog,
-        ITemplateGenerationOrchestrator orchestrator,
+        IGenerationOrchestrator generationOrchestrator,
         ILogger<TemplatesStudioController> logger)
     {
         _catalog = catalog;
-        _orchestrator = orchestrator;
+        _generationOrchestrator = generationOrchestrator;
         _logger = logger;
     }
 
@@ -68,6 +72,13 @@ public class TemplatesStudioController : Controller
             return BadRequest(new { success = false, message = string.Join(" ", errors) });
         }
 
+        var format = _catalog.GetFormat(dto.FormatId);
+        if (format == null)
+        {
+            _logger.LogWarning("Templates Generate: geçersiz format. | FormatId: {FormatId}", dto.FormatId);
+            return BadRequest(new { success = false, message = "Geçersiz format." });
+        }
+
         var firebaseUid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         var appUserIdStr = User.FindFirst("AppUserId")?.Value;
 
@@ -79,7 +90,16 @@ public class TemplatesStudioController : Controller
 
         var connectionId = Request.Headers["X-SignalR-ConnectionId"].FirstOrDefault();
 
-        var result = await _orchestrator.GenerateAsync(dto, appUserId, firebaseUid, connectionId, ct);
+        // Format → generation isteği (suffix birleştirme dahil). Kredi/log/SignalR
+        // mevcut pipeline'da reuse edilir; Templates ayrı bir orchestrator kullanmaz.
+        var startRequest = TemplateStartRequestBuilder.Build(format, dto);
+
+        _logger.LogInformation(
+            "Template generation isteği. | UserId: {UserId} | Format: {FormatId} | Endpoint: {Endpoint} | Aspect: {Aspect}",
+            appUserId, format.Id, format.ModelEndpoint, format.AspectRatioValue);
+
+        var result = await _generationOrchestrator.StartGenerationAsync(
+            startRequest, appUserId, firebaseUid, connectionId, ct);
 
         if (!result.IsSuccess)
             return StatusCode(result.StatusCode, new { success = false, message = result.Message });

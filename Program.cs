@@ -171,10 +171,10 @@ builder.Services.AddScoped<FluxPulidGenerator>();        // F.M.6 — Face Lock 
 builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
 
 // ═══ F.M.10a — Post Templates (format-first) ═══
-// Statik format kataloğu (singleton — stateless) + ince orchestrator (yukarıdaki
-// GenerationOrchestrator'ı reuse eder; kredi/log/SignalR yeniden yazılmaz).
+// Statik format kataloğu (singleton — stateless). Ayrı orchestrator YOK: controller
+// TemplateStartRequestBuilder ile StartGenerationRequest kurup mevcut
+// IGenerationOrchestrator'ı çağırır (kredi/log/SignalR tekil, DRY).
 builder.Services.AddSingleton<ITemplateCatalogService, TemplateCatalogService>();
-builder.Services.AddScoped<ITemplateGenerationOrchestrator, TemplateGenerationOrchestrator>();
 
 // ═══ F.M.4 — Character LoRA training katmanı ═══
 // Domain trainer (fal.ai flux-lora-fast-training) + training orchestrator.

@@ -1,0 +1,161 @@
+@model SelfAI.ViewModels.Admin.AdminUserDetailViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Kullanıcı Detay";
+}
+
+<div class="admin-page-header">
+    <a href="@Url.Action("Users", "Admin")" class="admin-page-header__back">← Kullanıcılar</a>
+    <h1 class="admin-page-title">Kullanıcı Detay</h1>
+</div>
+
+@if (Model.User == null)
+{
+    <div class="admin-alert admin-alert--error">
+        <span class="admin-alert__icon">⚠</span>
+        <span>Kullanıcı bulunamadı.</span>
+    </div>
+}
+else
+{
+    <div class="admin-user-detail">
+
+        <div class="admin-user-detail__header admin-panel">
+            <div class="admin-user-detail__identity">
+                <h2 class="admin-user-detail__email">@Model.User.Email</h2>
+                @if (!string.IsNullOrEmpty(Model.User.DisplayName))
+                {
+                    <p class="admin-user-detail__name">@Model.User.DisplayName</p>
+                }
+                <div class="admin-user-detail__badges">
+                    @if (Model.User.IsAdmin)
+                    {
+                        <span class="admin-user-table__badge admin-user-table__badge--admin">Admin</span>
+                    }
+                    @if (Model.User.IsDeleted)
+                    {
+                        <span class="admin-user-table__badge admin-user-table__badge--danger">Silinmiş</span>
+                    }
+                </div>
+            </div>
+            <div class="admin-user-detail__balance">
+                <span class="admin-user-detail__balance-label">Bakiye</span>
+                <span class="admin-user-detail__balance-value">@Model.User.CurrentBalance</span>
+                <span class="admin-user-detail__balance-unit">kredi</span>
+            </div>
+        </div>
+
+        <div class="admin-user-detail__meta admin-panel">
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Kullanıcı ID</span>
+                <code class="admin-user-detail__meta-value">@Model.User.Id</code>
+            </div>
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Kayıt Tarihi</span>
+                <span class="admin-user-detail__meta-value">@Model.User.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+            </div>
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Son Giriş</span>
+                <span class="admin-user-detail__meta-value">
+                    @(Model.User.LastLoginAt.HasValue ? Model.User.LastLoginAt.Value.ToString("dd.MM.yyyy HH:mm") : "-")
+                </span>
+            </div>
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Toplam Üretim</span>
+                <span class="admin-user-detail__meta-value">@Model.User.TotalGenerations</span>
+            </div>
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Kullanılan Kredi</span>
+                <span class="admin-user-detail__meta-value">@Model.User.TotalCreditsUsed</span>
+            </div>
+            <div class="admin-user-detail__meta-item">
+                <span class="admin-user-detail__meta-label">Admin Kredi Toplamı</span>
+                <span class="admin-user-detail__meta-value">@Model.User.TotalCreditsGranted</span>
+            </div>
+        </div>
+
+        <div class="admin-user-detail__actions">
+            <a href="@Url.Action("AddCredit", "Admin", new { userId = Model.User.Id })"
+               class="admin-button admin-button--primary">Kredi Ekle</a>
+        </div>
+
+        <div class="admin-user-detail__transactions">
+            <h3 class="admin-user-detail__section-title">İşlem Geçmişi</h3>
+
+            @if (Model.Transactions == null || !Model.Transactions.Transactions.Any())
+            {
+                <div class="admin-empty">
+                    <p>Henüz işlem yok.</p>
+                </div>
+            }
+            else
+            {
+                <div class="admin-transaction-table-wrap">
+                    <table class="admin-transaction-table">
+                        <thead>
+                            <tr>
+                                <th>Tarih</th>
+                                <th>Tür</th>
+                                <th class="admin-transaction-table__num">Miktar</th>
+                                <th>Açıklama</th>
+                                <th>Admin</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var tx in Model.Transactions.Transactions)
+                            {
+                                <tr>
+                                    <td class="admin-transaction-table__date">@tx.CreatedAt.ToString("dd.MM.yyyy HH:mm")</td>
+                                    <td>@tx.Type</td>
+                                    <td class="admin-transaction-table__num @(tx.Amount > 0 ? "admin-transaction-table__num--positive" : "admin-transaction-table__num--negative")">
+                                        @(tx.Amount > 0 ? "+" : "")@tx.Amount
+                                    </td>
+                                    <td class="admin-transaction-table__desc">@(tx.Description ?? "-")</td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(tx.AdminEmail))
+                                        {
+                                            <div>@tx.AdminEmail</div>
+                                            @if (!string.IsNullOrEmpty(tx.AdminNote))
+                                            {
+                                                <small class="admin-transaction-table__note">@tx.AdminNote</small>
+                                            }
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+
+                    @if (Model.Transactions.TotalPages > 1)
+                    {
+                        <nav class="admin-pagination">
+                            @if (Model.Transactions.HasPrevious)
+                            {
+                                <a href="@Url.Action("UserDetail", new { userId = Model.User.Id, transactionPage = Model.Transactions.Page - 1 })"
+                                   class="admin-pagination__link">← Önceki</a>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+
+                            <span class="admin-pagination__info">
+                                Sayfa @Model.Transactions.Page / @Model.Transactions.TotalPages
+                            </span>
+
+                            @if (Model.Transactions.HasNext)
+                            {
+                                <a href="@Url.Action("UserDetail", new { userId = Model.User.Id, transactionPage = Model.Transactions.Page + 1 })"
+                                   class="admin-pagination__link">Sonraki →</a>
+                            }
+                            else
+                            {
+                                <span></span>
+                            }
+                        </nav>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+}

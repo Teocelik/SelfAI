@@ -33,5 +33,40 @@ namespace SelfAI.Services.Interfaces
             string? note,
             Guid adminUserId,
             CancellationToken cancellationToken = default);
+
+        // ═══ F.9a — Panel genişletme ═══
+
+        /// <summary>
+        /// Server-side paginated kullanıcı listesi. Email/isim araması + kayıt tarihi filtresi.
+        /// Bakiye/admin/üretim/kredi istatistikleri batch lookup ile doldurulur (N+1 yok).
+        /// </summary>
+        Task<ServiceResult<AdminUserListDto>> GetUsersPaginatedAsync(
+            string? searchTerm,
+            DateTime? registeredAfter,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Kullanıcı detay bilgisi (bakiye + aggregate istatistikler).
+        /// </summary>
+        Task<ServiceResult<AdminUserDetailDto>> GetUserDetailAsync(
+            Guid userId,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Kullanıcının paginated işlem geçmişi. Admin işlemlerinde admin email batch join ile doldurulur.
+        /// </summary>
+        Task<ServiceResult<AdminTransactionListDto>> GetUserTransactionsAsync(
+            Guid userId,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Dashboard özet metrikleri (bugün/bu hafta kullanıcı, üretim, kredi tüketimi).
+        /// </summary>
+        Task<ServiceResult<AdminDashboardStatsDto>> GetDashboardStatsAsync(
+            CancellationToken cancellationToken = default);
     }
 }

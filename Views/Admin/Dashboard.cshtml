@@ -1,0 +1,57 @@
+@model SelfAI.ViewModels.Admin.AdminDashboardViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<h1 class="admin-page-title">Dashboard</h1>
+
+@if (Model.Stats == null)
+{
+    <div class="admin-alert admin-alert--error">
+        <span class="admin-alert__icon">⚠</span>
+        <span>Metrikler yüklenemedi.</span>
+    </div>
+}
+else
+{
+    <div class="admin-dashboard">
+        <div class="admin-stat-grid">
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card__label">Bugün Kayıt Olan</div>
+                <div class="admin-stat-card__value">@Model.Stats.UsersToday</div>
+                <div class="admin-stat-card__meta">Bu hafta: @Model.Stats.UsersThisWeek</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card__label">Bugün Üretim</div>
+                <div class="admin-stat-card__value">@Model.Stats.GenerationsToday</div>
+                <div class="admin-stat-card__meta">Bu hafta: @Model.Stats.GenerationsThisWeek</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card__label">Bugün Kredi Tüketimi</div>
+                <div class="admin-stat-card__value">@Model.Stats.CreditsUsedToday</div>
+                <div class="admin-stat-card__meta">Bu hafta: @Model.Stats.CreditsUsedThisWeek</div>
+            </div>
+
+            <div class="admin-stat-card">
+                <div class="admin-stat-card__label">Toplam Kullanıcı</div>
+                <div class="admin-stat-card__value">@Model.Stats.TotalUsers</div>
+                <div class="admin-stat-card__meta">Bu hafta admin ekledi: @Model.Stats.CreditsGrantedByAdminsThisWeek kredi</div>
+            </div>
+
+        </div>
+
+        <div class="admin-dashboard__actions">
+            <a href="@Url.Action("Users", "Admin")" class="admin-button admin-button--primary">
+                Kullanıcılar
+            </a>
+        </div>
+
+        <div class="admin-dashboard__footer">
+            Son güncelleme: @Model.Stats.GeneratedAt.ToString("dd.MM.yyyy HH:mm") UTC
+        </div>
+    </div>
+}

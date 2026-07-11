@@ -110,6 +110,17 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **View çözümleme pattern (F.M.Arch.1):** `Controllers/Studio/*Controller`'lar ortak `Views/Studio/` klasörünü kullanır. Convention `Views/{ControllerName}/`'ı arar → uyumsuz. Her action explicit path verir: `return View("~/Views/Studio/{ViewName}.cshtml")`.
 - **Studio Index anonim erişim (F.M.Arch.1):** mevcut `RenderNetController` davranışı korundu, `[AllowAnonymous]` attribute Studio ana ekranında (`Image.cshtml`) aktif. Login zorunlu değil — kullanıcı sonuçları alamaz ama arayüzü görebilir.
 - **Nav active highlight (F.M.Arch.1):** tüm `Studio*` controller'ları kapsar: `StudioHub`, `ImageStudio`, `TemplatesStudio`, `MusicStudio`, `VideoStudio`.
+- **Templates format catalog (F.M.10a):** statik 6 format (Instagram Post, Story, TikTok/Reels Cover, YouTube Thumbnail, YouTube Shorts, Facebook/LinkedIn Post) kod içinde `TemplateCatalogService`'de tanımlı. F.9 admin'de CRUD gelene kadar hardcoded.
+- **Templates model mapping (F.M.10a):** 1:1 + 16:9 → Ideogram V3 (typography kritik), 9:16 → Nano Banana (hız + fiyat). F.9'da mapping esnek yapılabilir.
+- **Templates üretim mimarisi (F.M.10a):** `TemplatesStudioController.Generate` doğrudan `IGenerationOrchestrator.StartGenerationAsync`'i çağırır. Ayrı `TemplateGenerationOrchestrator` YOK — kredi/iade/log/SignalR mantığı `GenerationOrchestrator`'da tekil, DRY. Format'a göre `StartGenerationRequest` build eden lightweight static builder (`TemplateStartRequestBuilder`) kullanılır.
+- **Templates aspect ratio (F.M.10a):** mevcut `GenerationOrchestrator.MapAspectRatioToImageSize` kullanılır (9:16 → `portrait_16_9`). **Ideogram V3** `image_size` enum'unu kabul eder (fal.ai OpenAPI doğrulandı) → onun için hiçbir değişiklik yok. **Nano Banana yalnızca `aspect_ratio` kabul eder, `image_size`'ı yok sayar** (fal.ai OpenAPI doğrulandı); bu yüzden `DynamicImageGenerator`'a aspect_ratio-native model converter'ı eklendi (`image_size`→`aspect_ratio`, whitelist'te sadece `fal-ai/nano-banana`). image_size-native modeller (ideogram/flux/recraft) ETKİLENMEZ. Yan etki: Studio/Image'de nano-banana artık aspect seçimine uyar (önceden hep 1:1 — latent bug fix, onaylandı).
+- **Templates transparent prompt (F.M.10a):** kullanıcı format seçince kompozisyon suffix'i görünür ve isterse checkbox ile kaldırabilir. Örn: `artisan coffee cup` + `, centered composition, clean background...` suffix. Suffix birleştirme `TemplateStartRequestBuilder`'da yapılır.
+- **Templates SignalR (F.M.10a):** `template-studio.js` kendi SignalR bağlantısını kurar (app.js bu sayfada yüklenmez), başlattığı generationId'leri Map'te tutar, `GenerationUpdate` event'ini paylaşır ama yalnızca kendi ID'lerini işler — Studio/Image tarafını etkilemez. Her sekme sadece kendi ID'lerini işler.
+- **F.9a admin panel (kilitli):** Dashboard (4 metric card — bugün/bu hafta user, bugün/bu hafta generation, bugün/bu hafta credit tüketimi, toplam user + bu hafta admin grant toplamı), paginated user list (email/isim arama + son 7/30/tümü tarih filtresi), user detail sayfası (bilgi + paginated transaction history, tek sayfa). `/Admin` ana sayfası artık Dashboard'a gider. Kredi ekleme F.7.3'ten (SearchUser + AddCredit) aynen korunur; F.7.3 tekil arama, paginated listenin arama kutusuna entegre edildi (POST SearchUser → `Users?searchTerm=`'e redirect).
+- **F.9a batch lookup pattern (kilitli):** user list'te wallet (bakiye), generation sayısı ve kredi tüketimi istatistikleri için N+1 önlenir — her kaynak tipi için tek batch query + dictionary lookup (`userIds.Contains(...)` + `GroupBy`). Tüm read-only query'lerde `AsNoTracking()`. Toplam sorgu sayısı user sayısından bağımsız sabittir.
+- **F.9a admin durumu — Identity YOK (kilitli):** Proje ASP.NET Identity/Role sistemi kullanmaz; `IsAdmin` bilgisi `AdminOptions.AllowedEmails`'ten hesaplanır (normalize edilmiş email HashSet ile batch kontrol, `UserManager`/`RoleManager` yok). `_db.Roles`/`_db.UserRoles` tabloları mevcut değildir.
+- **F.9a soft-delete durumu (kilitli):** `AppUser`'da `DeletedAt` (soft-delete) alanı **YOK** → sayım/liste query'lerinde soft-delete filtresi uygulanmaz, `AdminUserDetailDto.IsDeleted` her zaman `false` döner. Soft-delete F.9b'de gelirse filtreler ve `IsDeleted` o zaman doldurulur. (Generation sayımı `Generations` tablosundan, kredi tüketimi negatif `TokenTransaction` toplamından; `TokenTransaction`'da `BalanceAfter` alanı olmadığı için işlem geçmişinde "sonraki bakiye" gösterilmez.)
+- **F.9a scope dışı (F.9b'ye ertelendi):** model catalog UI, sistem ayarları, kredi çıkarma (negatif işlem), rol yönetimi UI, ödeme (Iyzico/Stripe) transaction takibi, kullanıcı ban/unban.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -169,7 +180,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — Studio sekme controller'ları (ortak Views/Studio/)
 │   │   ├── StudioHubController.cs        # /Studio hub (sekme seçim ekranı)
 │   │   ├── ImageStudioController.cs      # /Studio/Image (mevcut RenderNet davranışı taşındı)
-│   │   ├── TemplatesStudioController.cs  # /Studio/Templates (placeholder, F.M.10a)
+│   │   ├── TemplatesStudioController.cs  # /Studio/Templates (F.M.10a — placeholder'dan aktif form + Generate)
 │   │   ├── MusicStudioController.cs      # /Studio/Music (placeholder, F.M.10c)
 │   │   └── VideoStudioController.cs      # /Studio/Video (placeholder, F.M.9)
 │   ├── RenderNetController.cs        # F.M.Arch.1 — redirect-only backward compat (/RenderNet/Index → /Studio/Image)
@@ -180,9 +191,12 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   └── HomeController.cs
 ├── DTOs/                      # API request/response DTO'ları
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
+│   ├── Templates/                    # F.M.10a — PostFormatDto, TemplateGenerationRequest
 │   ├── Characters/                   # CharacterDto (LoraModelUrl, Status, vb.)
 │   ├── ModelCatalog/                 # Yeni — dinamik model listesi DTO'ları (F.M.5)
 │   ├── Admin/                        # F.7.3 — AdminUserDto, AdminGrantResultDto
+│   │                                 # F.9a — AdminUserListDto, AdminUserListItemDto, AdminUserDetailDto,
+│   │                                 #        AdminTransactionDto, AdminTransactionListDto, AdminDashboardStatsDto
 │   └── IyzicoPaymentDtos/            # Iyzico
 ├── Entities/
 │   ├── Character.cs                  # LoraModelUrl, LoraTrainingStatus, LoraTrainingJobId
@@ -199,10 +213,12 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   └── Payment/                      # Iyzico + Stripe modelleri
 ├── Services/
 │   ├── Interfaces/                   # Cross-cutting interfaces (IPaymentService, ICreditService vb.)
-│   │   └── IAdminService.cs          # F.7.3 — mini-admin servis kontratı
+│   │   ├── IAdminService.cs          # F.7.3 — mini-admin servis kontratı
+│   │   └── ITemplateCatalogService.cs # F.M.10a — statik 6 format kataloğu kontratı
 │   ├── Concretes/                    # Cross-cutting implementations
 │   │   ├── AdminService.cs           # F.7.3 — FindUserByEmail + AddCredit iş mantığı
-│   │   └── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
+│   │   ├── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
+│   │   └── TemplateCatalogService.cs # F.M.10a — 6 sabit sosyal medya formatı (hardcoded)
 │   ├── Generation/                   # 🆕 fal.ai generation katmanı (F.M.1+)
 │   │   ├── Abstractions/
 │   │   │   ├── IGenerationOrchestrator.cs
@@ -214,7 +230,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   │   └── IFalAiModelCatalog.cs
 │   │   ├── Orchestrators/
 │   │   │   ├── GenerationOrchestrator.cs
-│   │   │   └── CharacterTrainingOrchestrator.cs
+│   │   │   ├── CharacterTrainingOrchestrator.cs
+│   │   │   └── TemplateStartRequestBuilder.cs  # F.M.10a — format → StartGenerationRequest (static builder)
 │   │   ├── Domain/
 │   │   │   ├── Image/
 │   │   │   │   ├── FluxDevGenerator.cs
@@ -235,18 +252,22 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │       └── CreditPricingService.cs
 │   └── ...
 ├── ViewModels/
-│   └── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
+│   ├── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
+│   │                                 # F.9a — AdminUsersListViewModel, AdminUserDetailViewModel, AdminDashboardViewModel
+│   └── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
 ├── Views/
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — ortak view klasörü (Studio/* controller'ları explicit path ile çözer)
 │   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı
 │   │   ├── Image.cshtml                  # Ana üretim UI'ı (eski RenderNet/Index içeriği taşındı)
-│   │   ├── Templates.cshtml              # placeholder (F.M.10a)
+│   │   ├── Templates.cshtml              # F.M.10a — aktif format-first üretim formu (placeholder silindi)
 │   │   ├── Music.cshtml                  # placeholder (F.M.10c)
 │   │   └── Video.cshtml                  # placeholder (F.M.9)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
-│   ├── Admin/                        # F.7.3 — mini-admin sayfaları
-│   │   ├── Users.cshtml              # FindUserByEmail arama sonucu
-│   │   └── AddCredit.cshtml          # Kredi ekleme formu
+│   ├── Admin/                        # F.7.3 — mini-admin sayfaları (+ F.9a genişletme)
+│   │   ├── Dashboard.cshtml          # F.9a YENİ — 4 metric card özet
+│   │   ├── Users.cshtml              # F.9a GÜNCELLENDİ — paginated tablo + arama/tarih filtresi
+│   │   ├── UserDetail.cshtml         # F.9a YENİ — kullanıcı bilgi + paginated transaction history
+│   │   └── AddCredit.cshtml          # Kredi ekleme formu (F.7.3, dokunulmadı)
 │   ├── Shared/
 │   │   ├── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
 │   │   └── _AdminLayout.cshtml       # F.7.3 — Admin panel layout
@@ -255,9 +276,11 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
 │   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
 │   │   ├── admin.css                 # F.7.3 — Admin panel stilleri
-│   │   └── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
+│   │   ├── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
+│   │   └── template-studio.css       # F.M.10a — Templates format grid + form + sonuç kartları
 │   ├── js/
-│   │   ├── app.js                    # 🎯 Ana orchestrator
+│   │   ├── app.js                    # 🎯 Ana orchestrator (yalnızca Studio/Image'de yüklenir)
+│   │   ├── template-studio.js        # F.M.10a — Templates (kendi SignalR bağlantısı + pending kart)
 │   │   ├── toast.js                  # Bildirim sistemi
 │   │   ├── face-lock-panel.js
 │   │   ├── pose-lock-panel.js
@@ -580,12 +603,23 @@ dotnet user-secrets clear         # Hepsini sil
 
 ### Karma yaklaşım — 4 haftalık plan (F.M.Arch.1 sonrası, şirket kurulumu paralel)
 
-- **Hafta 1:** F.M.10a Post Templates + F.7.4 Landing kalan görseller
-- **Hafta 2:** F.M.10b Post Templates gelişmiş + F.9a admin panel
+- **Hafta 1:** ✅ **TAMAMLANDI**
+  - F.M.10a Post Templates MVP ✅ (format-first üretim, 6 format, aspect ratio converter, SignalR)
+  - F.7.4 Landing kalan görseller (feature-face-lock, feature-multi-model, og-image) — **kullanıcı yapacak**
+- **Hafta 2:**
+  - F.9a admin panel genişletme ✅ **TAMAMLANDI** (Dashboard + paginated user list + user detail + transaction history)
+  - F.M.10b Post Templates gelişmiş — **SIRADAKİ** (text overlay: server-side ImageSharp veya SkiaSharp, preset templates: 5-8 tam şablon marka renkleri + layout, Character LoRA + Templates entegrasyonu)
 - **Hafta 3:** F.M.UI.2 Studio polish + F.9b admin genişletme
 - **Hafta 4a (2 gün):** F.M.10c AI Müzik + Albüm Kapağı
 - **Hafta 4b (2 gün):** F.7.5 Legal sayfalar + FAQ + bugfix
 - **Buffer:** 3-4 gün şirket kurulum + tampon
+
+### F.M.10b scope planı (Hafta 2 — Post Templates gelişmiş)
+
+- **Text overlay:** server-side ImageSharp veya SkiaSharp ile, prompt üretimi SONRASI görsele metin ekleme.
+- **Preset templates:** 5-8 tam şablon (marka renkleri, metin alanları, layout).
+- **Custom aspect ratio:** 1200×628 (Facebook), 1080×566 (Twitter card) gibi tam boyutlar.
+- **Character LoRA + Templates:** karakterle format üretimi (flux-lora endpoint mapping). F.M.10a'da kasıtlı olarak yoktu.
 
 ### F.M.10c Music kararları (kilitli)
 

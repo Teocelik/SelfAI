@@ -26,47 +26,91 @@ namespace SelfAI.Controllers
             _logger = logger;
         }
 
+        // F.9a — Ana sayfa artık Dashboard (önceden Users'a redirect ediyordu).
         [HttpGet]
-        public IActionResult Index() => RedirectToAction(nameof(Users));
+        public Task<IActionResult> Index(CancellationToken ct = default) => Dashboard(ct);
 
+        // F.9a — Dashboard: bugün/bu hafta özet metrikleri.
         [HttpGet]
-        public async Task<IActionResult> Users(string? email = null, CancellationToken ct = default)
+        public async Task<IActionResult> Dashboard(CancellationToken ct = default)
         {
-            var vm = new AdminUsersViewModel { SearchEmail = email };
+            var statsResult = await _adminService.GetDashboardStatsAsync(ct);
 
-            // Redirect sonrası (kredi eklenince) email query string ile gelir — kartı yeniden göster.
-            if (!string.IsNullOrWhiteSpace(email))
+            if (!statsResult.IsSuccess)
+                _logger.LogWarning("Dashboard metrikleri yüklenemedi. | Mesaj: {Message}", statsResult.Message);
+
+            var vm = new AdminDashboardViewModel
             {
-                var result = await _adminService.FindUserByEmailAsync(email, ct);
-                if (result.IsSuccess)
-                    vm.FoundUser = result.Data;
-                else
-                    vm.NotFoundMessage = result.Message;
-            }
+                Stats = statsResult.IsSuccess ? statsResult.Data : null
+            };
+            // Index action'ı bu method'a delege ettiği için view adı explicit verilir
+            // (aksi halde çalışan action adına 'Index.cshtml' aranır).
+            return View("Dashboard", vm);
+        }
+
+        // F.9a — Paginated kullanıcı listesi. Arama (email/isim) + tarih filtresi query string ile.
+        // F.7.3 tekil arama bu listenin arama kutusuna entegre edildi.
+        [HttpGet]
+        public async Task<IActionResult> Users(
+            string? searchTerm = null,
+            string? dateFilter = null,
+            int page = 1,
+            CancellationToken ct = default)
+        {
+            DateTime? registeredAfter = dateFilter switch
+            {
+                "7d" => DateTime.UtcNow.AddDays(-7),
+                "30d" => DateTime.UtcNow.AddDays(-30),
+                _ => null
+            };
+
+            var listResult = await _adminService.GetUsersPaginatedAsync(
+                searchTerm, registeredAfter, page, 20, ct);
+
+            var vm = new AdminUsersListViewModel
+            {
+                UserList = listResult.IsSuccess ? listResult.Data : null,
+                SearchTerm = searchTerm,
+                DateFilter = dateFilter ?? "all",
+                Page = page
+            };
 
             return View(vm);
         }
 
+        // F.9a — Kullanıcı detay + işlem geçmişi (tek sayfa).
+        [HttpGet]
+        public async Task<IActionResult> UserDetail(
+            Guid userId,
+            int transactionPage = 1,
+            CancellationToken ct = default)
+        {
+            var userResult = await _adminService.GetUserDetailAsync(userId, ct);
+            if (!userResult.IsSuccess)
+            {
+                TempData["AdminError"] = userResult.Message;
+                return RedirectToAction(nameof(Users));
+            }
+
+            var txResult = await _adminService.GetUserTransactionsAsync(userId, transactionPage, 20, ct);
+
+            var vm = new AdminUserDetailViewModel
+            {
+                User = userResult.Data,
+                Transactions = txResult.IsSuccess ? txResult.Data : null,
+                TransactionPage = transactionPage
+            };
+
+            return View(vm);
+        }
+
+        // F.7.3 — Tekil email arama formu. F.9a'da liste araması ile birleştirildiği için
+        // artık Users?searchTerm=... paginated listesine yönlendirir (davranış korunur).
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SearchUser(AdminUsersViewModel model, CancellationToken ct)
+        public IActionResult SearchUser(AdminUsersViewModel model, CancellationToken ct)
         {
-            if (string.IsNullOrWhiteSpace(model.SearchEmail))
-            {
-                ModelState.AddModelError(nameof(model.SearchEmail), "Email gerekli.");
-                return View(nameof(Users), model);
-            }
-
-            var result = await _adminService.FindUserByEmailAsync(model.SearchEmail, ct);
-
-            if (!result.IsSuccess)
-            {
-                model.NotFoundMessage = result.Message;
-                return View(nameof(Users), model);
-            }
-
-            model.FoundUser = result.Data;
-            return View(nameof(Users), model);
+            return RedirectToAction(nameof(Users), new { searchTerm = model.SearchEmail });
         }
 
         [HttpGet]
@@ -115,7 +159,8 @@ namespace SelfAI.Controllers
 
             TempData["AdminSuccess"] = $"{result.Data!.Amount} kredi başarıyla eklendi. " +
                                        $"Yeni bakiye: {result.Data.NewBalance}";
-            return RedirectToAction(nameof(Users), new { email = model.TargetEmail });
+            // F.9a — Users artık paginated liste; searchTerm ile hedef kullanıcıya filtrelenmiş dön.
+            return RedirectToAction(nameof(Users), new { searchTerm = model.TargetEmail });
         }
 
         /// <summary>

@@ -18,6 +18,7 @@
                 <span class="admin-nav__badge">Admin</span>
             </div>
             <div class="admin-nav__actions">
+                <a href="@Url.Action("Dashboard", "Admin")" class="admin-nav__link">Dashboard</a>
                 <a href="@Url.Action("Users", "Admin")" class="admin-nav__link">Kullanıcılar</a>
                 <a href="@Url.Action("Index", "StudioHub")" class="admin-nav__link">Studio</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" class="admin-nav__logout">
@@ -35,6 +36,13 @@
                 <div class="admin-alert admin-alert--success">
                     <span class="admin-alert__icon">✓</span>
                     <span>@TempData["AdminSuccess"]</span>
+                </div>
+            }
+            @if (TempData["AdminError"] != null)
+            {
+                <div class="admin-alert admin-alert--error">
+                    <span class="admin-alert__icon">⚠</span>
+                    <span>@TempData["AdminError"]</span>
                 </div>
             }
             @RenderBody()
