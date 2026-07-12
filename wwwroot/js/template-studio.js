@@ -203,7 +203,10 @@ const TemplateStudio = (function () {
             body: JSON.stringify({
                 formatId: selectedFormat.id,
                 prompt: prompt,
-                usePromptSuffix: usePromptSuffixEl.checked
+                usePromptSuffix: usePromptSuffixEl.checked,
+                // F.M.10b — karakter seçiliyse orchestrator flux-lora'ya route eder.
+                // Seçici DOM'u preset-studio.js yönetir; burada yalnızca okuruz.
+                characterId: getSelectedCharacterId()
             })
         });
 
@@ -302,6 +305,14 @@ const TemplateStudio = (function () {
         } catch (err) {
             console.error('[TemplateStudio] Balance refresh hatası:', err);
         }
+    }
+
+    // F.M.10b — paylaşımlı karakter seçici (preset-studio.js yönetir). Seçili değilse
+    // "Karakter yok" (boş data-character-id) → null döner (normal format akışı).
+    function getSelectedCharacterId() {
+        var opt = document.querySelector('.character-option.is-selected');
+        var id = opt && opt.dataset ? opt.dataset.characterId : '';
+        return id ? id : null;
     }
 
     function escapeHtml(str) {

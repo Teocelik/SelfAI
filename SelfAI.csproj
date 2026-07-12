@@ -23,6 +23,13 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.6" />
+    <!-- F.M.10b — server-side text overlay (Apache 2.0). ImageSharp.Drawing beta15 = 2.1.x uyumlu son sürüm; v3+ ticari lisans.
+         DİKKAT: Fonts SABİT 1.0.0-beta18'e pinli — Drawing beta15 bu sürüme karşı derlendi.
+         Fonts 1.0.x (1.0.1) IGlyphRenderer.BeginGlyph imzasını değiştirdi → DrawText runtime'da
+         TypeLoadException fırlatıyor. Fonts'u yükseltme (bkz. BUGFIX HISTORY). -->
+    <PackageReference Include="SixLabors.ImageSharp" Version="2.1.*" />
+    <PackageReference Include="SixLabors.ImageSharp.Drawing" Version="1.0.0-beta15" />
+    <PackageReference Include="SixLabors.Fonts" Version="1.0.0-beta18" />
     <PackageReference Include="Stripe.net" Version="48.2.0" />
   </ItemGroup>
 

@@ -176,6 +176,14 @@ builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
 // IGenerationOrchestrator'ı çağırır (kredi/log/SignalR tekil, DRY).
 builder.Services.AddSingleton<ITemplateCatalogService, TemplateCatalogService>();
 
+// ═══ F.M.10b — Post Templates gelişmiş (preset + text overlay + karakter LoRA) ═══
+// Statik preset kataloğu (singleton — stateless). Text overlay servisi singleton:
+// font koleksiyonu startup'ta bir kez yüklenir (thread-safe read-only). IHttpClientFactory
+// kaynak görseli indirir (default client — typed client'lar factory'yi zaten kayıt eder).
+builder.Services.AddSingleton<IPresetTemplateCatalogService, PresetTemplateCatalogService>();
+builder.Services.AddSingleton<ITextOverlayService, TextOverlayService>();
+builder.Services.AddHttpClient();
+
 // ═══ F.M.4 — Character LoRA training katmanı ═══
 // Domain trainer (fal.ai flux-lora-fast-training) + training orchestrator.
 builder.Services.AddScoped<ICharacterTrainer, FluxLoraTrainer>();

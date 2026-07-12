@@ -730,3 +730,19 @@ Landing hero copy'si kalıcı olarak dokümante edilmiştir (F.7.2). Bu metinler
 - DTO'da `Width`/`Height` `int?` (nullable) tanımlanır.
 - `DynamicImageGenerator`, `FluxLoraGenerator`, `FluxPulidGenerator` `Width`/`Height` için `?? 0` fallback kullanır.
 - Downstream (`Generation` entity, DB) 0 kaydeder.
+
+**SixLabors.Fonts SABİT 1.0.0-beta18 — yükseltme YASAK (F.M.10b test sırasında bulundu)**
+
+- `ImageSharp.Drawing` 1.0.0-beta15, `Fonts` **1.0.0-beta18**'e karşı derlendi (nuspec dependency).
+- `Fonts` 1.0.x (1.0.1) `IGlyphRenderer.BeginGlyph` imzasını değiştirdi → Drawing beta15'in
+  `CachingGlyphRenderer`'ı yeni interface'i implement etmiyor. Sonuç: `DrawText` çağrısında
+  **runtime `TypeLoadException: Method 'BeginGlyph' ... does not have an implementation`**.
+- Semptom sinsi: `dotnet build` 0 hata verir (public API uyumlu), hata yalnızca text overlay
+  render edilirken (F.M.10b preset PostProcess) patlar.
+- Çözüm: `.csproj`'da `SixLabors.Fonts` **tam sürüm** `1.0.0-beta18` pinli (`1.0.*` float YASAK).
+  Drawing beta15 kullanıldığı sürece Fonts bu sürümde kalır.
+- Doğrulama: Inter TTF + ImageSharp 2.1.13 + Fonts beta18 ile Türkçe glifler (ç ğ ı ö ş ü ÇĞİŞÖÜ)
+  doğru render ediliyor (izole test + görsel inceleme ile onaylandı).
+- Not: Inter-SemiBold.ttf ayrı family "Inter SemiBold" olarak yüklenir; `TextOverlayService`
+  lookup'ı "-SemiBold" ekini strip edip "Inter" family'sini bulduğu için SemiBold alanlar
+  Regular ağırlıkta render olur (crash değil, kozmetik degradation — Bold ve Regular doğru).

@@ -15,88 +15,210 @@
         <div class="template-studio__header">
             <h1 class="template-studio__title">Sosyal Medya Postu</h1>
             <p class="template-studio__subtitle">
-                Platform ve format seç, prompt yaz, SelfAI doğru boyutta üretsin.
+                Format seç veya hazır şablonla başla. Karakterinle üretim yapabilirsin.
             </p>
         </div>
 
-        <div class="template-studio__format-grid">
-            @foreach (var format in Model.Formats)
-            {
-                <button type="button"
-                        class="format-card"
-                        data-format-id="@format.Id"
-                        data-format-name="@format.DisplayName"
-                        data-format-width="@format.Width"
-                        data-format-height="@format.Height"
-                        data-format-platform="@format.Platform"
-                        data-format-aspect="@format.AspectRatioValue"
-                        data-format-suffix="@format.PromptSuffix">
-                    <div class="format-card__aspect format-card__aspect--@format.Platform">
-                        <span class="format-card__ratio">@format.AspectRatioValue</span>
-                        <span class="format-card__dimensions">@format.Width×@format.Height</span>
-                    </div>
-                    <div class="format-card__info">
-                        <span class="format-card__platform-label">@format.Platform.ToUpper()</span>
-                        <h3 class="format-card__name">@format.DisplayName</h3>
-                        <p class="format-card__description">@format.Description</p>
-                    </div>
-                </button>
-            }
+        <div class="template-studio__tabs">
+            <button type="button" class="template-tab is-active" data-tab="formats">
+                Format Seç
+            </button>
+            <button type="button" class="template-tab" data-tab="presets">
+                Hazır Şablon
+                <span class="template-tab__badge">Yeni</span>
+            </button>
         </div>
 
-        <div class="template-form" id="templateForm" hidden>
-            <div class="template-form__header">
-                <div class="template-form__title-row">
-                    <h2 class="template-form__title" id="formTitle">Format seç</h2>
-                    <button type="button" class="template-form__close" id="formClose" aria-label="Kapat">×</button>
-                </div>
-                <p class="template-form__subtitle" id="formSubtitle"></p>
-            </div>
-
-            <div class="template-form__body">
-                <div class="template-form__field">
-                    <label for="promptInput" class="template-form__label">Ne üretmek istiyorsun?</label>
-                    <textarea id="promptInput"
-                              class="template-form__textarea"
-                              rows="4"
-                              placeholder="Örn: artisan coffee cup, minimal ceramic mug on wooden table"
-                              maxlength="1000"></textarea>
-                    <div class="template-form__hint">
-                        <span id="promptCharCount">0</span> / 1000 karakter
-                    </div>
-                </div>
-
-                <div class="template-form__field template-form__field--suffix" id="suffixField">
-                    <label class="template-form__label">
-                        <input type="checkbox" id="usePromptSuffix" checked />
-                        <span>Kompozisyon önerisi ekle</span>
-                    </label>
-                    <div class="template-form__suffix-preview" id="suffixPreview">
-                        <span class="template-form__suffix-label">Prompt sonuna eklenecek:</span>
-                        <code class="template-form__suffix-code" id="suffixCode"></code>
-                    </div>
-                </div>
-
-                <div class="template-form__actions">
-                    <button type="button"
-                            class="template-form__submit"
-                            id="generateBtn"
-                            disabled>
-                        <span class="template-form__submit-label">Üret</span>
-                        <span class="template-form__submit-spinner" hidden>
-                            <svg viewBox="0 0 24 24" width="18" height="18">
-                                <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"
-                                        stroke-width="2" stroke-dasharray="30 30" stroke-linecap="round">
-                                    <animateTransform attributeName="transform" type="rotate"
-                                                      from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
-                                </circle>
-                            </svg>
-                        </span>
+        @if (Model.UserCharacters.Any())
+        {
+            <div class="character-selector">
+                <label class="character-selector__label">Karakterin (opsiyonel)</label>
+                <div class="character-selector__grid" id="characterSelector">
+                    <button type="button" class="character-option is-selected" data-character-id="">
+                        <div class="character-option__icon">✕</div>
+                        <span class="character-option__name">Karakter yok</span>
                     </button>
+                    @foreach (var character in Model.UserCharacters)
+                    {
+                        <button type="button" class="character-option" data-character-id="@character.Id">
+                            @if (!string.IsNullOrEmpty(character.ThumbnailUrl))
+                            {
+                                <img src="@character.ThumbnailUrl" alt="@character.Name" class="character-option__thumbnail" />
+                            }
+                            else
+                            {
+                                <div class="character-option__icon">👤</div>
+                            }
+                            <span class="character-option__name">@character.Name</span>
+                        </button>
+                    }
+                </div>
+                <p class="character-selector__hint">
+                    Karakter seçersen üretim FLUX LoRA ile yapılır — kredi tarifesi farklı olabilir.
+                </p>
+            </div>
+        }
+
+        @* ═══ Tab: Format Seç (F.M.10a — DEĞİŞTİRİLMEDİ, yalnızca sarmalandı) ═══ *@
+        <div class="template-tab-content is-active" data-tab-content="formats">
+            <div class="template-studio__format-grid">
+                @foreach (var format in Model.Formats)
+                {
+                    <button type="button"
+                            class="format-card"
+                            data-format-id="@format.Id"
+                            data-format-name="@format.DisplayName"
+                            data-format-width="@format.Width"
+                            data-format-height="@format.Height"
+                            data-format-platform="@format.Platform"
+                            data-format-aspect="@format.AspectRatioValue"
+                            data-format-suffix="@format.PromptSuffix">
+                        <div class="format-card__aspect format-card__aspect--@format.Platform">
+                            <span class="format-card__ratio">@format.AspectRatioValue</span>
+                            <span class="format-card__dimensions">@format.Width×@format.Height</span>
+                        </div>
+                        <div class="format-card__info">
+                            <span class="format-card__platform-label">@format.Platform.ToUpper()</span>
+                            <h3 class="format-card__name">@format.DisplayName</h3>
+                            <p class="format-card__description">@format.Description</p>
+                        </div>
+                    </button>
+                }
+            </div>
+
+            <div class="template-form" id="templateForm" hidden>
+                <div class="template-form__header">
+                    <div class="template-form__title-row">
+                        <h2 class="template-form__title" id="formTitle">Format seç</h2>
+                        <button type="button" class="template-form__close" id="formClose" aria-label="Kapat">×</button>
+                    </div>
+                    <p class="template-form__subtitle" id="formSubtitle"></p>
+                </div>
+
+                <div class="template-form__body">
+                    <div class="template-form__field">
+                        <label for="promptInput" class="template-form__label">Ne üretmek istiyorsun?</label>
+                        <textarea id="promptInput"
+                                  class="template-form__textarea"
+                                  rows="4"
+                                  placeholder="Örn: artisan coffee cup, minimal ceramic mug on wooden table"
+                                  maxlength="1000"></textarea>
+                        <div class="template-form__hint">
+                            <span id="promptCharCount">0</span> / 1000 karakter
+                        </div>
+                    </div>
+
+                    <div class="template-form__field template-form__field--suffix" id="suffixField">
+                        <label class="template-form__label">
+                            <input type="checkbox" id="usePromptSuffix" checked />
+                            <span>Kompozisyon önerisi ekle</span>
+                        </label>
+                        <div class="template-form__suffix-preview" id="suffixPreview">
+                            <span class="template-form__suffix-label">Prompt sonuna eklenecek:</span>
+                            <code class="template-form__suffix-code" id="suffixCode"></code>
+                        </div>
+                    </div>
+
+                    <div class="template-form__actions">
+                        <button type="button"
+                                class="template-form__submit"
+                                id="generateBtn"
+                                disabled>
+                            <span class="template-form__submit-label">Üret</span>
+                            <span class="template-form__submit-spinner" hidden>
+                                <svg viewBox="0 0 24 24" width="18" height="18">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-dasharray="30 30" stroke-linecap="round">
+                                        <animateTransform attributeName="transform" type="rotate"
+                                                          from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                                    </circle>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
 
+        @* ═══ Tab: Hazır Şablon (F.M.10b YENİ) ═══ *@
+        <div class="template-tab-content" data-tab-content="presets">
+            <div class="preset-grid">
+                @foreach (var preset in Model.Presets)
+                {
+                    var fieldsJson = System.Text.Json.JsonSerializer.Serialize(
+                        preset.TextFields,
+                        new System.Text.Json.JsonSerializerOptions
+                        {
+                            PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+                        });
+                    <button type="button"
+                            class="preset-card"
+                            data-preset-id="@preset.Id"
+                            data-preset-name="@preset.DisplayName"
+                            data-preset-width="@preset.Width"
+                            data-preset-height="@preset.Height"
+                            data-preset-platform="@preset.Platform"
+                            data-preset-fields="@fieldsJson">
+                        <div class="preset-card__preview">
+                            <img src="@preset.PreviewImageUrl"
+                                 alt="@preset.DisplayName"
+                                 class="preset-card__preview-image"
+                                 loading="lazy" />
+                        </div>
+                        <div class="preset-card__info">
+                            <span class="preset-card__platform">@preset.Platform.ToUpper()</span>
+                            <h3 class="preset-card__name">@preset.DisplayName</h3>
+                            <p class="preset-card__description">@preset.Description</p>
+                            <span class="preset-card__dimensions">@preset.Width×@preset.Height</span>
+                        </div>
+                    </button>
+                }
+            </div>
+
+            <div class="preset-form" id="presetForm" hidden>
+                <div class="preset-form__header">
+                    <div class="preset-form__title-row">
+                        <h2 class="preset-form__title" id="presetFormTitle">Şablon seç</h2>
+                        <button type="button" class="preset-form__close" id="presetFormClose" aria-label="Kapat">×</button>
+                    </div>
+                </div>
+
+                <div class="preset-form__body">
+                    <div class="preset-form__field">
+                        <label for="presetPromptInput" class="preset-form__label">Görsel için prompt</label>
+                        <textarea id="presetPromptInput"
+                                  class="preset-form__textarea"
+                                  rows="3"
+                                  placeholder="Örn: minimalist ceramic mug on marble surface"
+                                  maxlength="1000"></textarea>
+                    </div>
+
+                    <div class="preset-form__text-fields" id="presetTextFields">
+                        @* Dinamik text alanları preset-studio.js ile eklenir *@
+                    </div>
+
+                    <div class="preset-form__actions">
+                        <button type="button"
+                                class="preset-form__submit"
+                                id="presetGenerateBtn"
+                                disabled>
+                            <span class="preset-form__submit-label">Üret</span>
+                            <span class="preset-form__submit-spinner" hidden>
+                                <svg viewBox="0 0 24 24" width="18" height="18">
+                                    <circle cx="12" cy="12" r="10" fill="none" stroke="currentColor"
+                                            stroke-width="2" stroke-dasharray="30 30" stroke-linecap="round">
+                                        <animateTransform attributeName="transform" type="rotate"
+                                                          from="0 12 12" to="360 12 12" dur="1s" repeatCount="indefinite" />
+                                    </circle>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @* Sonuçlar — F.M.10a + F.M.10b paylaşımlı grid (her modül kendi generationId'sini işler) *@
         <div class="template-results" id="templateResults" hidden>
             <div class="template-results__header">
                 <h2 class="template-results__title">Sonuçlar</h2>
@@ -108,4 +230,5 @@
 
 @section Scripts {
     <script src="~/js/template-studio.js" asp-append-version="true"></script>
+    <script src="~/js/preset-studio.js" asp-append-version="true"></script>
 }
