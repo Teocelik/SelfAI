@@ -127,6 +127,11 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **F.M.10b Character LoRA + Templates (kilitli):** `StartGenerationRequest.CharacterId` propagate edilir, orchestrator zaten endpoint override + LoRA URL resolve + Ready/ownership validation yapıyor. Controller'da tekrar validation YOK (DRY).
 - **F.M.10b preset post-processing (kilitli):** `IMemoryCache` pending data (1 saat TTL, generationId keyed). SignalR `GenerationUpdate` Complete geldiğinde frontend PostProcess endpoint'ini çağırır, backend text overlay render eder R2'a upload eder.
 - **F.M.10b request builder ayrımı (kilitli):** `PresetStartRequestBuilder.Build(preset, dto)` — endpoint override parametresi YOK, orchestrator'a bırakılır. Aynı prensip `TemplateStartRequestBuilder.Build(format, dto)`'a `CharacterId` propagate edilir.
+- **F.M.UI.2 kredi bakiyesi ViewComponent (kilitli):** `CreditBalanceViewComponent` (`ViewComponents/`) + `Views/Shared/Components/CreditBalance/Default.cshtml`. `_AppLayout.cshtml` VE `_AdminLayout.cshtml` içinde `@await Component.InvokeAsync("CreditBalance")` — tüm app sayfalarında tek kaynaktan, **server-side** bakiye (ilk boyamada doğru rakam, "—" flash'ı yok). Kimlik `HttpContext.User`'ın `AppUserId` claim'inden çözülür (proje genelinde `IUserContextService` YOK; `AccountController.Balance` de aynı claim'i kullanır), `ICreditService.GetBalanceAsync(Guid)` çağrılır — **CancellationToken parametresi YOK**. Fail-gracefully: bakiye çekilemezse `Balance=null` → view `—` gösterir. Mevcut `.app-nav__credit-pill` markup + `#creditBalance`/`#creditBalanceValue` id'leri KORUNDU; **yeni `credit-balance.css` YARATILMADI** (pill stili `app-nav.css`'te; `_AdminLayout` bu css'i yüklemediği için ona `app-nav.css` link'i eklendi). Admin pill'i admin'in KENDİ bakiyesini gösterir (target kullanıcının değil).
+- **F.M.UI.2 bakiye güncelleme mekanizması (kilitli):** ⚠️ Bakiye için SignalR `CreditUpdated` event'i **YOKTUR** (spec taslağındaki varsayım yanlıştı). ViewComponent değeri server-side render eder; canlı güncelleme yalnızca generation sayfalarında `fetch('/Account/Balance')` → `#creditBalanceValue.textContent` ile yapılır — 3 dosyada tekrarlanır: `app.js` (Studio/Image), `template-studio.js`, `preset-studio.js`. Studio Hub/Admin gibi üretim yapılmayan sayfalarda canlı güncelleme yok, server-side değer statik kalır (kabul edilir — o sayfalarda bakiye değişmez). Yeni sayfada bakiye güncelleyeceksen `#creditBalanceValue` id'sini + `/Account/Balance` endpoint'ini kullan.
+- **F.M.UI.2 mobile responsive standardı (kilitli):** Studio/Image için 720px breakpoint. Layout Tailwind utility class'larıyla kurulur (spec'teki `.studio-layout`/`.studio-sidebar` YOK): container `.studio-page` (`flex h-screen`), ana canvas `#mainCanvas` (`order-1`), sağ ayar paneli `#rightSidebar` (`order-3`). Mobile kuralları `generated-results.css`'te (`main.css` Tailwind build çıktısı — elle düzenlenmez; id seçiciler utility class'ları yener): `.studio-page`→`flex-direction:column`, `#rightSidebar` alta taşınır (`order:2`, `width:100%`, `height:auto`), `#mainCanvas` `min-height:55vh`, sonuç grid'i (`.generated-results__grid`) 2 sütun. Nav mobil (hamburger, 767px) zaten `app-nav.css`'te — dokunulmadı. Sekme/bottom-sheet YOK.
+- **F.M.UI.2 regenerate mimarisi (kilitli):** Frontend re-submit pattern, backend'de SIFIR değişiklik. Sonuç kartındaki (`.generated-card`, `image-controls.js`) hover Regenerate ikonu mevcut `GenerateImage` endpoint'ini yeniden çağırır. Üretim metadata'sı (modelEndpoint/prompt/aspectRatio/characterId/characterMode/faceAssetId/faceWeight) kartta **JS closure**'da tutulur — **`data-attribute` DEĞİL** (Türkçe/tırnak içeren prompt'ta HTML-escape sorununu önler; spec taslağı data-attribute diyordu, closure tercih edildi). Seed gönderilmez (backend rastgele üretir), `numImages=1`'e sabitlenir. Normal submit ve regenerate tek `submitGeneration(payload)` yolunu paylaşır (DRY); `isGenerating` flag'i paralel üretim + kredi race'ini önler. Sadece Studio/Image'da — Templates kendi flow'unu kullanır (ayrı render, regenerate butonu yok).
+- **F.M.UI.2 pendingRequests Map (kilitli):** `app.js`'te `Map<generationId, StartGenerationRequest payload>`. `submitGeneration` başarılı POST sonrası payload'ı saklar; SignalR `GenerationUpdate` (Completed) geldiğinde `pendingRequests.get(generationId)` ile çekilip `ImageControls.showGeneratedImages(urls, request)`'e geçirilir (kartın **closure**'ına bağlanır, data-attribute'a yazılmaz), sonra `delete` edilir. Session-based: sayfa refresh'inde Map boşalır → eski kartlar regenerate EDİLEMEZ (kabul edilen kısıt; persistent regenerate için generation history endpoint'i F.9b'de eklenebilir).
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -271,6 +276,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   └── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
 │                                     # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
 │                                     #           UserCharacterViewModel
+├── ViewComponents/                   # 🆕 F.M.UI.2 — MVC ViewComponent'ler
+│   └── CreditBalanceViewComponent.cs # Kredi bakiyesi pill (AppUserId claim + GetBalanceAsync, fail-gracefully)
 ├── Views/
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — ortak view klasörü (Studio/* controller'ları explicit path ile çözer)
 │   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı
@@ -286,16 +293,22 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   └── AddCredit.cshtml          # Kredi ekleme formu (F.7.3, dokunulmadı)
 │   ├── Shared/
 │   │   ├── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
-│   │   └── _AdminLayout.cshtml       # F.7.3 — Admin panel layout
+│   │   ├── _AppLayout.cshtml         # F.M.UI.2 GÜNCELLENDİ — bakiye pill artık CreditBalance ViewComponent invoke
+│   │   ├── _AdminLayout.cshtml       # F.7.3 (+ F.M.UI.2 GÜNCELLENDİ — app-nav.css link + CreditBalance invoke)
+│   │   └── Components/
+│   │       └── CreditBalance/
+│   │           └── Default.cshtml    # 🆕 F.M.UI.2 — .app-nav__credit-pill markup (server-side değer, "—" fallback)
 │   └── Account/                      # Login, Register, vb.
 ├── wwwroot/
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
 │   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
 │   │   ├── admin.css                 # F.7.3 — Admin panel stilleri
 │   │   ├── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
-│   │   └── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
+│   │   ├── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
+│   │   ├── app-nav.css               # Üst nav + .app-nav__credit-pill bakiye stili (F.M.UI.2 bakiye buradan; yeni credit-balance.css YOK)
+│   │   └── generated-results.css     # F.M.UI.1b (+ F.M.UI.2 GÜNCELLENDİ — regenerate buton stili + Studio/Image 720px mobile layout)
 │   ├── js/
-│   │   ├── app.js                    # 🎯 Ana orchestrator (yalnızca Studio/Image'de yüklenir)
+│   │   ├── app.js                    # 🎯 Ana orchestrator (Studio/Image; F.M.UI.2 GÜNCELLENDİ — pendingRequests Map, submitGeneration, regenerate, isGenerating mutex)
 │   │   ├── template-studio.js        # F.M.10a — Templates (kendi SignalR bağlantısı + pending kart)
 │   │   ├── preset-studio.js          # F.M.10b YENİ — preset akışı (SignalR Complete → PostProcess çağrısı)
 │   │   ├── toast.js                  # Bildirim sistemi
@@ -306,7 +319,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── model-selection-panel.js
 │   │   ├── prompt-handler.js
 │   │   ├── generate-button-state.js  # Generate button enable/disable logic
-│   │   ├── image-controls.js
+│   │   ├── image-controls.js         # F.M.UI.2 GÜNCELLENDİ — sonuç kartı regenerate butonu (metadata closure'da, data-attribute DEĞİL)
 │   │   ├── landing.js                # F.7.2 — Landing etkileşimleri (IIFE)
 │   │   └── ...
 │   ├── fonts/                        # F.M.10b — Inter-Regular.ttf, Inter-Bold.ttf, Inter-SemiBold.ttf (text overlay)
@@ -628,10 +641,10 @@ dotnet user-secrets clear         # Hepsini sil
 - **Hafta 2:** ✅ **TAMAMLANDI**
   - F.9a admin panel genişletme ✅ (Dashboard + paginated user list + user detail + transaction history)
   - F.M.10b Post Templates gelişmiş ✅ (text overlay: server-side ImageSharp v2.1, 5 preset templates statik katalog, Character LoRA + Templates entegrasyonu)
-- **Hafta 3 (SIRADAKİ):**
-  - F.M.UI.2 Studio polish — 1-2 gün
-  - F.9b admin genişletme — 2 gün
-- **Hafta 4:**
+- **Hafta 3 (yarısı tamamlandı):**
+  - F.M.UI.2 Studio polish ✅ **TAMAMLANDI** (bakiye ViewComponent tüm sayfalarda + Studio/Image 720px mobile + regenerate frontend re-submit)
+  - F.9b admin genişletme — **SIRADAKİ** (2 gün)
+- **Hafta 4 (plan korunuyor):**
   - F.M.10c Müzik + Albüm Kapağı — 2-3 gün
   - F.7.5 Legal sayfalar + FAQ + bugfix — 1-2 gün
 - **F.7.4** (landing kalan görseller: feature-face-lock, feature-multi-model, og-image) — beta launch öncesi son gün, **kullanıcı hazırlayacak**

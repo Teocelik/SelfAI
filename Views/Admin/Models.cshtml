@@ -1,0 +1,191 @@
+@using SelfAI.Entities.Enums
+@model SelfAI.ViewModels.Admin.AdminModelsListViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Model Catalog";
+}
+
+<div class="admin-page-header">
+    <h1 class="admin-page-title">Model Catalog</h1>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.SuccessMessage))
+{
+    <div class="admin-alert admin-alert--success">@Model.SuccessMessage</div>
+}
+@if (!string.IsNullOrEmpty(Model.ErrorMessage))
+{
+    <div class="admin-alert admin-alert--error">@Model.ErrorMessage</div>
+}
+
+<div class="admin-model-actions admin-panel">
+    <form asp-action="SyncModels" method="post" class="admin-sync-form">
+        @Html.AntiForgeryToken()
+        <label class="admin-sync-form__label">fal.ai'dan yeni model sync:</label>
+        <select name="category" class="admin-form__input admin-form__input--compact">
+            @foreach (var cat in Model.AvailableCategories)
+            {
+                <option value="@cat">@cat</option>
+            }
+        </select>
+        <button type="submit" class="admin-button admin-button--primary">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="1 4 1 10 7 10" />
+                <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10" />
+            </svg>
+            Sync
+        </button>
+    </form>
+</div>
+
+<form asp-action="Models" method="get" class="admin-panel admin-filter-form">
+    <div class="admin-filter-form__row">
+        <div class="admin-filter-form__field">
+            <input type="text"
+                   name="searchTerm"
+                   value="@Model.SearchTerm"
+                   placeholder="Endpoint, isim, provider ara..."
+                   class="admin-form__input"
+                   autocomplete="off" />
+        </div>
+        <div class="admin-filter-form__field admin-filter-form__field--select">
+            <select name="statusFilter" class="admin-form__input">
+                <option value="all" selected="@(Model.StatusFilter == "all")">Tüm durumlar</option>
+                <option value="approved" selected="@(Model.StatusFilter == "approved")">Approved</option>
+                <option value="pending" selected="@(Model.StatusFilter == "pending")">Pending</option>
+                <option value="disabled" selected="@(Model.StatusFilter == "disabled")">Disabled</option>
+            </select>
+        </div>
+        <div class="admin-filter-form__field admin-filter-form__field--select">
+            <select name="categoryFilter" class="admin-form__input">
+                <option value="all" selected="@(Model.CategoryFilter == "all")">Tüm kategoriler</option>
+                @foreach (var cat in Model.AvailableCategories)
+                {
+                    <option value="@cat" selected="@(Model.CategoryFilter == cat)">@cat</option>
+                }
+            </select>
+        </div>
+        <button type="submit" class="admin-button admin-button--primary">Filtrele</button>
+    </div>
+</form>
+
+@if (Model.ModelList == null || !Model.ModelList.Items.Any())
+{
+    <div class="admin-empty">
+        <p>Model bulunamadı.</p>
+    </div>
+}
+else
+{
+    <div class="admin-model-table-wrap">
+        <div class="admin-user-table-meta">
+            Toplam @Model.ModelList.TotalCount model — Sayfa @Model.ModelList.Page / @Model.ModelList.TotalPages
+        </div>
+
+        <table class="admin-model-table">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Category</th>
+                    <th>Tier</th>
+                    <th class="admin-user-table__num">Cost (USD)</th>
+                    <th>Status</th>
+                    <th>Aksiyon</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.ModelList.Items)
+                {
+                    var statusClass = item.Status.ToString().ToLowerInvariant();
+                    <tr class="admin-model-row admin-model-row--@statusClass">
+                        <td>
+                            <div class="admin-model-cell">
+                                @if (!string.IsNullOrEmpty(item.ThumbnailUrl))
+                                {
+                                    <img src="@item.ThumbnailUrl" alt="@item.DisplayName" class="admin-model-cell__thumb" loading="lazy" />
+                                }
+                                else
+                                {
+                                    <div class="admin-model-cell__thumb-placeholder">?</div>
+                                }
+                                <div class="admin-model-cell__info">
+                                    <div class="admin-model-cell__name">
+                                        @item.DisplayName
+                                        @if (item.IsRecommended)
+                                        {
+                                            <span class="admin-model-cell__badge">★ Önerilen</span>
+                                        }
+                                    </div>
+                                    <div class="admin-model-cell__endpoint">@item.EndpointId</div>
+                                    @if (!string.IsNullOrEmpty(item.Provider))
+                                    {
+                                        <div class="admin-model-cell__provider">@item.Provider</div>
+                                    }
+                                </div>
+                            </div>
+                        </td>
+                        <td class="admin-model-table__category">@item.Category</td>
+                        <td>@item.Tier</td>
+                        <td class="admin-user-table__num">$@item.CostUsd.ToString("F4")</td>
+                        <td>
+                            <span class="admin-model-status admin-model-status--@statusClass">
+                                @item.Status
+                            </span>
+                        </td>
+                        <td class="admin-user-table__actions">
+                            <a href="@Url.Action("EditModel", new { modelId = item.Id })"
+                               class="admin-user-table__action">Düzenle</a>
+
+                            @if (item.Status != CatalogStatus.Approved)
+                            {
+                                <form asp-action="SetModelStatus" method="post" style="display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="modelId" value="@item.Id" />
+                                    <input type="hidden" name="newStatus" value="@((int)CatalogStatus.Approved)" />
+                                    <input type="hidden" name="returnFilter" value="@Model.StatusFilter" />
+                                    <button type="submit" class="admin-user-table__action admin-user-table__action--primary">
+                                        Approve
+                                    </button>
+                                </form>
+                            }
+
+                            @if (item.Status != CatalogStatus.Hidden)
+                            {
+                                <form asp-action="SetModelStatus" method="post" style="display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="modelId" value="@item.Id" />
+                                    <input type="hidden" name="newStatus" value="@((int)CatalogStatus.Hidden)" />
+                                    <input type="hidden" name="returnFilter" value="@Model.StatusFilter" />
+                                    <button type="submit" class="admin-user-table__action admin-user-table__action--danger">
+                                        Disable
+                                    </button>
+                                </form>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (Model.ModelList.TotalPages > 1)
+        {
+            <nav class="admin-pagination">
+                @if (Model.ModelList.HasPrevious)
+                {
+                    <a href="@Url.Action("Models", new { searchTerm = Model.SearchTerm, statusFilter = Model.StatusFilter, categoryFilter = Model.CategoryFilter, page = Model.ModelList.Page - 1 })"
+                       class="admin-pagination__link">← Önceki</a>
+                }
+
+                <span class="admin-pagination__info">
+                    Sayfa @Model.ModelList.Page / @Model.ModelList.TotalPages
+                </span>
+
+                @if (Model.ModelList.HasNext)
+                {
+                    <a href="@Url.Action("Models", new { searchTerm = Model.SearchTerm, statusFilter = Model.StatusFilter, categoryFilter = Model.CategoryFilter, page = Model.ModelList.Page + 1 })"
+                       class="admin-pagination__link">Sonraki →</a>
+                }
+            </nav>
+        }
+    </div>
+}

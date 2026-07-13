@@ -62,7 +62,9 @@ public class CatalogController : ControllerBase
     [HttpPost("Sync")]
     public async Task<IActionResult> Sync(CancellationToken ct)
     {
-        var result = await _orchestrator.SyncFromFalAiAsync(ct);
+        // F.9b — Sync imzasına category parametresi eklendi; davranış birebir korunur
+        // (default "text-to-image"). ct named arg ile geçilir.
+        var result = await _orchestrator.SyncFromFalAiAsync(cancellationToken: ct);
 
         return result.IsSuccess
             ? Ok(new { success = true, message = result.Message, data = result.Data })

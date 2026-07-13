@@ -22,6 +22,7 @@
             <div class="admin-nav__actions">
                 <a href="@Url.Action("Dashboard", "Admin")" class="admin-nav__link">Dashboard</a>
                 <a href="@Url.Action("Users", "Admin")" class="admin-nav__link">Kullanıcılar</a>
+                <a href="@Url.Action("Models", "Admin")" class="admin-nav__link">Modeller</a>
                 <a href="@Url.Action("Index", "StudioHub")" class="admin-nav__link">Studio</a>
                 @* F.M.UI.2 — admin'in kendi bakiye pill'i (target kullanıcının değil). *@
                 @await Component.InvokeAsync("CreditBalance")

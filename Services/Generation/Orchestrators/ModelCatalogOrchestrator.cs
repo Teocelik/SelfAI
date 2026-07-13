@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using SelfAI.Data;
+using SelfAI.DTOs.Admin;
 using SelfAI.DTOs.Catalog;
 using SelfAI.Entities;
 using SelfAI.Entities.Enums;
@@ -123,14 +124,16 @@ public class ModelCatalogOrchestrator : IModelCatalogOrchestrator
     }
 
     public async Task<ServiceResult<int>> SyncFromFalAiAsync(
+        string category = "text-to-image",
         CancellationToken cancellationToken = default)
     {
-        const string category = "text-to-image";
         var items = await _catalogClient.ListAllAsync(category, cancellationToken);
 
         if (items.Count == 0)
         {
-            _logger.LogWarning("fal.ai sync: hiç model dönmedi (endpoint/şema sorunu olabilir).");
+            _logger.LogWarning(
+                "fal.ai sync: hiç model dönmedi (endpoint/şema sorunu olabilir). | Category: {Category}",
+                category);
             return ServiceResult<int>.Success(0, "fal.ai'dan model alınamadı.");
         }
 
@@ -184,6 +187,188 @@ public class ModelCatalogOrchestrator : IModelCatalogOrchestrator
         return ServiceResult<int>.Success(added + updated,
             $"{added} yeni, {updated} güncellenen model.");
     }
+
+    // ── F.9b — Admin catalog yönetimi ─────────────────────────────────────────
+
+    public async Task<ServiceResult<AdminModelListDto>> GetAdminListAsync(
+        AdminModelListFilter filter,
+        CancellationToken cancellationToken = default)
+    {
+        // Validation / clamp
+        if (filter.Page < 1) filter.Page = 1;
+        if (filter.PageSize < 10) filter.PageSize = 20;
+        if (filter.PageSize > 100) filter.PageSize = 100;
+
+        var query = _db.ModelCatalogEntries.AsNoTracking().AsQueryable();
+
+        if (filter.Status.HasValue)
+            query = query.Where(m => m.Status == filter.Status.Value);
+
+        if (!string.IsNullOrWhiteSpace(filter.Category))
+            query = query.Where(m => m.Category == filter.Category);
+
+        if (!string.IsNullOrWhiteSpace(filter.SearchTerm))
+        {
+            var term = filter.SearchTerm.Trim().ToLower();
+            query = query.Where(m =>
+                m.EndpointId.ToLower().Contains(term) ||
+                m.DisplayName.ToLower().Contains(term) ||
+                (m.Provider != null && m.Provider.ToLower().Contains(term)));
+        }
+
+        var totalCount = await query.CountAsync(cancellationToken);
+
+        var items = await query
+            .OrderBy(m => m.Status)                 // Approved(0) → Pending(1) → Hidden(2) → Deprecated(3)
+            .ThenByDescending(m => m.IsRecommended)
+            .ThenBy(m => m.CostUsd)
+            .Skip((filter.Page - 1) * filter.PageSize)
+            .Take(filter.PageSize)
+            .Select(m => new AdminModelListItemDto
+            {
+                Id = m.Id,
+                EndpointId = m.EndpointId,
+                DisplayName = m.DisplayName,
+                Category = m.Category,
+                Provider = m.Provider,
+                ThumbnailUrl = m.ThumbnailUrl,
+                Tier = m.Tier,
+                CostUsd = m.CostUsd,
+                Status = m.Status,
+                IsRecommended = m.IsRecommended,
+                CreatedAt = m.CreatedAt,
+                UpdatedAt = m.UpdatedAt
+            })
+            .ToListAsync(cancellationToken);
+
+        return ServiceResult<AdminModelListDto>.Success(new AdminModelListDto
+        {
+            Items = items,
+            TotalCount = totalCount,
+            Page = filter.Page,
+            PageSize = filter.PageSize
+        });
+    }
+
+    public async Task<ServiceResult<AdminModelDetailDto>> GetAdminDetailAsync(
+        Guid modelId,
+        CancellationToken cancellationToken = default)
+    {
+        var entry = await _db.ModelCatalogEntries.AsNoTracking()
+            .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken);
+
+        if (entry == null)
+            return ServiceResult<AdminModelDetailDto>.Failure("Model bulunamadı.", 404);
+
+        return ServiceResult<AdminModelDetailDto>.Success(new AdminModelDetailDto
+        {
+            Id = entry.Id,
+            EndpointId = entry.EndpointId,
+            DisplayName = entry.DisplayName,
+            Description = entry.Description,
+            Category = entry.Category,
+            Provider = entry.Provider,
+            ThumbnailUrl = entry.ThumbnailUrl,
+            Tier = entry.Tier,
+            CostUsd = entry.CostUsd,
+            Status = entry.Status,
+            IsRecommended = entry.IsRecommended,
+            CreatedAt = entry.CreatedAt,
+            UpdatedAt = entry.UpdatedAt
+        });
+    }
+
+    public async Task<ServiceResult<bool>> UpdateAdminAsync(
+        Guid modelId,
+        AdminModelUpdateDto update,
+        CancellationToken cancellationToken = default)
+    {
+        var entry = await _db.ModelCatalogEntries
+            .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken);
+
+        if (entry == null)
+            return ServiceResult<bool>.Failure("Model bulunamadı.", 404);
+
+        var oldCategory = entry.Category;
+
+        // Patch pattern — null alanlar değişmez.
+        if (!string.IsNullOrWhiteSpace(update.DisplayName))
+            entry.DisplayName = update.DisplayName.Trim();
+
+        if (update.Description != null) // boş string ile temizleme desteklenir
+            entry.Description = string.IsNullOrWhiteSpace(update.Description) ? null : update.Description.Trim();
+
+        if (!string.IsNullOrWhiteSpace(update.Category))
+            entry.Category = update.Category.Trim();
+
+        if (update.Provider != null)
+            entry.Provider = string.IsNullOrWhiteSpace(update.Provider) ? null : update.Provider.Trim();
+
+        if (!string.IsNullOrWhiteSpace(update.Tier))
+        {
+            // Tier whitelist — ParseTier'ın bildiği değerler.
+            var validTiers = new[] { "Fast", "Standard", "Premium", "CharacterLora",
+                                     "VideoFast", "VideoPremium" };
+            if (!validTiers.Contains(update.Tier))
+                return ServiceResult<bool>.Failure(
+                    $"Geçersiz tier: {update.Tier}. Geçerli değerler: {string.Join(", ", validTiers)}",
+                    400);
+            entry.Tier = update.Tier;
+        }
+
+        if (update.CostUsd.HasValue)
+        {
+            if (update.CostUsd.Value < 0)
+                return ServiceResult<bool>.Failure("CostUsd negatif olamaz.", 400);
+            entry.CostUsd = update.CostUsd.Value;
+        }
+
+        if (update.IsRecommended.HasValue)
+            entry.IsRecommended = update.IsRecommended.Value;
+
+        entry.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        // Cache invalidation — hem eski hem yeni kategori (kategori değiştiyse).
+        InvalidateCache(oldCategory);
+        if (entry.Category != oldCategory)
+            InvalidateCache(entry.Category);
+
+        _logger.LogInformation(
+            "Model catalog güncellendi. | ModelId: {Id} | Endpoint: {Endpoint} | Category: {OldCat}→{NewCat}",
+            modelId, entry.EndpointId, oldCategory, entry.Category);
+
+        return ServiceResult<bool>.Success(true);
+    }
+
+    public async Task<ServiceResult<bool>> SetStatusAsync(
+        Guid modelId,
+        CatalogStatus newStatus,
+        CancellationToken cancellationToken = default)
+    {
+        var entry = await _db.ModelCatalogEntries
+            .FirstOrDefaultAsync(m => m.Id == modelId, cancellationToken);
+
+        if (entry == null)
+            return ServiceResult<bool>.Failure("Model bulunamadı.", 404);
+
+        var oldStatus = entry.Status;
+        entry.Status = newStatus;
+        entry.UpdatedAt = DateTime.UtcNow;
+
+        await _db.SaveChangesAsync(cancellationToken);
+
+        InvalidateCache(entry.Category);
+
+        _logger.LogInformation(
+            "Model status değiştirildi. | ModelId: {Id} | Endpoint: {Endpoint} | Status: {Old}→{New}",
+            modelId, entry.EndpointId, oldStatus, newStatus);
+
+        return ServiceResult<bool>.Success(true);
+    }
+
+    // ──────────────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Approved modellerin base listesini (favori bilgisi olmadan) cache'li döner.

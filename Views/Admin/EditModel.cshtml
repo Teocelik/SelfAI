@@ -1,0 +1,98 @@
+@using SelfAI.Entities.Enums
+@model SelfAI.ViewModels.Admin.AdminModelEditViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Model Düzenle";
+    var statusClass = Model.Status.ToString().ToLowerInvariant();
+}
+
+<div class="admin-page-header">
+    <a href="@Url.Action("Models", "Admin")" class="admin-page-header__back">← Model Catalog</a>
+    <h1 class="admin-page-title">Model Düzenle</h1>
+</div>
+
+<form asp-action="EditModel" method="post" class="admin-model-edit-form">
+    @Html.AntiForgeryToken()
+    <input type="hidden" asp-for="Id" />
+    <input type="hidden" asp-for="EndpointId" />
+    <input type="hidden" asp-for="Status" />
+
+    <div class="admin-model-edit__header admin-panel">
+        <div class="admin-model-edit__identity">
+            @if (!string.IsNullOrEmpty(Model.ThumbnailUrl))
+            {
+                <img src="@Model.ThumbnailUrl" alt="@Model.DisplayName" class="admin-model-edit__thumb" />
+            }
+            <div class="admin-model-edit__meta">
+                <code class="admin-model-edit__endpoint">@Model.EndpointId</code>
+                <span class="admin-model-status admin-model-status--@statusClass">
+                    @Model.Status
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="admin-panel">
+        <div class="admin-form__group">
+            <label asp-for="DisplayName" class="admin-form__label">Display Name</label>
+            <input asp-for="DisplayName" class="admin-form__input" />
+            <span asp-validation-for="DisplayName" class="admin-form__error"></span>
+        </div>
+
+        <div class="admin-form__group">
+            <label asp-for="Description" class="admin-form__label">Description</label>
+            <textarea asp-for="Description" class="admin-form__input" rows="3"></textarea>
+            <span asp-validation-for="Description" class="admin-form__error"></span>
+        </div>
+
+        <div class="admin-form__row">
+            <div class="admin-form__group">
+                <label asp-for="Category" class="admin-form__label">Category</label>
+                <select asp-for="Category" class="admin-form__input">
+                    @foreach (var cat in Model.AvailableCategories)
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                </select>
+                <span asp-validation-for="Category" class="admin-form__error"></span>
+            </div>
+
+            <div class="admin-form__group">
+                <label asp-for="Tier" class="admin-form__label">Tier</label>
+                <select asp-for="Tier" class="admin-form__input">
+                    @foreach (var tier in Model.AvailableTiers)
+                    {
+                        <option value="@tier">@tier</option>
+                    }
+                </select>
+                <span asp-validation-for="Tier" class="admin-form__error"></span>
+            </div>
+        </div>
+
+        <div class="admin-form__row">
+            <div class="admin-form__group">
+                <label asp-for="Provider" class="admin-form__label">Provider</label>
+                <input asp-for="Provider" class="admin-form__input" placeholder="Örn: Black Forest Labs" />
+            </div>
+
+            <div class="admin-form__group">
+                <label asp-for="CostUsd" class="admin-form__label">Cost (USD per output)</label>
+                <input asp-for="CostUsd" class="admin-form__input" type="number" step="0.0001" min="0" />
+                <span asp-validation-for="CostUsd" class="admin-form__error"></span>
+                <small class="admin-form__hint">fal.ai per-output USD maliyet</small>
+            </div>
+        </div>
+
+        <div class="admin-form__group">
+            <label class="admin-form__checkbox">
+                <input asp-for="IsRecommended" type="checkbox" />
+                <span>Studio'da "★ Önerilen" rozeti göster</span>
+            </label>
+        </div>
+    </div>
+
+    <div class="admin-form__actions">
+        <a href="@Url.Action("Models", "Admin")" class="admin-button">İptal</a>
+        <button type="submit" class="admin-button admin-button--primary">Kaydet</button>
+    </div>
+</form>
