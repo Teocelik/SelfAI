@@ -60,11 +60,8 @@
             <div class="app-nav__utilities">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
-                    <div class="app-nav__credit-pill" id="creditBalance">
-                        <i class="fas fa-coins"></i>
-                        <span id="creditBalanceValue">—</span>
-                        <span class="app-nav__credit-label">credit</span>
-                    </div>
+                    @* F.M.UI.2 — Bakiye pill artık ViewComponent'ten (tek kaynak, server-side değer). *@
+                    @await Component.InvokeAsync("CreditBalance")
 
                     <div class="app-nav__user">
                         @(User.FindFirst(ClaimTypes.Name)?.Value

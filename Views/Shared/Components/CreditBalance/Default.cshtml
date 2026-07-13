@@ -1,0 +1,13 @@
+@model SelfAI.ViewComponents.CreditBalanceModel
+
+@* F.M.UI.2 — Bakiye pill. Mevcut .app-nav__credit-pill markup'ı BİREBİR korunur
+   (app-nav.css stili + #creditBalance / #creditBalanceValue selektörleri değişmez).
+   Fark: değer artık server-side dolu gelir; bakiye çekilemezse "—" gösterilir. *@
+@if (Model.IsAuthenticated)
+{
+    <div class="app-nav__credit-pill" id="creditBalance" data-balance="@(Model.Balance ?? 0)">
+        <i class="fas fa-coins"></i>
+        <span id="creditBalanceValue">@(Model.Balance.HasValue ? Model.Balance.Value.ToString() : "—")</span>
+        <span class="app-nav__credit-label">credit</span>
+    </div>
+}

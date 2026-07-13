@@ -121,6 +121,12 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **F.9a admin durumu — Identity YOK (kilitli):** Proje ASP.NET Identity/Role sistemi kullanmaz; `IsAdmin` bilgisi `AdminOptions.AllowedEmails`'ten hesaplanır (normalize edilmiş email HashSet ile batch kontrol, `UserManager`/`RoleManager` yok). `_db.Roles`/`_db.UserRoles` tabloları mevcut değildir.
 - **F.9a soft-delete durumu (kilitli):** `AppUser`'da `DeletedAt` (soft-delete) alanı **YOK** → sayım/liste query'lerinde soft-delete filtresi uygulanmaz, `AdminUserDetailDto.IsDeleted` her zaman `false` döner. Soft-delete F.9b'de gelirse filtreler ve `IsDeleted` o zaman doldurulur. (Generation sayımı `Generations` tablosundan, kredi tüketimi negatif `TokenTransaction` toplamından; `TokenTransaction`'da `BalanceAfter` alanı olmadığı için işlem geçmişinde "sonraki bakiye" gösterilmez.)
 - **F.9a scope dışı (F.9b'ye ertelendi):** model catalog UI, sistem ayarları, kredi çıkarma (negatif işlem), rol yönetimi UI, ödeme (Iyzico/Stripe) transaction takibi, kullanıcı ban/unban.
+- **F.M.10b Post Templates gelişmiş (kilitli):** 3 bileşen aktif — text overlay (server-side ImageSharp v2.1), 5 preset templates (statik katalog), Character LoRA + Templates entegrasyonu.
+- **F.M.10b text overlay stack (kilitli):** SixLabors.ImageSharp v2.1.x + Drawing beta15 + Fonts v1.0.x (Apache 2.0, ücretsiz). Inter font family Türkçe karakter destekli. `wwwroot/fonts/` altında Regular/Bold/SemiBold. (Sürüm pinleme uyarısı için bkz. BUGFIX HISTORY: Fonts beta18 sabit.)
+- **F.M.10b preset templates (kilitli):** statik `PresetTemplateCatalogService` (F.9b'de admin CRUD gelecek). Her preset: layout config + text field'lar (sabit koordinat) + prompt suffix + model endpoint + aspect ratio.
+- **F.M.10b Character LoRA + Templates (kilitli):** `StartGenerationRequest.CharacterId` propagate edilir, orchestrator zaten endpoint override + LoRA URL resolve + Ready/ownership validation yapıyor. Controller'da tekrar validation YOK (DRY).
+- **F.M.10b preset post-processing (kilitli):** `IMemoryCache` pending data (1 saat TTL, generationId keyed). SignalR `GenerationUpdate` Complete geldiğinde frontend PostProcess endpoint'ini çağırır, backend text overlay render eder R2'a upload eder.
+- **F.M.10b request builder ayrımı (kilitli):** `PresetStartRequestBuilder.Build(preset, dto)` — endpoint override parametresi YOK, orchestrator'a bırakılır. Aynı prensip `TemplateStartRequestBuilder.Build(format, dto)`'a `CharacterId` propagate edilir.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -180,7 +186,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — Studio sekme controller'ları (ortak Views/Studio/)
 │   │   ├── StudioHubController.cs        # /Studio hub (sekme seçim ekranı)
 │   │   ├── ImageStudioController.cs      # /Studio/Image (mevcut RenderNet davranışı taşındı)
-│   │   ├── TemplatesStudioController.cs  # /Studio/Templates (F.M.10a — placeholder'dan aktif form + Generate)
+│   │   ├── TemplatesStudioController.cs  # /Studio/Templates (F.M.10b GÜNCELLENDİ — Generate 2 akış + PostProcess yeni action)
 │   │   ├── MusicStudioController.cs      # /Studio/Music (placeholder, F.M.10c)
 │   │   └── VideoStudioController.cs      # /Studio/Video (placeholder, F.M.9)
 │   ├── RenderNetController.cs        # F.M.Arch.1 — redirect-only backward compat (/RenderNet/Index → /Studio/Image)
@@ -192,6 +198,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 ├── DTOs/                      # API request/response DTO'ları
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
 │   ├── Templates/                    # F.M.10a — PostFormatDto, TemplateGenerationRequest
+│   │                                 # F.M.10b — TextOverlaySpec, PresetTemplateDto,
+│   │                                 #           PresetTextFieldDto, PresetPostProcessRequest
 │   ├── Characters/                   # CharacterDto (LoraModelUrl, Status, vb.)
 │   ├── ModelCatalog/                 # Yeni — dinamik model listesi DTO'ları (F.M.5)
 │   ├── Admin/                        # F.7.3 — AdminUserDto, AdminGrantResultDto
@@ -214,11 +222,15 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 ├── Services/
 │   ├── Interfaces/                   # Cross-cutting interfaces (IPaymentService, ICreditService vb.)
 │   │   ├── IAdminService.cs          # F.7.3 — mini-admin servis kontratı
-│   │   └── ITemplateCatalogService.cs # F.M.10a — statik 6 format kataloğu kontratı
+│   │   ├── ITemplateCatalogService.cs # F.M.10a — statik 6 format kataloğu kontratı
+│   │   ├── ITextOverlayService.cs    # F.M.10b — server-side text overlay render kontratı
+│   │   └── IPresetTemplateCatalogService.cs # F.M.10b — statik 5 preset kataloğu kontratı
 │   ├── Concretes/                    # Cross-cutting implementations
 │   │   ├── AdminService.cs           # F.7.3 — FindUserByEmail + AddCredit iş mantığı
 │   │   ├── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
-│   │   └── TemplateCatalogService.cs # F.M.10a — 6 sabit sosyal medya formatı (hardcoded)
+│   │   ├── TemplateCatalogService.cs # F.M.10a — 6 sabit sosyal medya formatı (hardcoded)
+│   │   ├── TextOverlayService.cs     # F.M.10b — ImageSharp v2.1 ile görsele metin render
+│   │   └── PresetTemplateCatalogService.cs # F.M.10b — 5 sabit preset (hardcoded, F.9b'de CRUD)
 │   ├── Generation/                   # 🆕 fal.ai generation katmanı (F.M.1+)
 │   │   ├── Abstractions/
 │   │   │   ├── IGenerationOrchestrator.cs
@@ -230,8 +242,10 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   │   └── IFalAiModelCatalog.cs
 │   │   ├── Orchestrators/
 │   │   │   ├── GenerationOrchestrator.cs
-│   │   │   ├── CharacterTrainingOrchestrator.cs
-│   │   │   └── TemplateStartRequestBuilder.cs  # F.M.10a — format → StartGenerationRequest (static builder)
+│   │   │   └── CharacterTrainingOrchestrator.cs
+│   │   ├── Builders/                 # F.M.10b — request builder'lar (Orchestrators'tan ayrıştı)
+│   │   │   ├── TemplateStartRequestBuilder.cs  # F.M.10a→10b GÜNCELLENDİ — format → StartGenerationRequest, CharacterId propagate
+│   │   │   └── PresetStartRequestBuilder.cs    # F.M.10b YENİ — preset → StartGenerationRequest (endpoint override YOK)
 │   │   ├── Domain/
 │   │   │   ├── Image/
 │   │   │   │   ├── FluxDevGenerator.cs
@@ -255,11 +269,13 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
 │   │                                 # F.9a — AdminUsersListViewModel, AdminUserDetailViewModel, AdminDashboardViewModel
 │   └── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
+│                                     # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
+│                                     #           UserCharacterViewModel
 ├── Views/
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — ortak view klasörü (Studio/* controller'ları explicit path ile çözer)
 │   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı
 │   │   ├── Image.cshtml                  # Ana üretim UI'ı (eski RenderNet/Index içeriği taşındı)
-│   │   ├── Templates.cshtml              # F.M.10a — aktif format-first üretim formu (placeholder silindi)
+│   │   ├── Templates.cshtml              # F.M.10a→10b GÜNCELLENDİ — tab layout (format + preset + character)
 │   │   ├── Music.cshtml                  # placeholder (F.M.10c)
 │   │   └── Video.cshtml                  # placeholder (F.M.9)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
@@ -277,10 +293,11 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
 │   │   ├── admin.css                 # F.7.3 — Admin panel stilleri
 │   │   ├── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
-│   │   └── template-studio.css       # F.M.10a — Templates format grid + form + sonuç kartları
+│   │   └── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator (yalnızca Studio/Image'de yüklenir)
 │   │   ├── template-studio.js        # F.M.10a — Templates (kendi SignalR bağlantısı + pending kart)
+│   │   ├── preset-studio.js          # F.M.10b YENİ — preset akışı (SignalR Complete → PostProcess çağrısı)
 │   │   ├── toast.js                  # Bildirim sistemi
 │   │   ├── face-lock-panel.js
 │   │   ├── pose-lock-panel.js
@@ -292,10 +309,12 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── image-controls.js
 │   │   ├── landing.js                # F.7.2 — Landing etkileşimleri (IIFE)
 │   │   └── ...
+│   ├── fonts/                        # F.M.10b — Inter-Regular.ttf, Inter-Bold.ttf, Inter-SemiBold.ttf (text overlay)
 │   ├── img/
-│   │   └── landing/                  # F.7.2 — 7 görsel: hero-1/2/3.jpg, feature-character.jpg,
-│   │                                 #   feature-face-lock.jpg, feature-multi-model.jpg, og-image.jpg
-│   │                                 #   (deploy öncesi Studio'da üretilecek)
+│   │   ├── landing/                  # F.7.2 — 7 görsel: hero-1/2/3.jpg, feature-character.jpg,
+│   │   │                             #   feature-face-lock.jpg, feature-multi-model.jpg, og-image.jpg
+│   │   │                             #   (deploy öncesi Studio'da üretilecek)
+│   │   └── presets/                  # F.M.10b — 5 preview mockup (preset kart önizleme)
 │   ├── robots.txt                    # F.7.2 — SEO
 │   ├── sitemap.xml                   # F.7.2 — SEO
 │   └── images/, lib/
@@ -606,20 +625,24 @@ dotnet user-secrets clear         # Hepsini sil
 - **Hafta 1:** ✅ **TAMAMLANDI**
   - F.M.10a Post Templates MVP ✅ (format-first üretim, 6 format, aspect ratio converter, SignalR)
   - F.7.4 Landing kalan görseller (feature-face-lock, feature-multi-model, og-image) — **kullanıcı yapacak**
-- **Hafta 2:**
-  - F.9a admin panel genişletme ✅ **TAMAMLANDI** (Dashboard + paginated user list + user detail + transaction history)
-  - F.M.10b Post Templates gelişmiş — **SIRADAKİ** (text overlay: server-side ImageSharp veya SkiaSharp, preset templates: 5-8 tam şablon marka renkleri + layout, Character LoRA + Templates entegrasyonu)
-- **Hafta 3:** F.M.UI.2 Studio polish + F.9b admin genişletme
-- **Hafta 4a (2 gün):** F.M.10c AI Müzik + Albüm Kapağı
-- **Hafta 4b (2 gün):** F.7.5 Legal sayfalar + FAQ + bugfix
+- **Hafta 2:** ✅ **TAMAMLANDI**
+  - F.9a admin panel genişletme ✅ (Dashboard + paginated user list + user detail + transaction history)
+  - F.M.10b Post Templates gelişmiş ✅ (text overlay: server-side ImageSharp v2.1, 5 preset templates statik katalog, Character LoRA + Templates entegrasyonu)
+- **Hafta 3 (SIRADAKİ):**
+  - F.M.UI.2 Studio polish — 1-2 gün
+  - F.9b admin genişletme — 2 gün
+- **Hafta 4:**
+  - F.M.10c Müzik + Albüm Kapağı — 2-3 gün
+  - F.7.5 Legal sayfalar + FAQ + bugfix — 1-2 gün
+- **F.7.4** (landing kalan görseller: feature-face-lock, feature-multi-model, og-image) — beta launch öncesi son gün, **kullanıcı hazırlayacak**
 - **Buffer:** 3-4 gün şirket kurulum + tampon
 
-### F.M.10b scope planı (Hafta 2 — Post Templates gelişmiş)
+### F.M.10b scope (Hafta 2 — Post Templates gelişmiş) ✅ TAMAMLANDI
 
-- **Text overlay:** server-side ImageSharp veya SkiaSharp ile, prompt üretimi SONRASI görsele metin ekleme.
-- **Preset templates:** 5-8 tam şablon (marka renkleri, metin alanları, layout).
-- **Custom aspect ratio:** 1200×628 (Facebook), 1080×566 (Twitter card) gibi tam boyutlar.
-- **Character LoRA + Templates:** karakterle format üretimi (flux-lora endpoint mapping). F.M.10a'da kasıtlı olarak yoktu.
+- **Text overlay:** ✅ server-side ImageSharp v2.1 ile, prompt üretimi SONRASI görsele metin ekleme (`TextOverlayService`, PostProcess akışı).
+- **Preset templates:** ✅ 5 preset (statik `PresetTemplateCatalogService`: layout config + text field + prompt suffix + endpoint + aspect ratio).
+- **Character LoRA + Templates:** ✅ `StartGenerationRequest.CharacterId` propagate, orchestrator LoRA URL resolve + Ready/ownership validation (controller'da tekrar validation yok).
+- **Custom aspect ratio:** preset başına aspect ratio config'inden gelir.
 
 ### F.M.10c Music kararları (kilitli)
 

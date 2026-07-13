@@ -420,8 +420,11 @@ const ImageControls = (function () {
      * lightbox'a, buton tıklamasını ilgili aksiyona yönlendirir.
      *
      * @param {string[]} urls - başarıyla üretilmiş görsel URL'leri
+     * @param {object} [request] - F.M.UI.2: üretimi başlatan istek metadata'sı
+     *        (prompt/model/character/face/aspect...). Varsa kartlara "Regenerate"
+     *        aksiyonu eklenir (App.regenerate ile aynı ayarlarla yeni seed).
      */
-    function showGeneratedImages(urls) {
+    function showGeneratedImages(urls, request) {
         if (!imageContainer) return;
 
         if (!Array.isArray(urls) || urls.length === 0) {
@@ -436,7 +439,7 @@ const ImageControls = (function () {
         const grid = ensureResultsGrid();
         // Yeni sonuçlar başa eklenir (en yeni üstte)
         urls.forEach((url, index) => {
-            grid.insertBefore(buildResultCard(url, index), grid.firstChild);
+            grid.insertBefore(buildResultCard(url, index, request), grid.firstChild);
         });
     }
 
@@ -485,9 +488,14 @@ const ImageControls = (function () {
     }
 
     /**
-     * Tek bir sonuç kartı (görsel + indir/sil aksiyonları) oluşturur.
+     * Tek bir sonuç kartı (görsel + regenerate/indir/sil aksiyonları) oluşturur.
+     * @param {string} url
+     * @param {number} index
+     * @param {object} [request] - F.M.UI.2: varsa Regenerate butonu eklenir.
+     *        Metadata closure'da tutulur (data-attribute değil) → Türkçe/tırnak
+     *        içeren prompt için HTML-escape sorunu yaşanmaz.
      */
-    function buildResultCard(url, index) {
+    function buildResultCard(url, index, request) {
         const card = document.createElement('div');
         card.className = 'generated-card';
         // F.7: kart tıklaması lightbox açar
@@ -502,6 +510,22 @@ const ImageControls = (function () {
 
         const actions = document.createElement('div');
         actions.className = 'generated-card__actions';
+
+        // 🆕 F.M.UI.2 — Regenerate: yalnızca üretim metadata'sı (request) elde varsa.
+        // Session içinde geçerli; sayfa refresh'inde pendingRequests boşaldığı için
+        // eski kartlarda buton görünmez (kabul edilen kısıtlama).
+        if (request && typeof App !== 'undefined' && typeof App.regenerate === 'function') {
+            const regenerateBtn = document.createElement('button');
+            regenerateBtn.type = 'button';
+            regenerateBtn.className = 'generated-card__action generated-card__action--regenerate';
+            regenerateBtn.title = 'Aynı ayarlarla tekrar üret';
+            regenerateBtn.innerHTML = '<i class="fas fa-rotate-right"></i>';
+            regenerateBtn.addEventListener('click', function (e) {
+                e.stopPropagation();
+                App.regenerate(request);
+            });
+            actions.appendChild(regenerateBtn);
+        }
 
         const downloadBtn = document.createElement('button');
         downloadBtn.type = 'button';

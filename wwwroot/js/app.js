@@ -5,6 +5,15 @@
     let signalRConnection = null;
 
     // ═══════════════════════════════════════════════
+    // F.M.UI.2 — REGENERATE DESTEĞİ (session içi state)
+    // generationId → başlatan istek payload'ı. SignalR "GenerationUpdate" geldiğinde
+    // sonuç kartına metadata bağlamak (Regenerate) için kullanılır. Sayfa refresh'inde
+    // boşalır (persistent değil — kabul edilen kısıtlama, F.9b history endpoint'i çözer).
+    const pendingRequests = new Map();
+    // Aynı anda tek üretim — Regenerate'in paralel istek + kredi race'ini önler.
+    let isGenerating = false;
+
+    // ═══════════════════════════════════════════════
     // KULLANICI KİMLİĞİ
     // clientId mekanizması kaldırıldı. Kimlik artık auth çereziyle
     // (Firebase UID) sunucu tarafında belirlenir. SignalR ve fetch
@@ -52,6 +61,13 @@
             console.log('[SignalR] GenerationUpdate:', payload);
 
             ImageControls.setGenerateButtonState(false);
+            // Üretim tamamlandı/başarısız — mutex serbest (Regenerate tekrar mümkün)
+            isGenerating = false;
+
+            // F.M.UI.2: bu üretimi başlatan istek (Regenerate metadata'sı için)
+            const originalRequest = payload.generationId
+                ? pendingRequests.get(payload.generationId) || null
+                : null;
 
             if (payload.status === 'Completed') {
                 const urls = (payload.images || [])
@@ -63,7 +79,7 @@
                         ? 'Görsel başarıyla oluşturuldu!'
                         : `${urls.length} görsel başarıyla oluşturuldu!`;
                     Toast.success(message, 'Tamamlandı 🎨');
-                    ImageControls.showGeneratedImages(urls);
+                    ImageControls.showGeneratedImages(urls, originalRequest);
                 } else {
                     Toast.error('Görsel URL\'i alınamadı.');
                     ImageControls.showDefaultState();
@@ -75,6 +91,9 @@
                 // Kredi iadesini top bar'a yansıt
                 refreshCreditBalance();
             }
+
+            // Sonuç işlendi — pending kaydını temizle (bellek sızıntısı önle)
+            if (payload.generationId) pendingRequests.delete(payload.generationId);
         });
 
         // 🆕 F.M.4: Karakter LoRA training durum güncellemesi.
@@ -152,19 +171,20 @@
 
         if (!validateForm()) return;
 
-        const connectionId = getConnectionId();
+        // F.M.UI.2: payload üretimi ayrıştırıldı → submitGeneration hem normal
+        // submit hem Regenerate tarafından paylaşılan tek üretim yolu.
+        const payload = buildPayloadFromForm();
+        await submitGeneration(payload);
+    }
 
-        if (!connectionId) {
-            Toast.error('Sunucu ile bağlantı kurulamadı. Sayfayı yenileyin.', 'Bağlantı Hatası');
-            return;
-        }
-
-        ImageControls.showLoadingState();
-        ImageControls.setGenerateButtonState(true);
-
-        // 🆕 F.M.4/F.M.6: Payload modelEndpoint + prompt + aspectRatio (+ numImages) +
-        // opsiyonel characterId/characterMode (LoRA) veya faceAssetId (PuLID).
-        // İkisi mutex; biri set ise backend endpoint'i override eder.
+    /**
+     * Studio/Image formundaki güncel seçimlerden generation payload'ı kurar.
+     * 🆕 F.M.4/F.M.6: modelEndpoint + prompt + aspectRatio (+ numImages) +
+     * opsiyonel characterId/characterMode (LoRA) veya faceAssetId (PuLID).
+     * İkisi mutex; biri set ise backend endpoint'i override eder.
+     * @returns {object} StartGenerationRequest payload'ı
+     */
+    function buildPayloadFromForm() {
         const promptInput = document.getElementById('promptInput');
         const modelInput = document.getElementById('selectedModelValue');
         const aspectSelect = document.querySelector('select[name="AspectRatio"]');
@@ -194,6 +214,26 @@
             payload.faceWeight = 1.0;
         }
 
+        return payload;
+    }
+
+    /**
+     * Generation payload'ını backend'e gönderir — normal submit + Regenerate ortak yolu.
+     * Loading/mutex state'i, kredi refresh'i ve pendingRequests kaydını yönetir.
+     * @param {object} payload - buildPayloadFromForm veya regenerate tarafından üretilen istek
+     */
+    async function submitGeneration(payload) {
+        const connectionId = getConnectionId();
+
+        if (!connectionId) {
+            Toast.error('Sunucu ile bağlantı kurulamadı. Sayfayı yenileyin.', 'Bağlantı Hatası');
+            return;
+        }
+
+        ImageControls.showLoadingState();
+        ImageControls.setGenerateButtonState(true);
+        isGenerating = true;
+
         // Kimlik auth çereziyle gider; SignalR connectionId header'ı + JSON content-type gerekir.
         const result = await apiFetch('/Studio/Image/GenerateImage', {
             method: 'POST',
@@ -205,14 +245,36 @@
         });
 
         if (result && result.data && result.data.generationId) {
+            // F.M.UI.2: Regenerate için istek metadata'sını sakla (SignalR Complete'te kullanılır)
+            pendingRequests.set(result.data.generationId, payload);
             Toast.info('Görsel oluşturuluyor, lütfen bekleyin...', 'İşleniyor');
             // Kredi düşüldü — top bar bakiyesini güncelle
             refreshCreditBalance();
             // SignalR "GenerationUpdate" bildirimi bekleniyor...
         } else {
+            isGenerating = false;
             ImageControls.showDefaultState();
             ImageControls.setGenerateButtonState(false);
         }
+    }
+
+    /**
+     * 🆕 F.M.UI.2 — Regenerate: bir sonuç kartındaki üretimi aynı ayarlarla (yeni seed)
+     * yeniden başlatır. Seed gönderilmez → backend rastgele üretir. Tek görsel (numImages=1).
+     * Devam eden bir üretim varsa engellenir (paralel istek + kredi race önlenir).
+     * @param {object} request - kartın başlatıldığı orijinal payload
+     */
+    function regenerate(request) {
+        if (!request) return;
+
+        if (isGenerating) {
+            Toast.warning('Bir üretim zaten sürüyor, lütfen bekleyin.', 'Meşgul');
+            return;
+        }
+
+        // Orijinal ayarları koru, tek görsel üret (seed alanı zaten gönderilmez → yeni sonuç)
+        const payload = Object.assign({}, request, { numImages: 1 });
+        submitGeneration(payload);
     }
 
     // ═══════════════════════════════════════════════
@@ -330,7 +392,8 @@
         init,
         resetAll,
         getConnectionId,
-        refreshCreditBalance
+        refreshCreditBalance,
+        regenerate   // 🆕 F.M.UI.2 — sonuç kartı Regenerate butonu bunu çağırır
     };
 })();
 

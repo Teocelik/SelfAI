@@ -131,6 +131,56 @@
     background: rgba(220, 38, 38, 0.9);
 }
 
+/* F.M.UI.2 — Regenerate aksiyonu: download/delete ile aynı temel stil (base class),
+   sadece hover'da ikon 180° döner (görsel geri bildirim). */
+.generated-card__action--regenerate svg,
+.generated-card__action--regenerate i {
+    transition: transform 0.3s ease;
+}
+
+.generated-card__action--regenerate:hover {
+    background: rgba(0, 206, 209, 0.85);
+}
+
+.generated-card__action--regenerate:hover svg,
+.generated-card__action--regenerate:hover i {
+    transform: rotate(180deg);
+}
+
+/* ─── E. STUDIO/IMAGE MOBILE LAYOUT (≤720px) — F.M.UI.2 ──────────────────────
+   Sağ ayar paneli (#rightSidebar) mobilde ana canvas'ın (#mainCanvas) ALTINA
+   taşınır. Desktop (720px üstü) layout DOKUNULMAZ — bu kurallar yalnızca dar
+   ekranda devreye girer. Hedef seçiciler Studio/Image markup'ındaki gerçek
+   id/class'lar: .studio-page (flex konteyner), #mainCanvas, #rightSidebar.
+   main.css Tailwind build çıktısı olduğu için buradan override edilir; id
+   seçiciler (#mainCanvas/#rightSidebar) Tailwind utility class'larını yener. */
+@media (max-width: 720px) {
+    .studio-page {
+        flex-direction: column;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    #mainCanvas {
+        order: 1;
+        min-height: 55vh;   /* canvas/sonuç alanı görünür kalsın (flex-1 dikey akışta çökmesin) */
+        overflow: visible;
+    }
+
+    #rightSidebar {
+        order: 2;
+        width: 100%;
+        height: auto;
+        border-left: none;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    /* Sonuç kartları dar ekranda 2 sütun garanti (auto-fill zaten reflow eder). */
+    .generated-results__grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 /* ─── C. TRAINING PROGRESS BAR ──────────────────────────────────────────────
    Ekran altında sabit. Character modal submit'te gösterilir, modal açık kalır;
    CharacterTrainingUpdate (SignalR) gelince gizlenir. z-index 900: side panel

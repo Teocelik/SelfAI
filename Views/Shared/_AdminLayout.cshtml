@@ -9,6 +9,8 @@
     <title>@ViewData["Title"] - SelfAI Admin</title>
     <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    @* F.M.UI.2 — bakiye pill stilleri (.app-nav__credit-pill) app-nav.css'te; admin nav'da da göster. *@
+    <link rel="stylesheet" href="~/css/app-nav.css" asp-append-version="true" />
 </head>
 <body class="admin-body">
     <nav class="admin-nav">
@@ -21,6 +23,8 @@
                 <a href="@Url.Action("Dashboard", "Admin")" class="admin-nav__link">Dashboard</a>
                 <a href="@Url.Action("Users", "Admin")" class="admin-nav__link">Kullanıcılar</a>
                 <a href="@Url.Action("Index", "StudioHub")" class="admin-nav__link">Studio</a>
+                @* F.M.UI.2 — admin'in kendi bakiye pill'i (target kullanıcının değil). *@
+                @await Component.InvokeAsync("CreditBalance")
                 <form asp-controller="Account" asp-action="Logout" method="post" class="admin-nav__logout">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="admin-nav__logout-btn">Çıkış</button>
