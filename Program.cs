@@ -20,6 +20,7 @@ using SelfAI.Services.Generation.Providers.FalAi;
 using SelfAI.Services.Generation.Providers.S3;
 using SelfAI.Services.Generation.Pricing;
 using SelfAI.Services.Generation.Domain.Image;
+using SelfAI.Services.Generation.Domain.Music;
 using SelfAI.Services.Generation.Domain.Catalog;
 using SelfAI.Services.Generation.Domain.CharacterTraining;
 using SelfAI.Services.Generation.Orchestrators;
@@ -169,6 +170,12 @@ builder.Services.AddScoped<FluxPulidGenerator>();        // F.M.6 — Face Lock 
 
 // Generation orchestrator — kredi düşme + history + SignalR koordinasyonu.
 builder.Services.AddScoped<IGenerationOrchestrator, GenerationOrchestrator>();
+
+// ═══ F.M.10c — Music + Album Cover (Studio Music sekmesi) ═══
+// Generic music generator (Sonilo backing + MiniMax song) + kombine kredi orchestrator'ı
+// (müzik + otomatik albüm kapağı tek transaction). Uzun süren üretim background task'ta.
+builder.Services.AddScoped<IMusicGenerator, DynamicMusicGenerator>();
+builder.Services.AddScoped<IMusicGenerationOrchestrator, MusicGenerationOrchestrator>();
 
 // ═══ F.M.10a — Post Templates (format-first) ═══
 // Statik format kataloğu (singleton — stateless). Ayrı orchestrator YOK: controller

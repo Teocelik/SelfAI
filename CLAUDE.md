@@ -132,6 +132,11 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **F.M.UI.2 mobile responsive standardı (kilitli):** Studio/Image için 720px breakpoint. Layout Tailwind utility class'larıyla kurulur (spec'teki `.studio-layout`/`.studio-sidebar` YOK): container `.studio-page` (`flex h-screen`), ana canvas `#mainCanvas` (`order-1`), sağ ayar paneli `#rightSidebar` (`order-3`). Mobile kuralları `generated-results.css`'te (`main.css` Tailwind build çıktısı — elle düzenlenmez; id seçiciler utility class'ları yener): `.studio-page`→`flex-direction:column`, `#rightSidebar` alta taşınır (`order:2`, `width:100%`, `height:auto`), `#mainCanvas` `min-height:55vh`, sonuç grid'i (`.generated-results__grid`) 2 sütun. Nav mobil (hamburger, 767px) zaten `app-nav.css`'te — dokunulmadı. Sekme/bottom-sheet YOK.
 - **F.M.UI.2 regenerate mimarisi (kilitli):** Frontend re-submit pattern, backend'de SIFIR değişiklik. Sonuç kartındaki (`.generated-card`, `image-controls.js`) hover Regenerate ikonu mevcut `GenerateImage` endpoint'ini yeniden çağırır. Üretim metadata'sı (modelEndpoint/prompt/aspectRatio/characterId/characterMode/faceAssetId/faceWeight) kartta **JS closure**'da tutulur — **`data-attribute` DEĞİL** (Türkçe/tırnak içeren prompt'ta HTML-escape sorununu önler; spec taslağı data-attribute diyordu, closure tercih edildi). Seed gönderilmez (backend rastgele üretir), `numImages=1`'e sabitlenir. Normal submit ve regenerate tek `submitGeneration(payload)` yolunu paylaşır (DRY); `isGenerating` flag'i paralel üretim + kredi race'ini önler. Sadece Studio/Image'da — Templates kendi flow'unu kullanır (ayrı render, regenerate butonu yok).
 - **F.M.UI.2 pendingRequests Map (kilitli):** `app.js`'te `Map<generationId, StartGenerationRequest payload>`. `submitGeneration` başarılı POST sonrası payload'ı saklar; SignalR `GenerationUpdate` (Completed) geldiğinde `pendingRequests.get(generationId)` ile çekilip `ImageControls.showGeneratedImages(urls, request)`'e geçirilir (kartın **closure**'ına bağlanır, data-attribute'a yazılmaz), sonra `delete` edilir. Session-based: sayfa refresh'inde Map boşalır → eski kartlar regenerate EDİLEMEZ (kabul edilen kısıt; persistent regenerate için generation history endpoint'i F.9b'de eklenebilir).
+- **F.9b Model Catalog admin (kilitli):** liste (status + category + arama filtresi + pagination), edit (patch pattern), Approve/Disable, sync (category parametreli). Mevcut F.M.5 catalog altyapısı (`ModelCatalogOrchestrator`, `FalAiModelCatalogClient`, `ModelCatalogEntry`) DOKUNULMADI, sadece admin method'ları eklendi. **`CatalogStatus` enum'unda `Disabled` YOK** → UI "Disable/Disabled" label'ı `CatalogStatus.Hidden`'a map edilir (`ParseStatusFilter`'da "disabled" → `Hidden`); ekstra `Deprecated` status'ü de var, yalnızca "Tüm durumlar" filtresinde görünür.
+- **F.9b SyncFromFalAiAsync imza (kilitli):** artık `SyncFromFalAiAsync(string category = "text-to-image", CancellationToken ct = default)` — category parametreli, default backward compat. Admin panelden 'text-to-audio' (F.M.10c) veya 'text-to-video' (F.M.9) sync tetiklenebilir. **Tek çağrı yeri `CatalogController.Sync`** named arg (`cancellationToken: ct`) ile korundu (pozisyonel çağrı imza genişlemesiyle bozulurdu).
+- **F.9b cache invalidation (kilitli):** `UpdateAdminAsync` ve `SetStatusAsync` sonrası ilgili category cache'i (`catalog:{category}:approved`) temizlenir. Kategori değişirse hem eski hem yeni cache invalidate. SignalR event YOK — Studio bir sonraki istekte güncel görür.
+- **F.9b tier validation whitelist (kilitli):** `Fast/Standard/Premium/CharacterLora/VideoFast/VideoPremium`. Bilinmeyen tier backend `UpdateAdminAsync`'te reddedilir (400); `CostUsd` negatif olamaz. Admin edit formunda ayrıca DataAnnotation validation (`DisplayName`/`Category`/`Tier` required, `CostUsd` 0-100).
+- **F.9b scope dışı (F.9c/9d/9e'ye ertelendi):** kredi çıkarma (negatif işlem), sistem ayarları, ödeme (Iyzico/Stripe) transaction takibi, rol yönetimi UI.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -199,6 +204,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── PaymentController.cs          # Iyzico + Stripe ödeme flow
 │   ├── AccountController.cs          # Firebase Auth callback'leri
 │   ├── AdminController.cs            # F.7.3 — mini-admin (FindUserByEmail + AddCredit)
+│   │                                 # F.9b GÜNCELLENDİ — Models, EditModel (GET+POST), SetModelStatus, SyncModels
 │   └── HomeController.cs
 ├── DTOs/                      # API request/response DTO'ları
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
@@ -210,6 +216,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Admin/                        # F.7.3 — AdminUserDto, AdminGrantResultDto
 │   │                                 # F.9a — AdminUserListDto, AdminUserListItemDto, AdminUserDetailDto,
 │   │                                 #        AdminTransactionDto, AdminTransactionListDto, AdminDashboardStatsDto
+│   │                                 # F.9b — AdminModelListItemDto, AdminModelListDto, AdminModelListFilter,
+│   │                                 #        AdminModelDetailDto, AdminModelUpdateDto
 │   └── IyzicoPaymentDtos/            # Iyzico
 ├── Entities/
 │   ├── Character.cs                  # LoraModelUrl, LoraTrainingStatus, LoraTrainingJobId
@@ -247,7 +255,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   │   └── IFalAiModelCatalog.cs
 │   │   ├── Orchestrators/
 │   │   │   ├── GenerationOrchestrator.cs
-│   │   │   └── CharacterTrainingOrchestrator.cs
+│   │   │   ├── CharacterTrainingOrchestrator.cs
+│   │   │   └── ModelCatalogOrchestrator.cs  # F.M.5 (+ F.9b GÜNCELLENDİ — 4 admin method + SyncFromFalAiAsync category imzası)
 │   │   ├── Builders/                 # F.M.10b — request builder'lar (Orchestrators'tan ayrıştı)
 │   │   │   ├── TemplateStartRequestBuilder.cs  # F.M.10a→10b GÜNCELLENDİ — format → StartGenerationRequest, CharacterId propagate
 │   │   │   └── PresetStartRequestBuilder.cs    # F.M.10b YENİ — preset → StartGenerationRequest (endpoint override YOK)
@@ -273,6 +282,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 ├── ViewModels/
 │   ├── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
 │   │                                 # F.9a — AdminUsersListViewModel, AdminUserDetailViewModel, AdminDashboardViewModel
+│   │                                 # F.9b — AdminModelsListViewModel, AdminModelEditViewModel
 │   └── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
 │                                     # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
 │                                     #           UserCharacterViewModel
@@ -290,11 +300,13 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── Dashboard.cshtml          # F.9a YENİ — 4 metric card özet
 │   │   ├── Users.cshtml              # F.9a GÜNCELLENDİ — paginated tablo + arama/tarih filtresi
 │   │   ├── UserDetail.cshtml         # F.9a YENİ — kullanıcı bilgi + paginated transaction history
-│   │   └── AddCredit.cshtml          # Kredi ekleme formu (F.7.3, dokunulmadı)
+│   │   ├── AddCredit.cshtml          # Kredi ekleme formu (F.7.3, dokunulmadı)
+│   │   ├── Models.cshtml             # F.9b YENİ — model catalog listesi (filtre + pagination + Approve/Disable + sync)
+│   │   └── EditModel.cshtml          # F.9b YENİ — model düzenleme formu (patch pattern)
 │   ├── Shared/
 │   │   ├── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
 │   │   ├── _AppLayout.cshtml         # F.M.UI.2 GÜNCELLENDİ — bakiye pill artık CreditBalance ViewComponent invoke
-│   │   ├── _AdminLayout.cshtml       # F.7.3 (+ F.M.UI.2 GÜNCELLENDİ — app-nav.css link + CreditBalance invoke)
+│   │   ├── _AdminLayout.cshtml       # F.7.3 (+ F.M.UI.2 GÜNCELLENDİ — app-nav.css link + CreditBalance invoke; F.9b — "Modeller" nav linki)
 │   │   └── Components/
 │   │       └── CreditBalance/
 │   │           └── Default.cshtml    # 🆕 F.M.UI.2 — .app-nav__credit-pill markup (server-side değer, "—" fallback)
@@ -302,7 +314,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 ├── wwwroot/
 │   ├── css/                          # tailwind.css (kaynak), main.css (derlenmiş), site.css, toast.css
 │   │   ├── landing.css               # F.7.2 — Landing sayfası stilleri
-│   │   ├── admin.css                 # F.7.3 — Admin panel stilleri
+│   │   ├── admin.css                 # F.7.3 — Admin panel stilleri (+ F.9b GÜNCELLENDİ — model catalog tablo + edit form stilleri; mevcut stiller dokunulmadı)
 │   │   ├── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
 │   │   ├── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
 │   │   ├── app-nav.css               # Üst nav + .app-nav__credit-pill bakiye stili (F.M.UI.2 bakiye buradan; yeni credit-balance.css YOK)
@@ -641,12 +653,13 @@ dotnet user-secrets clear         # Hepsini sil
 - **Hafta 2:** ✅ **TAMAMLANDI**
   - F.9a admin panel genişletme ✅ (Dashboard + paginated user list + user detail + transaction history)
   - F.M.10b Post Templates gelişmiş ✅ (text overlay: server-side ImageSharp v2.1, 5 preset templates statik katalog, Character LoRA + Templates entegrasyonu)
-- **Hafta 3 (yarısı tamamlandı):**
-  - F.M.UI.2 Studio polish ✅ **TAMAMLANDI** (bakiye ViewComponent tüm sayfalarda + Studio/Image 720px mobile + regenerate frontend re-submit)
-  - F.9b admin genişletme — **SIRADAKİ** (2 gün)
-- **Hafta 4 (plan korunuyor):**
+- **Hafta 3:** ✅ **TAMAMLANDI**
+  - F.M.UI.2 Studio polish ✅ (bakiye ViewComponent tüm sayfalarda + Studio/Image 720px mobile + regenerate frontend re-submit)
+  - F.9b Model Catalog admin ✅ (liste + filtre + pagination + edit patch pattern + Approve/Disable + category parametreli sync)
+- **Hafta 4 (son hafta, plan korunuyor):**
   - F.M.10c Müzik + Albüm Kapağı — 2-3 gün
   - F.7.5 Legal sayfalar + FAQ + bugfix — 1-2 gün
+  - **F.M.10c için hazır altyapı (F.9b sonrası):** admin panelden 'text-to-audio' sync trigger'lı; `ModelCatalogEntry` audio kategorisi için hazır; cache pattern (`catalog:{category}:approved`) audio kategorisine de uyar.
 - **F.7.4** (landing kalan görseller: feature-face-lock, feature-multi-model, og-image) — beta launch öncesi son gün, **kullanıcı hazırlayacak**
 - **Buffer:** 3-4 gün şirket kurulum + tampon
 

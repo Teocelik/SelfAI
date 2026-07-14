@@ -1,0 +1,364 @@
+/* F.M.10c — Music Studio (Studio/Music). Studio Dark tasarım dili, accent #00CED1. */
+
+.music-studio {
+    padding: 32px 24px 80px;
+    max-width: 900px;
+    margin: 0 auto;
+    color: #FFFFFF;
+}
+
+.music-studio__back {
+    display: inline-block;
+    color: rgba(255, 255, 255, 0.6);
+    text-decoration: none;
+    font-size: 0.92rem;
+    margin-bottom: 24px;
+    transition: color 0.2s;
+}
+
+.music-studio__back:hover { color: #00CED1; }
+
+.music-studio__header { margin-bottom: 32px; }
+
+.music-studio__title {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0 0 8px 0;
+    letter-spacing: -0.01em;
+}
+
+.music-studio__subtitle {
+    font-size: 0.96rem;
+    color: rgba(255, 255, 255, 0.65);
+    margin: 0;
+    line-height: 1.5;
+}
+
+/* Mode toggle */
+.music-studio__mode-toggle {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 32px;
+}
+
+.mode-toggle-option {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: left;
+    color: inherit;
+    font-family: inherit;
+    transition: all 0.2s;
+}
+
+.mode-toggle-option:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: rgba(0, 206, 209, 0.3);
+}
+
+.mode-toggle-option.is-active {
+    background: rgba(0, 206, 209, 0.08);
+    border-color: rgba(0, 206, 209, 0.7);
+}
+
+.mode-toggle-option__icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    background: rgba(0, 206, 209, 0.15);
+    color: #00CED1;
+    border-radius: 10px;
+    flex-shrink: 0;
+}
+
+.mode-toggle-option__icon svg { width: 22px; height: 22px; }
+
+.mode-toggle-option__content { display: flex; flex-direction: column; gap: 2px; }
+
+.mode-toggle-option__label { font-size: 1rem; font-weight: 700; color: #FFFFFF; }
+
+.mode-toggle-option__hint { font-size: 0.82rem; color: rgba(255, 255, 255, 0.6); }
+
+/* Form */
+.music-studio__form {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 16px;
+    padding: 28px;
+    margin-bottom: 32px;
+}
+
+.music-form__field { margin-bottom: 24px; }
+
+.music-form__label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    margin-bottom: 10px;
+}
+
+.music-form__textarea {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: #FFFFFF;
+    padding: 12px 14px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+}
+
+.music-form__textarea:focus { outline: none; border-color: #00CED1; }
+
+.music-form__hint {
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.45);
+    margin-top: 6px;
+    text-align: right;
+}
+
+.music-form__hint--left { text-align: left; }
+
+/* Duration options */
+.music-form__duration-options {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.duration-option {
+    padding: 12px 24px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    color: rgba(255, 255, 255, 0.75);
+    font-family: inherit;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.duration-option:hover {
+    background: rgba(255, 255, 255, 0.06);
+    color: #FFFFFF;
+}
+
+.duration-option.is-selected {
+    background: rgba(0, 206, 209, 0.12);
+    border-color: rgba(0, 206, 209, 0.7);
+    color: #00CED1;
+}
+
+/* Cover options */
+.music-form__cover-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+}
+
+.cover-option {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 14px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    cursor: pointer;
+    font-family: inherit;
+    color: rgba(255, 255, 255, 0.75);
+    transition: all 0.2s;
+}
+
+.cover-option:hover {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(0, 206, 209, 0.3);
+}
+
+.cover-option.is-selected {
+    border-color: rgba(0, 206, 209, 0.7);
+    background: rgba(0, 206, 209, 0.06);
+    color: #FFFFFF;
+}
+
+.cover-option__preview {
+    background: rgba(0, 206, 209, 0.2);
+    border: 1px solid rgba(0, 206, 209, 0.3);
+    border-radius: 4px;
+}
+
+.cover-option__preview--square { width: 48px; height: 48px; }
+.cover-option__preview--portrait { width: 32px; height: 56px; }
+.cover-option__preview--landscape { width: 56px; height: 32px; }
+.cover-option__preview--portrait-narrow { width: 40px; height: 50px; }
+
+.cover-option__label {
+    font-size: 0.78rem;
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* Submit */
+.music-form__actions {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.music-form__submit {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 36px;
+    background: #00CED1;
+    color: #0A0A0A;
+    border: none;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(0, 206, 209, 0.25);
+}
+
+.music-form__submit:hover:not(:disabled) {
+    background: #33D9DC;
+    transform: translateY(-1px);
+}
+
+.music-form__submit:disabled {
+    background: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.4);
+    cursor: not-allowed;
+    box-shadow: none;
+}
+
+.music-form__submit-spinner { display: inline-flex; color: #0A0A0A; }
+
+/* Results */
+.music-results { margin-top: 8px; }
+
+.music-results__header { margin-bottom: 16px; }
+
+.music-results__title {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin: 0;
+    color: #FFFFFF;
+}
+
+.music-results__list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.music-result-card {
+    display: flex;
+    gap: 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    padding: 16px;
+    align-items: flex-start;
+}
+
+.music-result-card__cover {
+    flex-shrink: 0;
+    width: 160px;
+    aspect-ratio: 1;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Kapak üretilemediğinde gradient fallback (placeholder asset YOK). */
+.music-result-card__cover--empty {
+    background: linear-gradient(135deg, rgba(0, 206, 209, 0.25), rgba(0, 0, 0, 0.5) 70%);
+}
+
+.music-result-card__cover-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.music-result-card__body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    min-width: 0;
+}
+
+.music-result-card__mode {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: rgba(0, 206, 209, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.music-result-card__prompt {
+    font-size: 0.92rem;
+    color: rgba(255, 255, 255, 0.85);
+    line-height: 1.4;
+}
+
+.music-result-card__audio {
+    width: 100%;
+    height: 36px;
+    outline: none;
+}
+
+.music-result-card__actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.music-result-card__download,
+.music-result-card__download-cover {
+    padding: 6px 14px;
+    background: rgba(0, 206, 209, 0.1);
+    color: #00CED1;
+    text-decoration: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: background 0.2s;
+}
+
+.music-result-card__download:hover,
+.music-result-card__download-cover:hover {
+    background: rgba(0, 206, 209, 0.2);
+}
+
+/* Responsive */
+@media (max-width: 720px) {
+    .music-studio { padding: 20px 16px 60px; }
+    .music-studio__title { font-size: 1.6rem; }
+
+    .music-studio__mode-toggle { grid-template-columns: 1fr; }
+
+    .music-result-card { flex-direction: column; }
+
+    .music-result-card__cover {
+        width: 100%;
+        max-width: 300px;
+    }
+}
