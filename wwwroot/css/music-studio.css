@@ -248,6 +248,10 @@
 
 .music-form__submit-spinner { display: inline-flex; color: #0A0A0A; }
 
+    .music-form__submit-spinner[hidden] {
+        display: none;
+    }
+
 /* Results */
 .music-results { margin-top: 8px; }
 

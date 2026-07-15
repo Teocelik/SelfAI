@@ -1,6 +1,99 @@
-﻿@{
-    ViewData["Title"] = "Privacy Policy";
+@{
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+@section Styles {
+    <link rel="stylesheet" href="~/css/legal.css" asp-append-version="true" />
+}
+
+<section class="legal-page">
+    <div class="legal-page__container">
+        <h1 class="legal-page__title">Gizlilik Politikası</h1>
+        <p class="legal-page__updated">Son güncelleme: @DateTime.UtcNow.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))</p>
+
+        <div class="legal-page__notice">
+            <strong>Not:</strong> Kişisel verilerinizin işlenmesi ile ilgili detaylı
+            bilgi için lütfen <a href="/kvkk">KVKK Aydınlatma Metni</a>'ni de
+            inceleyiniz.
+        </div>
+
+        <div class="legal-page__content">
+
+            <h2>Gizlilik Taahhüdümüz</h2>
+            <p>
+                SelfAI olarak kullanıcılarımızın gizliliğine büyük önem veriyoruz. Bu
+                Gizlilik Politikası, hangi bilgileri topladığımızı, nasıl kullandığımızı
+                ve nasıl koruduğumuzu şeffaf bir şekilde açıklamaktadır.
+            </p>
+
+            <h2>Toplanan Bilgiler</h2>
+            <p>
+                Hizmet'i kullanırken aşağıdaki bilgileri topluyoruz: kayıt sırasında
+                sağladığınız e-posta ve isim, üretim geçmişiniz, yüklediğiniz karakter
+                ve yüz görselleri, ödeme geçmişiniz, IP adresiniz ve tarayıcı bilgileriniz.
+            </p>
+            <p>
+                Detaylı liste için <a href="/kvkk">KVKK Aydınlatma Metni</a>'nin
+                "İşlenen Kişisel Veriler" bölümünü inceleyiniz.
+            </p>
+
+            <h2>Bilgileri Nasıl Kullanıyoruz?</h2>
+            <ul>
+                <li>Hizmet'i sunmak ve hesabınızı yönetmek</li>
+                <li>Ödeme işlemlerini gerçekleştirmek</li>
+                <li>Destek taleplerinize yanıt vermek</li>
+                <li>Ürün geliştirme ve hata analizi yapmak</li>
+                <li>Yasal yükümlülüklerimizi yerine getirmek</li>
+                <li>Güvenlik ihlallerini tespit etmek ve önlemek</li>
+            </ul>
+
+            <h2>Bilgilerinizin Paylaşımı</h2>
+            <p>
+                Kişisel verileriniz aşağıdaki durumlar dışında üçüncü kişilerle
+                paylaşılmaz:
+            </p>
+            <ul>
+                <li>Hizmet sunumu için gerekli üçüncü taraf sağlayıcılar (fal.ai,
+                    Cloudflare R2, Firebase, Iyzico, Stripe)</li>
+                <li>Yasal yükümlülük (mahkeme kararı, resmi talep)</li>
+                <li>Açık rızanızla</li>
+            </ul>
+            <p>
+                Kişisel verilerinizi asla üçüncü taraflara satmıyor veya reklam
+                amaçlı paylaşmıyoruz.
+            </p>
+
+            <h2>Veri Güvenliği</h2>
+            <p>
+                Kişisel verilerinizi korumak için endüstri standardı güvenlik önlemleri
+                uyguluyoruz: HTTPS şifreleme, veritabanı şifreleme, rol tabanlı erişim
+                kontrolü ve düzenli güvenlik güncellemeleri.
+            </p>
+
+            <h2>Verilerinize Erişim ve Kontrol</h2>
+            <p>
+                Verilerinize erişme, düzeltme, silme ve işlemeyi kısıtlama haklarınız
+                vardır. Detaylı bilgi için <a href="/kvkk">KVKK Aydınlatma Metni</a>'ne
+                bakınız.
+            </p>
+
+            <h2>Çocukların Gizliliği</h2>
+            <p>
+                SelfAI, 18 yaşın altındaki bireylerden kişisel veri toplamamayı taahhüt
+                eder. 18 yaşın altında olduğunu tespit ettiğimiz kullanıcıların hesapları
+                derhal silinir.
+            </p>
+
+            <h2>Gizlilik Politikası Değişiklikleri</h2>
+            <p>
+                Bu Gizlilik Politikası zaman zaman güncellenebilir. Önemli değişiklikler
+                e-posta veya panel içi bildirim ile duyurulur.
+            </p>
+
+            <h2>İletişim</h2>
+            <p>
+                Gizlilik ile ilgili sorularınız için: support@selfai.com
+            </p>
+        </div>
+    </div>
+</section>

@@ -317,6 +317,10 @@
     align-items: center;
 }
 
+    .template-form__submit-spinner[hidden] {
+        display: none;
+    }
+
 /* Results */
 .template-results {
     margin-top: 8px;

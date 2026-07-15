@@ -1,0 +1,238 @@
+@{
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/faq.css" asp-append-version="true" />
+}
+
+<section class="faq-page">
+    <div class="faq-page__container">
+        <h1 class="faq-page__title">Sıkça Sorulan Sorular</h1>
+        <p class="faq-page__subtitle">
+            SelfAI hakkında en çok merak edilenlere cevaplar. Sorunuzu bulamazsanız
+            support@selfai.com adresine yazabilirsiniz.
+        </p>
+
+        <div class="faq-page__categories">
+
+            <div class="faq-category">
+                <h2 class="faq-category__title">Genel</h2>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">SelfAI nedir, ne için kullanılır?</summary>
+                    <div class="faq-item__answer">
+                        SelfAI, yapay zeka teknolojileri ile sosyal medya içeriği üretmek
+                        için tasarlanmış bir platformdur. Görsel üretimi, karakter
+                        eğitimi (Character LoRA), yüz kilidi (Face Lock), sosyal medya
+                        post şablonları ve müzik + albüm kapağı üretimi sunar. Instagram,
+                        TikTok, YouTube ve diğer platformlar için içerik üretmek
+                        isteyen içerik üreticileri, küçük işletmeler ve markalar için
+                        idealdir.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Ücretsiz mi kullanabilirim? Deneme sürüm var mı?</summary>
+                    <div class="faq-item__answer">
+                        Beta sürecinde yeni kayıt olan kullanıcılara başlangıç kredisi
+                        veriyoruz. Bu kredilerle Studio'daki tüm özellikleri deneyebilirsiniz.
+                        Ek kredi ihtiyacınız olursa kredi paketlerimizden satın alabilirsiniz.
+                        Kredi fiyatlandırması ve paket detayları için ana sayfayı
+                        ziyaret ediniz.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Ürettiğim içerikleri ticari olarak kullanabilir miyim?</summary>
+                    <div class="faq-item__answer">
+                        Evet, SelfAI'da ürettiğiniz görseller ve müzikler tam kullanım
+                        hakkı ile birlikte size aittir. Kişisel ve ticari amaçlarla
+                        özgürce kullanabilirsiniz. Ancak bazı yapay zeka modellerinin
+                        kendi lisans koşulları bulunabilir (örn. müzik modelleri).
+                        Detaylı bilgi için
+                        <a href="/terms">Kullanım Şartları</a>'nı inceleyiniz.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Kredilerim ne kadar süre geçerli?</summary>
+                    <div class="faq-item__answer">
+                        Satın aldığınız krediler süresiz geçerlidir. İstediğiniz zaman
+                        kullanabilirsiniz. Ancak hesabınızı 12 ay boyunca hiç
+                        kullanmazsanız, hesap dondurma süreci başlatılabilir ve
+                        e-posta ile bilgilendirilirsiniz.
+                    </div>
+                </details>
+            </div>
+
+            <div class="faq-category">
+                <h2 class="faq-category__title">Görsel Üretimi</h2>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Bir görsel üretmek ne kadar sürer?</summary>
+                    <div class="faq-item__answer">
+                        Görsel üretimi genellikle 10-60 saniye arasında tamamlanır.
+                        Kullandığınız modele göre değişir:
+                        <ul>
+                            <li>Hızlı modeller (FLUX Schnell, Recraft 20b): 5-15 saniye</li>
+                            <li>Standart modeller (FLUX Dev, Ideogram V3): 15-30 saniye</li>
+                            <li>Premium modeller (FLUX Pro, PuLID Flux): 30-90 saniye</li>
+                            <li>Karakter (LoRA) üretimi: 20-45 saniye</li>
+                        </ul>
+                        Sonuç Studio panelinde gerçek zamanlı görünür.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Karakter (Character LoRA) nasıl eğitilir? Ne kadar sürer?</summary>
+                    <div class="faq-item__answer">
+                        Karakter eğitimi için 8-20 arası fotoğraf yüklemeniz gerekir.
+                        Fotoğrafların farklı açılardan, farklı ışıklandırmalarda ve net
+                        yüz görünümlü olması sonuç kalitesini artırır. Eğitim süreci
+                        15-30 dakika sürer. Eğitim tamamlandığında karakteriniz "Ready"
+                        durumuna geçer ve Studio'da kullanılabilir hale gelir. Her
+                        eğitim işlemi kredi düşer.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Face Lock (yüz kilidi) ne işe yarar?</summary>
+                    <div class="faq-item__answer">
+                        Face Lock, tek bir yüz fotoğrafını referans alarak yeni sahnelerde
+                        aynı yüzü koruyarak görsel üretmenizi sağlar. Karakter eğitimine
+                        gerek kalmadan hızlı sonuç almak için idealdir. PuLID Flux modeli
+                        kullanılır. Yüzünüzü, arkadaşınızın veya bir modelinizin yüzünü
+                        yükleyerek farklı ortamlarda görsel üretebilirsiniz (izin
+                        alınması şart).
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Neden bazı modeller diğerlerinden pahalı?</summary>
+                    <div class="faq-item__answer">
+                        Yapay zeka modellerinin altyapı maliyetleri farklıdır. Premium
+                        modeller (FLUX Pro, Ideogram V3, Nano Banana) daha yüksek
+                        kalitede görsel üretir ancak daha fazla GPU kaynağı harcarlar.
+                        Bunu kredi maliyeti olarak yansıtırız. Studio'da model seçim
+                        panelinde her modelin kredi tutarını görebilirsiniz.
+                    </div>
+                </details>
+            </div>
+
+            <div class="faq-category">
+                <h2 class="faq-category__title">Sosyal Medya ve Müzik</h2>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Post Templates'te text overlay nasıl çalışır?</summary>
+                    <div class="faq-item__answer">
+                        Post Templates sekmesinde 5 hazır şablon bulunur (Instagram
+                        Story, YouTube Thumbnail, Reels Cover vb.). Her şablonun
+                        önceden tasarlanmış metin alanları vardır (başlık, alt yazı,
+                        CTA gibi). Şablonu seçtikten sonra:
+                        <ol>
+                            <li>Görsel için prompt yazın</li>
+                            <li>Text alanlarını doldurun</li>
+                            <li>İsterseniz karakter ekleyin (karakteriniz varsa)</li>
+                            <li>Üret'e basın</li>
+                        </ol>
+                        SelfAI görseli üretir ve üzerine metinlerinizi otomatik olarak
+                        yerleştirir.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Ürettiğim müziği Instagram/TikTok/YouTube'da monetize edebilir miyim?</summary>
+                    <div class="faq-item__answer">
+                        Sonilo V1.1 modeli ile üretilen backing track'ler ticari
+                        kullanıma ve monetizasyona uygundur. Bu model Shutterstock
+                        müzik kütüphanesi ile eğitilmiştir. MiniMax Music v2.6 modeli
+                        ile üretilen full song'lar için özel lisans koşulları
+                        geçerlidir. Detaylar için
+                        <a href="/terms">Kullanım Şartları</a>'nın "İçerik Sahipliği"
+                        bölümüne bakınız.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Şarkı sözü yazmasam ne olur, sistem uydurur mu?</summary>
+                    <div class="faq-item__answer">
+                        Evet. Full Song modunda şarkı sözü alanını boş bırakırsanız
+                        MiniMax Music modeli prompt'unuza uygun şarkı sözlerini
+                        otomatik oluşturur. Kendi sözlerinizi yazmak isterseniz Türkçe
+                        veya İngilizce olabilir. Sözler şarkı süresine ve tarza göre
+                        işlenir.
+                    </div>
+                </details>
+            </div>
+
+            <div class="faq-category">
+                <h2 class="faq-category__title">Hesap ve Faturalandırma</h2>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Kredimi nasıl iade alabilirim?</summary>
+                    <div class="faq-item__answer">
+                        Kullanılmamış krediler için satın alma tarihinden itibaren 14
+                        gün içinde iade talep edebilirsiniz. Kullanılmış krediler iade
+                        edilmez. Ancak üretim başarısız olursa (fal.ai hatası, sistem
+                        kesintisi vb.) kredileriniz otomatik olarak iade edilir.
+                        İade talebi için support@selfai.com adresine yazınız.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Hesabımı nasıl silerim, verilerim ne olur?</summary>
+                    <div class="faq-item__answer">
+                        Hesap silme talebi için support@selfai.com adresine yazınız.
+                        Talep aldığımızda 30 gün içinde hesabınız ve kişisel verileriniz
+                        silinir. Fatura ve ödeme kayıtları vergi mevzuatı gereği 10 yıl
+                        saklanır (KVKK Aydınlatma Metni'ne bakınız). Ürettiğiniz
+                        görseller ve müzikler siz indirmediğiniz sürece hesap silme ile
+                        birlikte silinir.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Kredi kartı bilgilerim güvende mi?</summary>
+                    <div class="faq-item__answer">
+                        Evet. SelfAI, kredi kartı bilgilerinizi kesinlikle saklamaz.
+                        Tüm ödeme işlemleri PCI-DSS uyumlu ödeme sağlayıcıları (Iyzico
+                        için TR, Stripe için USD) üzerinden yapılır. Kart bilgileriniz
+                        yalnızca ödeme sağlayıcı tarafından işlenir ve şifrelenmiş
+                        şekilde saklanır. Hiçbir ödeme bilgisi SelfAI sunucularına
+                        iletilmez.
+                    </div>
+                </details>
+            </div>
+
+            <div class="faq-category">
+                <h2 class="faq-category__title">Teknik</h2>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Görsel üretim başarısız olursa kredim geri gelir mi?</summary>
+                    <div class="faq-item__answer">
+                        Evet. Herhangi bir üretim işlemi başarısız olursa (fal.ai
+                        hatası, ağ kesintisi, süre aşımı vb.) kredileriniz otomatik
+                        olarak iade edilir. İade işlem geçmişinizde "Refund" olarak
+                        görünür. Manuel bir işlem yapmanıza gerek yoktur.
+                    </div>
+                </details>
+
+                <details class="faq-item">
+                    <summary class="faq-item__question">Hangi tarayıcılar destekleniyor?</summary>
+                    <div class="faq-item__answer">
+                        SelfAI, modern tarayıcıların son iki büyük sürümünde çalışır:
+                        <ul>
+                            <li>Google Chrome</li>
+                            <li>Mozilla Firefox</li>
+                            <li>Apple Safari</li>
+                            <li>Microsoft Edge</li>
+                        </ul>
+                        Mobil tarayıcılar (Chrome Mobile, Safari iOS) da desteklenir.
+                        Internet Explorer desteklenmez.
+                    </div>
+                </details>
+            </div>
+        </div>
+    </div>
+</section>

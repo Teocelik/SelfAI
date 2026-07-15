@@ -1,0 +1,65 @@
+@{
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/legal.css" asp-append-version="true" />
+}
+
+<section class="legal-page">
+    <div class="legal-page__container">
+        <h1 class="legal-page__title">Çerez Politikası</h1>
+        <p class="legal-page__updated">Son güncelleme: @DateTime.UtcNow.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))</p>
+
+        <div class="legal-page__content">
+
+            <h2>Çerez Nedir?</h2>
+            <p>
+                Çerezler (cookies), web sitelerinin tarayıcınızda sakladığı küçük metin
+                dosyalarıdır. SelfAI, hizmet kalitesini artırmak ve kullanıcı deneyimini
+                iyileştirmek için çerezleri kullanmaktadır.
+            </p>
+
+            <h2>Kullandığımız Çerez Türleri</h2>
+
+            <h3>Zorunlu Çerezler</h3>
+            <p>
+                Bu çerezler Hizmet'in temel işlevleri için gereklidir ve devre dışı
+                bırakılamaz. Kimlik doğrulama, oturum yönetimi ve güvenlik için kullanılır.
+            </p>
+            <ul>
+                <li><strong>Auth Cookie:</strong> Firebase Authentication oturumu</li>
+                <li><strong>Anti-Forgery Token:</strong> CSRF güvenliği</li>
+            </ul>
+
+            <h3>Analitik Çerezler</h3>
+            <p>
+                Google Analytics 4, SelfAI'ın nasıl kullanıldığını anlamamıza yardımcı
+                olur. Bu veriler anonimleştirilmiştir ve kişisel olarak tanımlanamaz.
+            </p>
+            <ul>
+                <li><strong>_ga, _ga_*:</strong> Google Analytics 4 tarafından oluşturulur</li>
+            </ul>
+
+            <h2>Çerezleri Yönetme</h2>
+            <p>
+                Tarayıcınızın ayarlarından çerezleri silebilir veya engelleyebilirsiniz.
+                Ancak zorunlu çerezleri engellerseniz Hizmet'in bazı bölümleri düzgün
+                çalışmayabilir.
+            </p>
+
+            <p>Popüler tarayıcılarda çerez ayarları:</p>
+            <ul>
+                <li><a href="https://support.google.com/chrome/answer/95647" target="_blank" rel="noopener">Chrome</a></li>
+                <li><a href="https://support.mozilla.org/tr/kb/cerezler-web-sitelerinin-bilgisayarinizda-depoladi" target="_blank" rel="noopener">Firefox</a></li>
+                <li><a href="https://support.apple.com/tr-tr/guide/safari/sfri11471/mac" target="_blank" rel="noopener">Safari</a></li>
+                <li><a href="https://support.microsoft.com/tr-tr/microsoft-edge/microsoft-edge-de-çerezleri-silme" target="_blank" rel="noopener">Edge</a></li>
+            </ul>
+
+            <h2>İletişim</h2>
+            <p>
+                Çerez politikamız hakkında sorularınız için: support@selfai.com
+            </p>
+        </div>
+    </div>
+</section>

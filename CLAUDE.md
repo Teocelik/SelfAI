@@ -137,6 +137,12 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **F.9b cache invalidation (kilitli):** `UpdateAdminAsync` ve `SetStatusAsync` sonrası ilgili category cache'i (`catalog:{category}:approved`) temizlenir. Kategori değişirse hem eski hem yeni cache invalidate. SignalR event YOK — Studio bir sonraki istekte güncel görür.
 - **F.9b tier validation whitelist (kilitli):** `Fast/Standard/Premium/CharacterLora/VideoFast/VideoPremium`. Bilinmeyen tier backend `UpdateAdminAsync`'te reddedilir (400); `CostUsd` negatif olamaz. Admin edit formunda ayrıca DataAnnotation validation (`DisplayName`/`Category`/`Tier` required, `CostUsd` 0-100).
 - **F.9b scope dışı (F.9c/9d/9e'ye ertelendi):** kredi çıkarma (negatif işlem), sistem ayarları, ödeme (Iyzico/Stripe) transaction takibi, rol yönetimi UI.
+- **F.M.10c Music + Album Cover (kilitli):** Sonilo V1.1 (backing, ticari lisanslı) + MiniMax Music v2.6 (full song vokal+lyrics) + Ideogram V3 (kapak, kullanıcı seçtiği aspect ratio). Endpoint'ler admin panelden Approved + CostUsd > 0 olmalı.
+- **F.M.10c background task pattern (kilitli):** uzun süren generation'lar (music 1-3 dakika) HTTP timeout'a takılmaması için `Task.Run` + `CancellationToken.None` ile background'da yürütülür. Frontend SignalR event bekler. `StartGenerationAsync` sadece kredi düşer + task başlatır, hemen dönüş.
+- **F.M.10c kredi kombine (kilitli):** music + cover tek `TokenTransaction`'da düşer (kullanıcı için tek işlem hissi). Backend'de 2 fal.ai call yapılır ama audit için tek işlem.
+- **F.M.10c R2 audio upload (kilitli):** fal.ai audio URL geçici (7 gün TTL), `MusicGenerationOrchestrator` background task içinde audio'yu indirir ve `IAssetStorageProvider` ile R2'a upload eder. Kalıcı URL frontend'e push edilir.
+- **F.M.10c album cover otomatik (kilitli):** music prompt'undan yola çıkarak Ideogram V3'e cover prompt build edilir (`BuildCoverPrompt`). Kullanıcı cover prompt'u özelleştiremez şu an — F.M.11 scope.
+- **F.M.10c defensive pricing check (kilitli):** `MusicGenerationOrchestrator` başında `musicCost` ve `coverCost > 0` doğrulanır. 0 ise 503 döner, admin bilgilendirilir. Migration yok — cost DB-driven (admin panelden atanır).
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -197,7 +203,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── StudioHubController.cs        # /Studio hub (sekme seçim ekranı)
 │   │   ├── ImageStudioController.cs      # /Studio/Image (mevcut RenderNet davranışı taşındı)
 │   │   ├── TemplatesStudioController.cs  # /Studio/Templates (F.M.10b GÜNCELLENDİ — Generate 2 akış + PostProcess yeni action)
-│   │   ├── MusicStudioController.cs      # /Studio/Music (placeholder, F.M.10c)
+│   │   ├── MusicStudioController.cs      # /Studio/Music (F.M.10c GÜNCELLENDİ — placeholder doldu, aktif üretim)
 │   │   └── VideoStudioController.cs      # /Studio/Video (placeholder, F.M.9)
 │   ├── RenderNetController.cs        # F.M.Arch.1 — redirect-only backward compat (/RenderNet/Index → /Studio/Image)
 │   ├── CharactersController.cs       # Character CRUD + LoRA training tetikleme
@@ -211,6 +217,9 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Templates/                    # F.M.10a — PostFormatDto, TemplateGenerationRequest
 │   │                                 # F.M.10b — TextOverlaySpec, PresetTemplateDto,
 │   │                                 #           PresetTextFieldDto, PresetPostProcessRequest
+│   ├── Music/                        # F.M.10c — MusicGenerationRequest, MusicGenerationStartedDto,
+│   │                                 #           MusicGenerationResultDto, MusicGenerationInput,
+│   │                                 #           MusicGenerationOutput
 │   ├── Characters/                   # CharacterDto (LoraModelUrl, Status, vb.)
 │   ├── ModelCatalog/                 # Yeni — dinamik model listesi DTO'ları (F.M.5)
 │   ├── Admin/                        # F.7.3 — AdminUserDto, AdminGrantResultDto
@@ -237,7 +246,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── IAdminService.cs          # F.7.3 — mini-admin servis kontratı
 │   │   ├── ITemplateCatalogService.cs # F.M.10a — statik 6 format kataloğu kontratı
 │   │   ├── ITextOverlayService.cs    # F.M.10b — server-side text overlay render kontratı
-│   │   └── IPresetTemplateCatalogService.cs # F.M.10b — statik 5 preset kataloğu kontratı
+│   │   ├── IPresetTemplateCatalogService.cs # F.M.10b — statik 5 preset kataloğu kontratı
+│   │   └── IMusicGenerationOrchestrator.cs # F.M.10c — music + album cover üretim akışı kontratı
 │   ├── Concretes/                    # Cross-cutting implementations
 │   │   ├── AdminService.cs           # F.7.3 — FindUserByEmail + AddCredit iş mantığı
 │   │   ├── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
@@ -256,7 +266,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── Orchestrators/
 │   │   │   ├── GenerationOrchestrator.cs
 │   │   │   ├── CharacterTrainingOrchestrator.cs
-│   │   │   └── ModelCatalogOrchestrator.cs  # F.M.5 (+ F.9b GÜNCELLENDİ — 4 admin method + SyncFromFalAiAsync category imzası)
+│   │   │   ├── ModelCatalogOrchestrator.cs  # F.M.5 (+ F.9b GÜNCELLENDİ — 4 admin method + SyncFromFalAiAsync category imzası)
+│   │   │   └── MusicGenerationOrchestrator.cs # F.M.10c YENİ — kombine kredi + background task + R2 upload + cover prompt
 │   │   ├── Builders/                 # F.M.10b — request builder'lar (Orchestrators'tan ayrıştı)
 │   │   │   ├── TemplateStartRequestBuilder.cs  # F.M.10a→10b GÜNCELLENDİ — format → StartGenerationRequest, CharacterId propagate
 │   │   │   └── PresetStartRequestBuilder.cs    # F.M.10b YENİ — preset → StartGenerationRequest (endpoint override YOK)
@@ -266,6 +277,9 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   │   │   ├── FluxSchnellGenerator.cs
 │   │   │   │   └── FluxLoraGenerator.cs
 │   │   │   ├── Video/                # F.M.9+ (ileride)
+│   │   │   ├── Music/                # F.M.10c YENİ
+│   │   │   │   ├── IMusicGenerator.cs
+│   │   │   │   └── DynamicMusicGenerator.cs
 │   │   │   └── CharacterTraining/
 │   │   │       └── FluxLoraTrainer.cs
 │   │   ├── Providers/
@@ -283,17 +297,18 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Admin/                        # F.7.3 — AdminUsersViewModel, AddCreditViewModel
 │   │                                 # F.9a — AdminUsersListViewModel, AdminUserDetailViewModel, AdminDashboardViewModel
 │   │                                 # F.9b — AdminModelsListViewModel, AdminModelEditViewModel
-│   └── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
-│                                     # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
-│                                     #           UserCharacterViewModel
+│   ├── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
+│   │                                 # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
+│   │                                 #           UserCharacterViewModel
+│   └── Music/                        # F.M.10c — MusicStudioIndexViewModel, CoverAspectOption
 ├── ViewComponents/                   # 🆕 F.M.UI.2 — MVC ViewComponent'ler
 │   └── CreditBalanceViewComponent.cs # Kredi bakiyesi pill (AppUserId claim + GetBalanceAsync, fail-gracefully)
 ├── Views/
 │   ├── Studio/                       # 🆕 F.M.Arch.1 — ortak view klasörü (Studio/* controller'ları explicit path ile çözer)
-│   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı
+│   │   ├── Hub.cshtml                    # /Studio hub sekme seçim ekranı (F.M.10c GÜNCELLENDİ — Music kartı "Yakında" kaldırıldı, aktif)
 │   │   ├── Image.cshtml                  # Ana üretim UI'ı (eski RenderNet/Index içeriği taşındı)
 │   │   ├── Templates.cshtml              # F.M.10a→10b GÜNCELLENDİ — tab layout (format + preset + character)
-│   │   ├── Music.cshtml                  # placeholder (F.M.10c)
+│   │   ├── Music.cshtml                  # F.M.10c GÜNCELLENDİ — placeholder silindi, aktif form
 │   │   └── Video.cshtml                  # placeholder (F.M.9)
 │   ├── Payment/IyzicoCheckOutForm.cshtml
 │   ├── Admin/                        # F.7.3 — mini-admin sayfaları (+ F.9a genişletme)
@@ -317,12 +332,14 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── admin.css                 # F.7.3 — Admin panel stilleri (+ F.9b GÜNCELLENDİ — model catalog tablo + edit form stilleri; mevcut stiller dokunulmadı)
 │   │   ├── studio-hub.css            # F.M.Arch.1 — Studio hub + sekme nav stilleri
 │   │   ├── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
+│   │   ├── music-studio.css          # F.M.10c YENİ — Music studio form + sonuç stilleri
 │   │   ├── app-nav.css               # Üst nav + .app-nav__credit-pill bakiye stili (F.M.UI.2 bakiye buradan; yeni credit-balance.css YOK)
 │   │   └── generated-results.css     # F.M.UI.1b (+ F.M.UI.2 GÜNCELLENDİ — regenerate buton stili + Studio/Image 720px mobile layout)
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator (Studio/Image; F.M.UI.2 GÜNCELLENDİ — pendingRequests Map, submitGeneration, regenerate, isGenerating mutex)
 │   │   ├── template-studio.js        # F.M.10a — Templates (kendi SignalR bağlantısı + pending kart)
 │   │   ├── preset-studio.js          # F.M.10b YENİ — preset akışı (SignalR Complete → PostProcess çağrısı)
+│   │   ├── music-studio.js           # F.M.10c YENİ — Music üretim akışı (IIFE + kendi SignalR bağlantısı)
 │   │   ├── toast.js                  # Bildirim sistemi
 │   │   ├── face-lock-panel.js
 │   │   ├── pose-lock-panel.js
@@ -656,12 +673,19 @@ dotnet user-secrets clear         # Hepsini sil
 - **Hafta 3:** ✅ **TAMAMLANDI**
   - F.M.UI.2 Studio polish ✅ (bakiye ViewComponent tüm sayfalarda + Studio/Image 720px mobile + regenerate frontend re-submit)
   - F.9b Model Catalog admin ✅ (liste + filtre + pagination + edit patch pattern + Approve/Disable + category parametreli sync)
-- **Hafta 4 (son hafta, plan korunuyor):**
-  - F.M.10c Müzik + Albüm Kapağı — 2-3 gün
-  - F.7.5 Legal sayfalar + FAQ + bugfix — 1-2 gün
+- **Hafta 4 (son hafta, plan korunuyor):** ⏳ **YARISI TAMAMLANDI**
+  - F.M.10c Müzik + Albüm Kapağı ✅ (Sonilo backing + MiniMax full song + Ideogram cover, background task + kombine kredi + R2 audio upload)
+  - F.7.5 Legal sayfalar + FAQ + bugfix — **SIRA (son phase)**
   - **F.M.10c için hazır altyapı (F.9b sonrası):** admin panelden 'text-to-audio' sync trigger'lı; `ModelCatalogEntry` audio kategorisi için hazır; cache pattern (`catalog:{category}:approved`) audio kategorisine de uyar.
 - **F.7.4** (landing kalan görseller: feature-face-lock, feature-multi-model, og-image) — beta launch öncesi son gün, **kullanıcı hazırlayacak**
 - **Buffer:** 3-4 gün şirket kurulum + tampon
+- **Beta launch checklist (F.7.5 sonrası):**
+  - Şirket kurulumu tamamlanmalı (Iyzico + Stripe canlı key)
+  - Landing kalan görseller: feature-face-lock, feature-multi-model, og-image (kullanıcı manuel hazırlayacak)
+  - SmarterASP production deploy
+  - DNS + SSL kontrol
+  - Google Analytics 4 Measurement ID (production)
+  - Iyzico live key + webhook konfigürasyonu
 
 ### F.M.10b scope (Hafta 2 — Post Templates gelişmiş) ✅ TAMAMLANDI
 

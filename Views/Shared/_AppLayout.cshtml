@@ -23,6 +23,7 @@
     <link rel="stylesheet" href="~/css/toast.css" />
     <link rel="stylesheet" href="~/css/app-nav.css" />
     <link rel="stylesheet" href="~/css/lightbox.css" />
+    <link rel="stylesheet" href="~/css/cookie-banner.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
           rel="stylesheet" />
 
@@ -97,6 +98,9 @@
     <!-- ═══ Toast Container (tüm app sayfalarında çalışır) ═══ -->
     <div id="toastContainer"></div>
 
+    @* F.7.5 — Çerez onay banner'ı (tüm app sayfalarında) *@
+    @await Html.PartialAsync("_CookieBanner")
+
     <!-- ═══ JavaScript Dosyaları ═══ -->
     <!-- SignalR Client (app.js generation bildirimleri için bağımlılık) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
@@ -107,6 +111,9 @@
 
     <!-- Lightbox — output gallery etkileşimi (büyüt/indir/paylaş). Toast'tan sonra (Toast bağımlılığı). -->
     <script src="~/js/lightbox.js"></script>
+
+    <!-- Çerez onay banner'ı -->
+    <script src="~/js/cookie-banner.js"></script>
 
     @await RenderSectionAsync("Scripts", required: false)
 </body>

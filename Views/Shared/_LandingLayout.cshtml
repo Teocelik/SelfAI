@@ -28,6 +28,9 @@
 
     <link rel="stylesheet" href="~/css/main.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/landing.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/cookie-banner.css" asp-append-version="true" />
+
+    @await RenderSectionAsync("Styles", required: false)
 
     @{
         var gaId = ViewContext.HttpContext.RequestServices
@@ -61,7 +64,10 @@
         @RenderBody()
     </main>
 
+    @await Html.PartialAsync("_CookieBanner")
+
     <script src="~/js/landing.js" asp-append-version="true"></script>
+    <script src="~/js/cookie-banner.js" asp-append-version="true"></script>
     @RenderSection("Scripts", required: false)
 </body>
 </html>

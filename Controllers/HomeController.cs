@@ -54,8 +54,45 @@ namespace SelfAI.Controllers
         }
         #endregion
 
+        // F.7.5 — Gizlilik Politikası (mevcut action /privacy flat URL'e taşındı)
+        [HttpGet]
+        [Route("privacy")]
         public IActionResult Privacy()
         {
+            ViewData["Title"] = "Gizlilik Politikası - SelfAI";
+            return View();
+        }
+
+        // F.7.5 — Legal sayfalar + FAQ (public, _LandingLayout kullanır)
+        [HttpGet]
+        [Route("terms")]
+        public IActionResult Terms()
+        {
+            ViewData["Title"] = "Kullanım Şartları - SelfAI";
+            return View();
+        }
+
+        [HttpGet]
+        [Route("kvkk")]
+        public IActionResult Kvkk()
+        {
+            ViewData["Title"] = "KVKK Aydınlatma Metni - SelfAI";
+            return View();
+        }
+
+        [HttpGet]
+        [Route("cookies")]
+        public IActionResult Cookies()
+        {
+            ViewData["Title"] = "Çerez Politikası - SelfAI";
+            return View();
+        }
+
+        [HttpGet]
+        [Route("faq")]
+        public IActionResult Faq()
+        {
+            ViewData["Title"] = "Sıkça Sorulan Sorular - SelfAI";
             return View();
         }
 

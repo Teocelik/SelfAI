@@ -1,0 +1,148 @@
+@{
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/legal.css" asp-append-version="true" />
+}
+
+<section class="legal-page">
+    <div class="legal-page__container">
+        <h1 class="legal-page__title">Kullanım Şartları</h1>
+        <p class="legal-page__updated">Son güncelleme: @DateTime.UtcNow.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))</p>
+
+        <div class="legal-page__notice">
+            <strong>Beta Sürüm Bildirimi:</strong> Bu metin, SelfAI'ın beta sürümü için
+            hazırlanmıştır. Şirket kurulumu ve resmi tescil tamamlandığında güncellenecektir.
+        </div>
+
+        <div class="legal-page__content">
+
+            <h2>1. Genel Hükümler</h2>
+            <p>
+                SelfAI ("Hizmet"), yapay zeka teknolojisi kullanarak görsel, sosyal medya
+                içeriği ve müzik üretimi sunan bir SaaS platformudur. Bu Kullanım Şartları
+                ("Şartlar"), Hizmet'i kullanan tüm bireysel ve kurumsal kullanıcılar için
+                bağlayıcıdır. Hizmet'e erişim sağlayarak veya kullanarak bu Şartları kabul
+                etmiş sayılırsınız.
+            </p>
+
+            <h2>2. Hesap Oluşturma ve Kullanım</h2>
+            <p>
+                Hizmet'i kullanabilmek için Firebase Authentication üzerinden e-posta ile
+                giriş yapmanız gerekir. Kullanıcı hesabınızın güvenliğinden ve hesabınız
+                üzerinden yapılan tüm işlemlerden şahsen sorumlusunuz. Şüpheli aktivite
+                fark ederseniz derhal bize bildirin.
+            </p>
+            <p>
+                Kayıt sırasında verdiğiniz bilgilerin doğru, güncel ve eksiksiz olmasını
+                sağlamak sizin sorumluluğunuzdadır. 18 yaşından küçük kullanıcılar Hizmet'i
+                yasal veli izni olmaksızın kullanamaz.
+            </p>
+
+            <h2>3. Kredi Sistemi ve Ödeme</h2>
+            <p>
+                Hizmet, kullanım başına düşen bir kredi sistemi ile çalışır. Kredi paketleri
+                Iyzico ve Stripe altyapıları üzerinden Türk Lirası (TRY) ve USD cinsinden
+                satın alınabilir. Krediler kullanıcı hesabına yüklendikten sonra Hizmet
+                dahilindeki tüm üretim modelleri için kullanılabilir.
+            </p>
+            <p>
+                Kredi maliyetleri kullanılan yapay zeka modeline göre değişir ve üretim
+                başlatılmadan önce kullanıcıya bildirilir. Üretim başarısız olursa krediler
+                otomatik olarak iade edilir.
+            </p>
+            <p>
+                Kredi iadesi talepleri için lütfen support@selfai.com adresine yazınız.
+                Kullanılmamış krediler için 14 gün içinde iade talebi geçerlidir.
+                Kullanılmış krediler iade edilmez.
+            </p>
+
+            <h2>4. İçerik Sahipliği ve Lisanslar</h2>
+            <p>
+                Kullanıcı, üretilen içeriklerin (görsel, müzik, albüm kapağı, sosyal medya
+                postları) tam kullanım hakkına sahiptir. Bu içerikler kişisel ve ticari
+                amaçlarla kullanılabilir. SelfAI, üretilen içerikler üzerinde herhangi
+                bir telif hakkı iddiasında bulunmaz.
+            </p>
+            <p>
+                Ancak bazı yapay zeka modelleri (örn. Sonilo V1.1) ticari lisanslı
+                kütüphaneler ile eğitilmiştir ve üretilen içerikler için özel lisans
+                koşulları geçerli olabilir. Detaylı bilgi için ilgili modelin üretici
+                sayfasını inceleyiniz.
+            </p>
+            <p>
+                Kullanıcı, Hizmet'e yüklediği tüm materyaller (yüz fotoğrafları, karakter
+                eğitim materyalleri vb.) için gerekli haklara sahip olduğunu beyan eder.
+                Üçüncü kişilere ait fotoğraf veya materyalin izinsiz kullanımından doğan
+                tüm hukuki sorumluluk kullanıcıya aittir.
+            </p>
+
+            <h2>5. Yasaklı Kullanımlar</h2>
+            <p>Hizmet üzerinde aşağıdaki eylemler kesinlikle yasaktır:</p>
+            <ul>
+                <li>Müstehcen, pornografik, çocuk istismarı içeren veya cinsel şiddet
+                    içeren materyaller üretmek</li>
+                <li>Nefret söylemi, ayrımcılık veya şiddet teşvik eden içerik üretmek</li>
+                <li>Gerçek kişilerin yüz veya karakteristik özelliklerini rızası olmadan
+                    kullanmak (deepfake üretimi)</li>
+                <li>Yasadışı ürün veya hizmetlerin tanıtımı, dolandırıcılık, kimlik
+                    hırsızlığı</li>
+                <li>Telif hakkı ile korunan içerikleri izinsiz kullanmak</li>
+                <li>Hizmet'i otomatize botlar veya scriptler ile aşırı yüklenmek</li>
+                <li>Hizmet'in güvenlik önlemlerini atlatmaya çalışmak</li>
+            </ul>
+            <p>
+                Bu yasaklara uymayan hesaplar önceden uyarı verilmeden askıya alınabilir
+                veya kalıcı olarak kapatılabilir. Bu durumda kullanılmamış kredilerin
+                iadesi SelfAI'ın takdirindedir.
+            </p>
+
+            <h2>6. Hizmet Kesintileri ve Değişiklikler</h2>
+            <p>
+                SelfAI, Hizmet üzerinde önceden bildirimde bulunmaksızın değişiklik,
+                güncelleme veya kesintiye gitme hakkını saklı tutar. Planlı bakım
+                durumlarında kullanıcılara e-posta veya panel içi bildirim yapılır.
+            </p>
+            <p>
+                Üçüncü taraf servis sağlayıcıların (fal.ai, Cloudflare R2, Firebase,
+                Iyzico) kesintileri Hizmet'in geçici kullanılamamasına neden olabilir.
+                Bu durumlardan SelfAI sorumlu tutulamaz.
+            </p>
+
+            <h2>7. Sorumluluk Sınırlaması</h2>
+            <p>
+                SelfAI, üretilen içeriklerin doğruluğu, kalitesi veya kullanıcı
+                beklentilerine uygunluğu konusunda herhangi bir garanti vermez. Yapay
+                zeka modelleri istatistiksel olarak çalışır ve öngörülemeyen sonuçlar
+                üretebilir.
+            </p>
+            <p>
+                Hizmet'i kullanmanızdan doğan doğrudan veya dolaylı zararlardan (kâr
+                kaybı, veri kaybı, itibar zararı vb.) SelfAI sorumlu tutulamaz.
+                Toplam sorumluluk her koşulda kullanıcının son 12 ay içinde ödediği
+                toplam tutarla sınırlıdır.
+            </p>
+
+            <h2>8. Fesih ve Hesap Kapatma</h2>
+            <p>
+                Kullanıcı, hesabını dilediği zaman kapatma hakkına sahiptir. Hesap
+                kapatma talebi için support@selfai.com adresine yazınız. Hesap
+                kapatıldığında tüm kullanıcı verileri KVKK Aydınlatma Metni'nde
+                belirtilen sürelerde silinir veya anonimleştirilir.
+            </p>
+
+            <h2>9. Uyuşmazlık Çözümü</h2>
+            <p>
+                Bu Şartlar Türkiye Cumhuriyeti hukukuna tabidir. Doğabilecek uyuşmazlıklarda
+                İstanbul mahkemeleri ve icra daireleri yetkilidir. Uyuşmazlığın
+                çözümünde önce dostane görüşme ve arabuluculuk süreçleri denenir.
+            </p>
+
+            <h2>10. İletişim</h2>
+            <p>
+                Kullanım Şartları ile ilgili sorularınız için: support@selfai.com
+            </p>
+        </div>
+    </div>
+</section>

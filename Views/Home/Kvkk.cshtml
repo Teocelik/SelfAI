@@ -1,0 +1,147 @@
+@{
+    Layout = "~/Views/Shared/_LandingLayout.cshtml";
+}
+
+@section Styles {
+    <link rel="stylesheet" href="~/css/legal.css" asp-append-version="true" />
+}
+
+<section class="legal-page">
+    <div class="legal-page__container">
+        <h1 class="legal-page__title">KVKK Aydınlatma Metni</h1>
+        <p class="legal-page__updated">Son güncelleme: @DateTime.UtcNow.ToString("dd MMMM yyyy", System.Globalization.CultureInfo.GetCultureInfo("tr-TR"))</p>
+
+        <div class="legal-page__notice">
+            <strong>Beta Sürüm Bildirimi:</strong> SelfAI şu anda beta sürümündedir.
+            Şirket kurulumu ve VERBIS kaydı tamamlandığında bu metin veri sorumlusu
+            bilgileri ile güncellenecektir.
+        </div>
+
+        <div class="legal-page__content">
+
+            <h2>1. Veri Sorumlusu</h2>
+            <p>
+                6698 sayılı Kişisel Verilerin Korunması Kanunu ("KVKK") kapsamında,
+                SelfAI platformunun veri sorumlusu <em>[Şirket unvanı beta sonrası
+                eklenecek]</em>'dir. VERBIS kayıt numarası beta sonrası açıklanacaktır.
+            </p>
+
+            <h2>2. İşlenen Kişisel Veriler</h2>
+            <p>SelfAI aşağıdaki kişisel verilerinizi işlemektedir:</p>
+
+            <h3>Kimlik ve İletişim Bilgileri</h3>
+            <ul>
+                <li>Ad-soyad (kullanıcı tarafından belirlenmiş DisplayName)</li>
+                <li>E-posta adresi</li>
+                <li>Firebase UID (giriş kimlik doğrulaması için)</li>
+            </ul>
+
+            <h3>Kullanım Verileri</h3>
+            <ul>
+                <li>Üretim geçmişi (prompt'lar, seçilen modeller, üretilen görseller/müzikler)</li>
+                <li>Karakter eğitim materyalleri (yüklediğiniz fotoğraflar)</li>
+                <li>Face Lock (yüz kilidi) için yüklediğiniz yüz görselleri</li>
+                <li>Kredi bakiyesi ve işlem geçmişi</li>
+                <li>IP adresi ve tarayıcı bilgileri (güvenlik için)</li>
+            </ul>
+
+            <h3>Ödeme Verileri</h3>
+            <ul>
+                <li>Ödeme geçmişi (miktar, tarih, ödeme sağlayıcı transaction ID)</li>
+                <li>Kredi kartı bilgileri SelfAI tarafından saklanmaz; yalnızca ödeme
+                    sağlayıcı (Iyzico/Stripe) tarafından işlenir.</li>
+            </ul>
+
+            <h3>Çerezler ve Analitik</h3>
+            <ul>
+                <li>Oturum çerezleri (giriş durumunun korunması için)</li>
+                <li>Google Analytics 4 anonim kullanım verileri</li>
+            </ul>
+
+            <h2>3. Kişisel Verilerin İşlenme Amaçları</h2>
+            <ul>
+                <li>Hizmet sunumu ve kullanıcı hesabının yönetilmesi</li>
+                <li>Kredi sistemi, ödeme işlemleri ve fatura düzenlenmesi</li>
+                <li>Kullanıcı destek talepleri ve iletişim</li>
+                <li>Ürün geliştirme, hata analizi ve güvenlik önlemleri</li>
+                <li>Yasal yükümlülüklerin yerine getirilmesi (KVKK, GDPR uyumluluğu)</li>
+                <li>Pazarlama iletişimi (yalnızca açık rıza ile)</li>
+            </ul>
+
+            <h2>4. Kişisel Verilerin Aktarımı</h2>
+            <p>
+                Kişisel verileriniz aşağıdaki üçüncü taraflarla, yalnızca hizmet
+                sunumunun gerektirdiği ölçüde paylaşılır. Bu aktarımlar KVKK Madde 9
+                kapsamında yurt dışına aktarımı içerebilir:
+            </p>
+            <ul>
+                <li><strong>fal.ai (ABD):</strong> Yapay zeka modelleri ile içerik
+                    üretimi. Prompt'lar ve üretim istekleri fal.ai sunucularına iletilir.
+                    Fal.ai gizlilik politikası: <a href="https://fal.ai/legal/privacy-policy"
+                    target="_blank" rel="noopener">fal.ai/legal/privacy-policy</a></li>
+                <li><strong>Cloudflare R2 (ABD):</strong> Üretilen görsel ve müzik
+                    dosyalarının depolanması.</li>
+                <li><strong>Firebase (Google, ABD):</strong> Kullanıcı kimlik doğrulaması.
+                    E-posta ve Firebase UID Firebase'de saklanır.</li>
+                <li><strong>Iyzico (Türkiye) / Stripe (ABD):</strong> Ödeme işlemleri.
+                    Kredi kartı bilgileri yalnızca ödeme sağlayıcı tarafından işlenir
+                    ve saklanır.</li>
+                <li><strong>Google Analytics 4 (Google, ABD):</strong> Anonim kullanım
+                    istatistikleri. IP adresi anonimleştirilir.</li>
+                <li><strong>SmarterASP (ABD):</strong> Uygulama sunucusu ve veritabanı
+                    hosting.</li>
+            </ul>
+            <p>
+                Yurt dışı veri aktarımı KVKK Madde 9 uyarınca açık rıza gerektirebilir.
+                Hizmet'i kullanarak bu aktarımlara açık rıza vermiş sayılırsınız.
+            </p>
+
+            <h2>5. Kişisel Verilerin Saklama Süreleri</h2>
+            <ul>
+                <li>Aktif hesaplar için: hesap açık olduğu sürece</li>
+                <li>Hesap kapatma sonrası: 30 gün (silme talebiniz yoksa)</li>
+                <li>Fatura ve ödeme verileri: Vergi mevzuatı uyarınca 10 yıl</li>
+                <li>Log kayıtları: 6 ay (güvenlik amaçlı)</li>
+                <li>Anonimleştirilmiş analitik veri: süresiz</li>
+            </ul>
+
+            <h2>6. Veri Güvenliği Önlemleri</h2>
+            <p>
+                Kişisel verilerinizin güvenliği için aşağıdaki önlemler alınmaktadır:
+            </p>
+            <ul>
+                <li>Tüm veri iletimi HTTPS ile şifrelenmiştir</li>
+                <li>Veritabanı ve dosya depolama şifrelenmiş ortamlarda tutulur</li>
+                <li>Erişim yetkilendirme rol tabanlıdır (Admin/User)</li>
+                <li>Düzenli güvenlik yamaları ve güncellemeler uygulanır</li>
+                <li>Kredi kartı bilgileri PCI-DSS uyumlu ödeme sağlayıcılarında
+                    saklanır, SelfAI'da tutulmaz</li>
+            </ul>
+
+            <h2>7. Haklarınız (KVKK Madde 11)</h2>
+            <p>KVKK kapsamında aşağıdaki haklara sahipsiniz:</p>
+            <ul>
+                <li>Kişisel verilerinizin işlenip işlenmediğini öğrenme</li>
+                <li>İşlenmişse buna ilişkin bilgi talep etme</li>
+                <li>İşlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme</li>
+                <li>Yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme</li>
+                <li>Eksik veya yanlış işlenmiş olması hâlinde düzeltilmesini isteme</li>
+                <li>KVKK 7. maddesinde öngörülen şartlar çerçevesinde silinmesini veya
+                    yok edilmesini isteme</li>
+                <li>Yapılan işlemlerin üçüncü kişilere bildirilmesini isteme</li>
+                <li>İşlenen verilerin münhasıran otomatik sistemler vasıtasıyla analiz
+                    edilmesi suretiyle aleyhinize bir sonucun ortaya çıkmasına itiraz etme</li>
+                <li>Kanuna aykırı olarak işlenmesi sebebiyle zarara uğramanız hâlinde
+                    zararın giderilmesini talep etme</li>
+            </ul>
+
+            <h2>8. Başvuru Yolları</h2>
+            <p>
+                Yukarıdaki haklarınızı kullanmak için support@selfai.com adresine
+                yazabilirsiniz. Başvurular en geç 30 gün içinde ücretsiz olarak
+                yanıtlanır. VERBIS başvuru formu ve prosedürleri şirket kurulumu
+                sonrası detaylandırılacaktır.
+            </p>
+        </div>
+    </div>
+</section>
