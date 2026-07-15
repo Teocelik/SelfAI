@@ -41,6 +41,110 @@
     </div>
 </section>
 
+<section class="music-showcase" id="music-showcase">
+    <div class="music-showcase__container">
+        <div class="music-showcase__grid">
+
+            <!-- Sol taraf: görsel + waveform + audio player -->
+            <div class="music-showcase__visual">
+                <div class="music-cover-card">
+                    <div class="music-cover-card__cover">
+                        <img src="~/img/landing/music-showcase-cover.jpg"
+                             alt="SelfAI ile üretilmiş albüm kapağı örneği"
+                             class="music-cover-card__image"
+                             loading="lazy" />
+                        <div class="music-cover-card__waveform">
+                            <div class="waveform-bar" style="--i: 0"></div>
+                            <div class="waveform-bar" style="--i: 1"></div>
+                            <div class="waveform-bar" style="--i: 2"></div>
+                            <div class="waveform-bar" style="--i: 3"></div>
+                            <div class="waveform-bar" style="--i: 4"></div>
+                            <div class="waveform-bar" style="--i: 5"></div>
+                            <div class="waveform-bar" style="--i: 6"></div>
+                            <div class="waveform-bar" style="--i: 7"></div>
+                            <div class="waveform-bar" style="--i: 8"></div>
+                            <div class="waveform-bar" style="--i: 9"></div>
+                            <div class="waveform-bar" style="--i: 10"></div>
+                            <div class="waveform-bar" style="--i: 11"></div>
+                            <div class="waveform-bar" style="--i: 12"></div>
+                            <div class="waveform-bar" style="--i: 13"></div>
+                            <div class="waveform-bar" style="--i: 14"></div>
+                            <div class="waveform-bar" style="--i: 15"></div>
+                            <div class="waveform-bar" style="--i: 16"></div>
+                            <div class="waveform-bar" style="--i: 17"></div>
+                            <div class="waveform-bar" style="--i: 18"></div>
+                            <div class="waveform-bar" style="--i: 19"></div>
+                            <div class="waveform-bar" style="--i: 20"></div>
+                            <div class="waveform-bar" style="--i: 21"></div>
+                            <div class="waveform-bar" style="--i: 22"></div>
+                            <div class="waveform-bar" style="--i: 23"></div>
+                        </div>
+                    </div>
+                    <div class="music-cover-card__player">
+                        <button type="button" class="music-cover-card__play" aria-label="Play">
+                            <svg viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M8 5v14l11-7z" />
+                            </svg>
+                        </button>
+                        <div class="music-cover-card__timeline">
+                            <div class="music-cover-card__progress"></div>
+                        </div>
+                        <span class="music-cover-card__time">0:45</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sağ taraf: başlık + açıklama + feature list + CTA -->
+            <div class="music-showcase__content">
+                <span class="music-showcase__badge">Yeni Özellik</span>
+                <h2 class="music-showcase__title">
+                    AI ile Şarkını + Kapağını Üret
+                </h2>
+                <p class="music-showcase__description">
+                    Reels için backing track ya da tam bir şarkı. SelfAI hem
+                    müziği hem albüm kapağını otomatik üretir — Spotify,
+                    TikTok, Instagram için hazır formatlar.
+                </p>
+
+                <ul class="music-showcase__features">
+                    <li class="music-showcase__feature">
+                        <svg class="music-showcase__feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Backing Track (15-60 saniye, enstrümantal)</span>
+                    </li>
+                    <li class="music-showcase__feature">
+                        <svg class="music-showcase__feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Full Song (vokal + lyrics, 60-180 saniye)</span>
+                    </li>
+                    <li class="music-showcase__feature">
+                        <svg class="music-showcase__feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Otomatik albüm kapağı (Spotify, Story, YouTube)</span>
+                    </li>
+                    <li class="music-showcase__feature">
+                        <svg class="music-showcase__feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        <span>Ticari kullanıma uygun (Sonilo lisanslı)</span>
+                    </li>
+                </ul>
+
+                <a href="@Url.Action("Login", "Account")" class="music-showcase__cta">
+                    Denemek İçin Giriş Yap
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <section class="features" id="features">
     <div class="features__container">
         <div class="features__header">

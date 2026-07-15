@@ -315,3 +315,181 @@
         grid-template-columns: 1fr;
     }
 }
+
+/* ═══ F.M.UI.3 — Görsel/Müzik tab bar + müzik kart ═══ */
+
+.history-tabs {
+    display: flex;
+    gap: 8px;
+    margin: 24px 0 32px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    overflow-x: auto;
+}
+
+.history-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    color: rgba(255, 255, 255, 0.55);
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-bottom: 2px solid transparent;
+    transition: color 0.2s, border-color 0.2s;
+    white-space: nowrap;
+}
+
+.history-tab:hover {
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.history-tab.is-active {
+    color: #00CED1;
+    border-bottom-color: #00CED1;
+}
+
+.history-tab__count {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.history-tab.is-active .history-tab__count {
+    background: rgba(0, 206, 209, 0.15);
+    color: #00CED1;
+}
+
+/* Müzik kart */
+.history-card--music {
+    display: flex;
+    flex-direction: column;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s, transform 0.2s, box-shadow 0.2s;
+}
+
+.history-card--music:hover,
+.history-card--music:focus-visible {
+    border-color: rgba(0, 206, 209, 0.4);
+    background: rgba(0, 206, 209, 0.04);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+    outline: none;
+}
+
+.history-card--music__cover {
+    position: relative;
+    aspect-ratio: 1;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.history-card--music__cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s;
+}
+
+.history-card--music:hover .history-card--music__cover img {
+    transform: scale(1.05);
+}
+
+/* Kapak yoksa gradient fallback (broken image yerine) */
+.history-card--music__cover-fallback {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.6rem;
+    color: rgba(0, 206, 209, 0.55);
+    background: radial-gradient(ellipse at center, rgba(0, 206, 209, 0.18), rgba(10, 10, 10, 0.9) 70%);
+}
+
+.history-card--music__play-overlay {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 60px;
+    height: 60px;
+    background: rgba(0, 206, 209, 0.9);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #0A0A0A;
+    font-size: 1.4rem;
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 8px 24px rgba(0, 206, 209, 0.4);
+}
+
+.history-card--music:hover .history-card--music__play-overlay,
+.history-card--music:focus-visible .history-card--music__play-overlay {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.05);
+}
+
+.history-card--music__play-overlay i {
+    margin-left: 4px; /* play ikonu optik hizalama */
+}
+
+.history-card--music__body {
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.history-card--music__badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 3px 10px;
+    background: rgba(0, 206, 209, 0.12);
+    color: #00CED1;
+    border-radius: 12px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    width: fit-content;
+}
+
+.history-card--music__prompt {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+    line-height: 1.4;
+}
+
+.history-card--music__meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.78rem;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.history-card--music__date,
+.history-card--music__cost {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+@media (max-width: 720px) {
+    .history-tab {
+        padding: 10px 14px;
+        font-size: 0.88rem;
+    }
+}

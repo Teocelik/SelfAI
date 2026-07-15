@@ -22,7 +22,7 @@ namespace SelfAI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(string? type = "all", int page = 1)
         {
             var appUserIdStr = User.FindFirst("AppUserId")?.Value;
             if (!Guid.TryParse(appUserIdStr, out var appUserId))
@@ -31,17 +31,21 @@ namespace SelfAI.Controllers
             }
 
             if (page < 1) page = 1;
+            if (type is not ("all" or "image" or "music")) type = "all";
 
-            var result = await _generationLogService.GetUserGenerationsAsync(appUserId, page, PageSize);
+            var mediaTypeFilter = type == "all" ? null : type;
+
+            var result = await _generationLogService.GetUserGenerationsAsync(
+                appUserId, mediaTypeFilter, page, PageSize);
             if (!result.IsSuccess)
             {
                 _logger.LogWarning(
-                    "History yüklenemedi. | UserId: {Uid} | Reason: {Reason}",
-                    appUserId, result.Message);
-                return View(new HistoryViewModel());
+                    "History yüklenemedi. | UserId: {Uid} | Type: {Type} | Reason: {Reason}",
+                    appUserId, type, result.Message);
+                return View(new HistoryViewModel { CurrentType = type });
             }
 
-            var (items, totalCount) = result.Data;
+            var (items, totalCount, imageCount, musicCount) = result.Data;
             var totalPages = (int)Math.Ceiling(totalCount / (double)PageSize);
 
             var viewModel = new HistoryViewModel
@@ -50,7 +54,10 @@ namespace SelfAI.Controllers
                 CurrentPage = page,
                 TotalPages = totalPages,
                 TotalCount = totalCount,
-                PageSize = PageSize
+                PageSize = PageSize,
+                CurrentType = type,
+                ImageCount = imageCount,
+                MusicCount = musicCount
             };
 
             return View(viewModel);

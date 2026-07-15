@@ -144,5 +144,54 @@ namespace SelfAI.Services.Concretes
                 (items.AsReadOnly(), totalCount),
                 $"{items.Count} kayıt getirildi.");
         }
+
+        // Müzik üretimlerini ayırt eden koşul: en az bir media item'ı "audio" etiketli.
+        // MusicGenerationOrchestrator, audio + kapak media'sını "audio" mediaType ile kaydeder
+        // (bkz. SaveMediaItemsAsync tek mediaType'ı tüm item'lara uygular). Görsel üretimlerde
+        // MediaType "image"/"video" olur → müzik üretimleri bu koşulla kesin ayrışır.
+        // Not: media'sı henüz yazılmamış (Pending) veya başarısız/iade müzik üretimleri, ayırt
+        // edecek başka alan olmadığından "görsel" kovasına düşer (migration'sız kaçınılmaz kısıt).
+
+        public async Task<ServiceResult<(IReadOnlyList<Generation> Items, int TotalCount, int ImageCount, int MusicCount)>> GetUserGenerationsAsync(
+            Guid userId,
+            string? mediaType,
+            int page,
+            int pageSize,
+            CancellationToken cancellationToken = default)
+        {
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 50) pageSize = 12;
+
+            var baseQuery = _db.Generations
+                .AsNoTracking()
+                .Where(g => g.UserId == userId);
+
+            // Kategori sayaçları (tab badge) — aktif filtreden bağımsız, her zaman tüm kullanıcı verisi.
+            var imageCount = await baseQuery
+                .CountAsync(g => !g.MediaItems.Any(m => m.MediaType == "audio"), cancellationToken);
+            var musicCount = await baseQuery
+                .CountAsync(g => g.MediaItems.Any(m => m.MediaType == "audio"), cancellationToken);
+
+            // Aktif filtre
+            var filteredQuery = baseQuery;
+            if (string.Equals(mediaType, "music", StringComparison.OrdinalIgnoreCase))
+                filteredQuery = filteredQuery.Where(g => g.MediaItems.Any(m => m.MediaType == "audio"));
+            else if (string.Equals(mediaType, "image", StringComparison.OrdinalIgnoreCase))
+                filteredQuery = filteredQuery.Where(g => !g.MediaItems.Any(m => m.MediaType == "audio"));
+            // null / "all" → filtresiz
+
+            var totalCount = await filteredQuery.CountAsync(cancellationToken);
+
+            var items = await filteredQuery
+                .Include(g => g.MediaItems.OrderBy(m => m.Order))
+                .OrderByDescending(g => g.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync(cancellationToken);
+
+            return ServiceResult<(IReadOnlyList<Generation>, int, int, int)>.Success(
+                (items.AsReadOnly(), totalCount, imageCount, musicCount),
+                $"{items.Count} kayıt getirildi.");
+        }
     }
 }
