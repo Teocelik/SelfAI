@@ -17,13 +17,16 @@ namespace SelfAI.Controllers.Studio;
 public class MusicStudioController : Controller
 {
     private readonly IMusicGenerationOrchestrator _orchestrator;
+    private readonly IContentModerationService _moderationService;
     private readonly ILogger<MusicStudioController> _logger;
 
     public MusicStudioController(
         IMusicGenerationOrchestrator orchestrator,
+        IContentModerationService moderationService,
         ILogger<MusicStudioController> logger)
     {
         _orchestrator = orchestrator;
+        _moderationService = moderationService;
         _logger = logger;
     }
 
@@ -59,6 +62,32 @@ public class MusicStudioController : Controller
         {
             _logger.LogWarning("Music Generate: kimlik doğrulanamadı veya AppUserId claim eksik.");
             return Unauthorized(new { message = "Oturum bulunamadı." });
+        }
+
+        // F.8 — Content moderation (kredi düşme ÖNCESİ). Music prompt + lyrics ayrı denetlenir.
+        var promptCheck = _moderationService.CheckPrompt(dto.MusicPrompt);
+        if (promptCheck.IsBlocked)
+        {
+            _logger.LogWarning(
+                "Music prompt moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
+                appUserId, promptCheck.Category);
+            return BadRequest(new { message = promptCheck.UserMessage, category = promptCheck.Category });
+        }
+
+        if (!string.IsNullOrWhiteSpace(dto.Lyrics))
+        {
+            var lyricsCheck = _moderationService.CheckPrompt(dto.Lyrics);
+            if (lyricsCheck.IsBlocked)
+            {
+                _logger.LogWarning(
+                    "Music lyrics moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
+                    appUserId, lyricsCheck.Category);
+                return BadRequest(new
+                {
+                    message = "Şarkı sözlerinde sorunlu içerik: " + lyricsCheck.UserMessage,
+                    category = lyricsCheck.Category
+                });
+            }
         }
 
         // SignalR connectionId header'dan (Templates/Image ile aynı pattern) — progress push için.

@@ -34,10 +34,20 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!-- F.8 — Content moderation blacklist. Kökteki Data/ klasöründe (SelfAI.Data namespace'iyle
+         aynı fiziksel klasör). ContentModerationService startup'ta ContentRootPath/Data'dan okur.
+         Web SDK **/*.json'u zaten Content olarak globlar; Update ile output + publish kopyalanmasını
+         garanti ederiz (Include duplicate hatası vermesin diye Update kullanılır). -->
+    <Content Update="Data\moderation-blacklist.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="DTOs\RenderNetGenerationDto\" />
     <Folder Include="Views\Account\" />
     <Folder Include="wwwroot\images\models\flux\" />
-    <Folder Include="wwwroot\img\landing\" />
   </ItemGroup>
 
 </Project>

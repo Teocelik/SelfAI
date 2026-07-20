@@ -31,6 +31,7 @@ public class TemplatesStudioController : Controller
     private readonly ICharacterService _characterService;
     private readonly ITextOverlayService _textOverlayService;
     private readonly IAssetService _assetService;
+    private readonly IContentModerationService _moderationService;
     private readonly IMemoryCache _memoryCache;
     private readonly ILogger<TemplatesStudioController> _logger;
 
@@ -43,6 +44,7 @@ public class TemplatesStudioController : Controller
         ICharacterService characterService,
         ITextOverlayService textOverlayService,
         IAssetService assetService,
+        IContentModerationService moderationService,
         IMemoryCache memoryCache,
         ILogger<TemplatesStudioController> logger)
     {
@@ -52,6 +54,7 @@ public class TemplatesStudioController : Controller
         _characterService = characterService;
         _textOverlayService = textOverlayService;
         _assetService = assetService;
+        _moderationService = moderationService;
         _memoryCache = memoryCache;
         _logger = logger;
     }
@@ -119,6 +122,38 @@ public class TemplatesStudioController : Controller
         {
             _logger.LogWarning("Templates Generate: kimlik doğrulanamadı veya AppUserId claim eksik.");
             return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+        }
+
+        // F.8 — Content moderation (kredi düşme ÖNCESİ). Prompt her iki akışta da denetlenir.
+        // Preset overlay metinleri (PresetTextValues) orchestrator'a gitmez (post-process),
+        // bu yüzden burada ayrıca denetlenir — aksi halde denetimsiz kalırdı.
+        var promptCheck = _moderationService.CheckPrompt(dto.Prompt);
+        if (promptCheck.IsBlocked)
+        {
+            _logger.LogWarning(
+                "Templates prompt moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
+                appUserId, promptCheck.Category);
+            return BadRequest(new { success = false, message = promptCheck.UserMessage, category = promptCheck.Category });
+        }
+
+        if (!string.IsNullOrEmpty(dto.PresetId) && dto.PresetTextValues != null)
+        {
+            foreach (var (fieldId, textValue) in dto.PresetTextValues)
+            {
+                var textCheck = _moderationService.CheckPrompt(textValue);
+                if (textCheck.IsBlocked)
+                {
+                    _logger.LogWarning(
+                        "Templates preset overlay metni moderation ile bloklandı. | UserId: {UserId} | Field: {Field} | Category: {Category}",
+                        appUserId, fieldId, textCheck.Category);
+                    return BadRequest(new
+                    {
+                        success = false,
+                        message = $"'{fieldId}' alanında sorunlu içerik: {textCheck.UserMessage}",
+                        category = textCheck.Category
+                    });
+                }
+            }
         }
 
         var connectionId = Request.Headers["X-SignalR-ConnectionId"].FirstOrDefault();

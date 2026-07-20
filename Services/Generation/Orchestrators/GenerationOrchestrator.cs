@@ -32,6 +32,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
     private readonly ICreditService _creditService;
     private readonly IAssetService _assetService;
     private readonly IGenerationLogService _logService;
+    private readonly IContentModerationService _moderationService;
     private readonly IHubContext<GenerationHub> _hubContext;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly AppDbContext _db;
@@ -43,6 +44,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         ICreditService creditService,
         IAssetService assetService,
         IGenerationLogService logService,
+        IContentModerationService moderationService,
         IHubContext<GenerationHub> hubContext,
         IServiceScopeFactory scopeFactory,
         AppDbContext db,
@@ -53,6 +55,7 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         _creditService = creditService;
         _assetService = assetService;
         _logService = logService;
+        _moderationService = moderationService;
         _hubContext = hubContext;
         _scopeFactory = scopeFactory;
         _db = db;
@@ -69,6 +72,18 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         // 1. Validation
         if (string.IsNullOrWhiteSpace(request.Prompt))
             return ServiceResult<GenerationStartedResponse>.Failure("Prompt boş olamaz.", 400);
+
+        // F.8 — Content moderation (kredi düşme + generation kaydı ÖNCESİ, fail fast).
+        // Bloklanırsa HİÇBİR side effect yok: kredi harcanmaz, log/history yazılmaz.
+        var moderationResult = _moderationService.CheckPrompt(request.Prompt);
+        if (moderationResult.IsBlocked)
+        {
+            _logger.LogWarning(
+                "Image generation moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
+                userId, moderationResult.Category);
+            return ServiceResult<GenerationStartedResponse>.Failure(
+                moderationResult.UserMessage ?? "Bu prompt kullanım şartlarına uymuyor.", 400);
+        }
 
         // 2. Kişiselleştirme mutex (F.M.6) — Character / Face Lock ikisinden en fazla biri
         //    aktif olabilir. İkisi de tek bir effectiveEndpoint'e route edildiği için

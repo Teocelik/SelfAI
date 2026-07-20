@@ -1,0 +1,99 @@
+{
+  "version": "1.0.0",
+  "lastUpdated": "2026-07-20",
+  "categories": {
+    "adult": {
+      "displayName": "Yetişkin içerik",
+      "userMessage": "Bu prompt yetişkin içerik üretilmesine yönelik ifadeler içeriyor. Kullanım Şartları'mızda bu tür içerikler yasaktır.",
+      "keywords": [
+        "nude", "naked", "nsfw", "porn", "pornographic", "erotic",
+        "sexual", "sexy", "xxx", "hentai", "bikini", "lingerie",
+        "undressed", "topless", "bottomless", "explicit", "adult content",
+        "boobs", "breasts", "nipples", "genitals", "penis", "vagina",
+        "masturbation", "orgasm", "seductive", "provocative pose",
+        "çıplak", "porno", "pornografik", "seks", "erotik", "mahrem",
+        "seksi poz", "iç çamaşırı"
+      ]
+    },
+    "minor": {
+      "displayName": "Reşit olmayan (18-)",
+      "userMessage": "Prompt'ta reşit olmayan bireylerle ilgili sorun teşkil edebilecek ifadeler tespit edildi. Kullanım Şartları'mız bu içerikleri kesinlikle yasaklar.",
+      "keywords": [
+        "child", "children", "kid", "kids", "minor", "underage",
+        "teen", "teenage", "teenager", "young girl", "young boy",
+        "little girl", "little boy", "schoolgirl", "schoolboy",
+        "toddler", "baby girl seductive", "youth erotic",
+        "çocuk", "reşit değil", "genç kız", "genç oğlan", "küçük kız",
+        "küçük oğlan", "okul kızı", "okul oğlanı"
+      ]
+    },
+    "publicFigure": {
+      "displayName": "Kamu figürü / Ünlü",
+      "userMessage": "Prompt'ta gerçek kamu figürlerinin ismi tespit edildi. Rıza olmadan gerçek kişilerin görselleştirilmesi yasaktır.",
+      "keywords": [
+        "trump", "donald trump", "biden", "joe biden", "putin",
+        "vladimir putin", "obama", "barack obama", "erdogan", "erdoğan",
+        "recep tayyip", "kılıçdaroğlu", "imamoğlu", "ekrem imamoğlu",
+        "musk", "elon musk", "zuckerberg", "mark zuckerberg",
+        "bezos", "jeff bezos", "gates", "bill gates",
+        "taylor swift", "beyonce", "rihanna", "lady gaga", "madonna",
+        "brad pitt", "leonardo dicaprio", "angelina jolie", "tom cruise",
+        "kim kardashian", "kanye west",
+        "cem yılmaz", "acun ilıcalı", "tarkan", "sezen aksu",
+        "hadise", "hande erçel", "kıvanç tatlıtuğ", "burak özçivit"
+      ]
+    },
+    "brand": {
+      "displayName": "Marka / Telifli karakter",
+      "userMessage": "Prompt'ta telifli marka veya karakter ismi tespit edildi. Fikri mülkiyet ihlaline yol açabilecek içerikler üretilmez.",
+      "keywords": [
+        "disney", "pixar", "marvel", "dc comics", "warner bros",
+        "warner brothers", "universal studios", "paramount",
+        "mickey mouse", "donald duck", "goofy", "elsa frozen", "moana",
+        "batman", "superman", "spider-man", "spiderman", "iron man",
+        "captain america", "thor", "hulk", "wonder woman",
+        "harry potter", "hermione", "dumbledore",
+        "star wars", "darth vader", "yoda", "luke skywalker",
+        "princess leia", "chewbacca",
+        "nintendo", "mario", "luigi", "zelda", "link zelda",
+        "pokemon", "pikachu", "charizard", "eevee",
+        "coca cola", "coca-cola", "pepsi", "mcdonald's", "starbucks",
+        "nike swoosh", "adidas logo", "apple logo"
+      ]
+    },
+    "violence": {
+      "displayName": "Şiddet / Silah",
+      "userMessage": "Prompt'ta aşırı şiddet veya silah kullanımına yönelik ifadeler var. Bu tür içerikler yasaktır.",
+      "keywords": [
+        "gore", "graphic violence", "blood spray", "mutilated",
+        "decapitated", "beheaded", "dismembered",
+        "murder scene", "assassinate", "torture",
+        "terrorist attack", "terrorism", "isis", "al qaeda",
+        "bomb making", "explosive device", "ied",
+        "school shooting", "mass shooting", "genocide",
+        "silah üretimi", "bomba yapımı", "terör saldırısı", "işkence",
+        "katliam sahnesi"
+      ]
+    },
+    "hate": {
+      "displayName": "Nefret söylemi",
+      "userMessage": "Prompt'ta nefret söylemi veya ayrımcılığa yönelik ifadeler var. Bu içerikler yasaktır.",
+      "keywords": [
+        "nazi", "hitler salute", "swastika", "kkk", "ku klux klan",
+        "white supremacy", "ethnic cleansing", "racial slur",
+        "holocaust denial", "aryan race",
+        "ırkçı slogan", "ırk üstünlüğü", "faşist selam"
+      ]
+    },
+    "illegal": {
+      "displayName": "Yasa dışı",
+      "userMessage": "Prompt'ta yasa dışı aktivitelere yönelik ifadeler var. Bu içerikler yasaktır.",
+      "keywords": [
+        "drug making", "meth cooking", "cocaine production",
+        "how to make drugs", "counterfeit money", "fake id",
+        "child exploitation", "human trafficking",
+        "uyuşturucu üretimi", "sahte kimlik", "sahte para"
+      ]
+    }
+  }
+}

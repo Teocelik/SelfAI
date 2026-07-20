@@ -191,6 +191,11 @@ builder.Services.AddSingleton<IPresetTemplateCatalogService, PresetTemplateCatal
 builder.Services.AddSingleton<ITextOverlayService, TextOverlayService>();
 builder.Services.AddHttpClient();
 
+// ═══ F.8 — Content moderation (prompt blacklist) ═══
+// Singleton: blacklist JSON (Data/moderation-blacklist.json) startup'ta bir kez yüklenip
+// memory'de tutulur. Her request'te tekrar okumaya gerek yok (read-only, thread-safe).
+builder.Services.AddSingleton<IContentModerationService, ContentModerationService>();
+
 // ═══ F.M.4 — Character LoRA training katmanı ═══
 // Domain trainer (fal.ai flux-lora-fast-training) + training orchestrator.
 builder.Services.AddScoped<ICharacterTrainer, FluxLoraTrainer>();

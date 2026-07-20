@@ -83,6 +83,13 @@ public class DynamicImageGenerator
                 payload[kv.Key] = kv.Value;
         }
 
+        // F.8 — Safety checker zorlaması. Tüm text-to-image üretimlerinde fal.ai NSFW/policy
+        // filtresi backend tarafından açılır; kullanıcı kapatamaz (UI'da bu switch zaten yok).
+        // ModelDefaultProvider'da tanımlı olmayan modeller için de garanti eder. Parametreyi
+        // kabul etmeyen modeller fal.ai tarafında genellikle yok sayar (bkz. Test 9).
+        if (!payload.ContainsKey("enable_safety_checker"))
+            payload["enable_safety_checker"] = true;
+
         // Aspect-ratio-native modeller (F.M.10a): image_size → aspect_ratio çevirisi.
         // Diğer modeller image_size'ı olduğu gibi kullanmaya devam eder.
         if (_aspectRatioNativeEndpoints.Contains(endpointId) && payload.ContainsKey("image_size"))

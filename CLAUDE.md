@@ -143,6 +143,11 @@ Proje **fal.ai'ın 1000+ modelinden** kategoriye göre filtrelenmiş seçim suna
 - **F.M.10c R2 audio upload (kilitli):** fal.ai audio URL geçici (7 gün TTL), `MusicGenerationOrchestrator` background task içinde audio'yu indirir ve `IAssetStorageProvider` ile R2'a upload eder. Kalıcı URL frontend'e push edilir.
 - **F.M.10c album cover otomatik (kilitli):** music prompt'undan yola çıkarak Ideogram V3'e cover prompt build edilir (`BuildCoverPrompt`). Kullanıcı cover prompt'u özelleştiremez şu an — F.M.11 scope.
 - **F.M.10c defensive pricing check (kilitli):** `MusicGenerationOrchestrator` başında `musicCost` ve `coverCost > 0` doğrulanır. 0 ise 503 döner, admin bilgilendirilir. Migration yok — cost DB-driven (admin panelden atanır).
+- **F.M.UI.3 History refactor (kilitli):** tab bar (Hepsi | Görseller | Müzikler) + Spotify tarzı music player modal. Backend: `MediaType=='audio'` üzerinden filter (migration YOK, mevcut `GenerationMedia` field kullanılır).
+- **F.M.UI.3 History filter kısıtı (kilitli):** media'sı olmayan (Pending/Failed/Refunded) music generation'lar 'Görseller' kovasına düşer. Kabul edilebilir — F.M.11+'da `Generation` entity'ye `Kind` alanı eklenirse temizlenir (migration + orchestrator refactor gerekir).
+- **F.M.UI.3 History music kartı (kilitli):** kapak solda büyük + badge + prompt + play overlay hover. Cover fallback CSS gradient (turkuaz brand), placeholder JPG yok.
+- **F.M.UI.3 Music player modal (kilitli):** backdrop dark + blur, büyük kapak sol, HTML5 audio + indir sağ. ESC/backdrop close, body scroll disabled while open. Auto-play browser policy'ye tabi (sessiz fail).
+- **F.M.UI.3 ileriye ertelenen (kilitli):** bottom bar sticky player (Spotify web player pattern) — F.M.11+, beta feedback sonrası önceliklendirme.
 - **Üretim ortamı kuyruğu (gelecek planı):** Uygulama yayına alındığında eş zamanlı istek yükünü yönetmek için **AWS SQS** ile istek kuyruğa alma sistemi eklenecek. Şu anki mimari (Controller → Orchestrator → Domain Service → fal.ai API çağrısı) tek geliştirici testleri için yeterli, ama prod'da SQS producer/consumer pattern'i geçecek. Bu yüzden:
   - Yeni iş mantığı eklerken katmanlar arası temiz sınır koru — domain service'in fal.ai API çağrı adımı ileride SQS consumer worker'ına taşınabilmeli.
   - Polling job mantığı (`GenerationPollingService`) zaten generation_id bazlı çalıştığı için SQS sonrası aynı kalabilir.
@@ -211,6 +216,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── AccountController.cs          # Firebase Auth callback'leri
 │   ├── AdminController.cs            # F.7.3 — mini-admin (FindUserByEmail + AddCredit)
 │   │                                 # F.9b GÜNCELLENDİ — Models, EditModel (GET+POST), SetModelStatus, SyncModels
+│   ├── HistoryController.cs          # F.M.UI.3 GÜNCELLENDİ — type query param (Hepsi/Görseller/Müzikler filtresi)
 │   └── HomeController.cs
 ├── DTOs/                      # API request/response DTO'ları
 │   ├── Generation/                   # Yeni — fal.ai bazlı generation DTO'ları
@@ -247,13 +253,15 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── ITemplateCatalogService.cs # F.M.10a — statik 6 format kataloğu kontratı
 │   │   ├── ITextOverlayService.cs    # F.M.10b — server-side text overlay render kontratı
 │   │   ├── IPresetTemplateCatalogService.cs # F.M.10b — statik 5 preset kataloğu kontratı
-│   │   └── IMusicGenerationOrchestrator.cs # F.M.10c — music + album cover üretim akışı kontratı
+│   │   ├── IMusicGenerationOrchestrator.cs # F.M.10c — music + album cover üretim akışı kontratı
+│   │   └── IGenerationLogService.cs  # F.M.UI.3 GÜNCELLENDİ — GetUserGenerationsAsync overload (mediaType filter + count)
 │   ├── Concretes/                    # Cross-cutting implementations
 │   │   ├── AdminService.cs           # F.7.3 — FindUserByEmail + AddCredit iş mantığı
 │   │   ├── AdminSeedHostedService.cs # F.7.3 — startup'ta AllowedEmails'e Admin rolü atar
 │   │   ├── TemplateCatalogService.cs # F.M.10a — 6 sabit sosyal medya formatı (hardcoded)
 │   │   ├── TextOverlayService.cs     # F.M.10b — ImageSharp v2.1 ile görsele metin render
-│   │   └── PresetTemplateCatalogService.cs # F.M.10b — 5 sabit preset (hardcoded, F.9b'de CRUD)
+│   │   ├── PresetTemplateCatalogService.cs # F.M.10b — 5 sabit preset (hardcoded, F.9b'de CRUD)
+│   │   └── GenerationLogService.cs   # F.M.UI.3 GÜNCELLENDİ — mediaType filter (MediaType=='audio') + count query
 │   ├── Generation/                   # 🆕 fal.ai generation katmanı (F.M.1+)
 │   │   ├── Abstractions/
 │   │   │   ├── IGenerationOrchestrator.cs
@@ -300,7 +308,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   ├── Templates/                    # F.M.10a — TemplatesIndexViewModel + PostFormatViewModel
 │   │                                 # F.M.10b — PresetTemplateViewModel, PresetTextFieldViewModel,
 │   │                                 #           UserCharacterViewModel
-│   └── Music/                        # F.M.10c — MusicStudioIndexViewModel, CoverAspectOption
+│   ├── Music/                        # F.M.10c — MusicStudioIndexViewModel, CoverAspectOption
+│   └── HistoryViewModel.cs           # F.M.UI.3 GÜNCELLENDİ — CurrentType + ImageCount + MusicCount + AllCount
 ├── ViewComponents/                   # 🆕 F.M.UI.2 — MVC ViewComponent'ler
 │   └── CreditBalanceViewComponent.cs # Kredi bakiyesi pill (AppUserId claim + GetBalanceAsync, fail-gracefully)
 ├── Views/
@@ -318,6 +327,8 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── AddCredit.cshtml          # Kredi ekleme formu (F.7.3, dokunulmadı)
 │   │   ├── Models.cshtml             # F.9b YENİ — model catalog listesi (filtre + pagination + Approve/Disable + sync)
 │   │   └── EditModel.cshtml          # F.9b YENİ — model düzenleme formu (patch pattern)
+│   ├── History/
+│   │   └── Index.cshtml              # F.M.UI.3 GÜNCELLENDİ — tab bar (Hepsi|Görseller|Müzikler) + music kart + player modal HTML
 │   ├── Shared/
 │   │   ├── _LandingLayout.cshtml     # F.7.2 — Landing layout (dark, minimal nav, sticky header, SEO meta + GA4)
 │   │   ├── _AppLayout.cshtml         # F.M.UI.2 GÜNCELLENDİ — bakiye pill artık CreditBalance ViewComponent invoke
@@ -334,7 +345,9 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── template-studio.css       # F.M.10a→10b GÜNCELLENDİ — tab, character selector, preset stilleri
 │   │   ├── music-studio.css          # F.M.10c YENİ — Music studio form + sonuç stilleri
 │   │   ├── app-nav.css               # Üst nav + .app-nav__credit-pill bakiye stili (F.M.UI.2 bakiye buradan; yeni credit-balance.css YOK)
-│   │   └── generated-results.css     # F.M.UI.1b (+ F.M.UI.2 GÜNCELLENDİ — regenerate buton stili + Studio/Image 720px mobile layout)
+│   │   ├── generated-results.css     # F.M.UI.1b (+ F.M.UI.2 GÜNCELLENDİ — regenerate buton stili + Studio/Image 720px mobile layout)
+│   │   ├── history.css               # F.M.UI.3 GÜNCELLENDİ — tab bar + music kart stilleri
+│   │   └── history-music-player.css  # F.M.UI.3 YENİ — Spotify tarzı music player modal stilleri
 │   ├── js/
 │   │   ├── app.js                    # 🎯 Ana orchestrator (Studio/Image; F.M.UI.2 GÜNCELLENDİ — pendingRequests Map, submitGeneration, regenerate, isGenerating mutex)
 │   │   ├── template-studio.js        # F.M.10a — Templates (kendi SignalR bağlantısı + pending kart)
@@ -350,6 +363,7 @@ Varsayılan route: `{controller=Home}/{action=Index}` — `HomeController.Index`
 │   │   ├── generate-button-state.js  # Generate button enable/disable logic
 │   │   ├── image-controls.js         # F.M.UI.2 GÜNCELLENDİ — sonuç kartı regenerate butonu (metadata closure'da, data-attribute DEĞİL)
 │   │   ├── landing.js                # F.7.2 — Landing etkileşimleri (IIFE)
+│   │   ├── history-music-player.js   # F.M.UI.3 YENİ — music player modal (IIFE, ESC/backdrop close, body scroll lock)
 │   │   └── ...
 │   ├── fonts/                        # F.M.10b — Inter-Regular.ttf, Inter-Bold.ttf, Inter-SemiBold.ttf (text overlay)
 │   ├── img/
@@ -673,9 +687,10 @@ dotnet user-secrets clear         # Hepsini sil
 - **Hafta 3:** ✅ **TAMAMLANDI**
   - F.M.UI.2 Studio polish ✅ (bakiye ViewComponent tüm sayfalarda + Studio/Image 720px mobile + regenerate frontend re-submit)
   - F.9b Model Catalog admin ✅ (liste + filtre + pagination + edit patch pattern + Approve/Disable + category parametreli sync)
-- **Hafta 4 (son hafta, plan korunuyor):** ⏳ **YARISI TAMAMLANDI**
+- **Hafta 4 (son hafta, plan korunuyor):** ✅ **TAMAMLANDI**
   - F.M.10c Müzik + Albüm Kapağı ✅ (Sonilo backing + MiniMax full song + Ideogram cover, background task + kombine kredi + R2 audio upload)
-  - F.7.5 Legal sayfalar + FAQ + bugfix — **SIRA (son phase)**
+  - F.7.5 Legal sayfalar + FAQ + bugfix ✅
+  - F.M.UI.3 History refactor ✅ (tab bar + Spotify tarzı music player modal)
   - **F.M.10c için hazır altyapı (F.9b sonrası):** admin panelden 'text-to-audio' sync trigger'lı; `ModelCatalogEntry` audio kategorisi için hazır; cache pattern (`catalog:{category}:approved`) audio kategorisine de uyar.
 - **F.7.4** (landing kalan görseller: feature-face-lock, feature-multi-model, og-image) — beta launch öncesi son gün, **kullanıcı hazırlayacak**
 - **Buffer:** 3-4 gün şirket kurulum + tampon
@@ -686,6 +701,14 @@ dotnet user-secrets clear         # Hepsini sil
   - DNS + SSL kontrol
   - Google Analytics 4 Measurement ID (production)
   - Iyzico live key + webhook konfigürasyonu
+
+### Karma yaklaşım KOD TARAFI TAMAMEN BİTTİ (2026 Şubat/Mart)
+
+- ✅ **Tamamlanan tüm fazlar:** F.M.Arch.1, F.M.10a, F.9a, F.M.10b, F.M.UI.2, F.9b, F.M.10c, F.7.5, F.7.2b, F.M.UI.3
+- **Sıradaki faz: BETA LAUNCH HAZIRLIĞI (kod dışı işler):**
+  - **Şirket kurulumu tamamlanmalı:** mali müşavir + vergi levhası + banka hesabı + Iyzico canlı key başvurusu + Stripe canlı key başvurusu
+  - **F.7.4 Landing kalan görseller:** feature-face-lock, feature-multi-model, og-image (kullanıcı manuel hazırlayacak)
+  - **Deploy:** SmarterASP production, env variables, DB migration, Firebase JSON, R2 credentials, DNS, SSL, GA4 Measurement ID (production), Iyzico live key + webhook
 
 ### F.M.10b scope (Hafta 2 — Post Templates gelişmiş) ✅ TAMAMLANDI
 
