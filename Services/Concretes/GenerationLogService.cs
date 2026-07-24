@@ -122,7 +122,7 @@ namespace SelfAI.Services.Concretes
             return ServiceResult<int>.Success(mediaItems.Count, $"{mediaItems.Count} media kaydedildi.");
         }
 
-        public async Task<ServiceResult<(IReadOnlyList<SelfAI.Entities.Generation> Items, int TotalCount)>> GetUserGenerationsAsync(
+        public async Task<ServiceResult<(IReadOnlyList<Generation> Items, int TotalCount)>> GetUserGenerationsAsync(
             Guid userId, int page = 1, int pageSize = 12)
         {
             if (page < 1) page = 1;
