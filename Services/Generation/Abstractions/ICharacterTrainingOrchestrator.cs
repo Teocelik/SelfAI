@@ -1,4 +1,4 @@
-using SelfAI.Models;
+﻿using SelfAI.Models;
 
 namespace SelfAI.Services.Generation.Abstractions;
 
@@ -33,4 +33,11 @@ public class CharacterCreateRequest
     public string Prompt { get; set; } = string.Empty;
     public string CharacterType { get; set; } = "realistic";  // "realistic" / "stylized"
     public List<IFormFile> FaceImages { get; set; } = new();
+
+    /// <summary>
+    /// F.8b Faz A — kullanıcının "yalnızca bana ait veya kullanım izni olan görselleri
+    /// yüklüyorum" onayı. Client-side kontrol tek başına yeterli değildir; controller
+    /// bu alanı doğrular.
+    /// </summary>
+    public bool Consent { get; set; }
 }

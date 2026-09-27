@@ -21,6 +21,7 @@ const FaceLockPanel = (function () {
     let faceLockToggle = null;
     let faceLockHiddenInput = null;
     let faceLockAssetIdInput = null; // 🆕 Asset ID hidden input
+    let faceLockConsent = null;      // 🆕 F.8b — kullanım hakkı onay kutusu
 
 
 
@@ -56,6 +57,7 @@ const FaceLockPanel = (function () {
         faceLockToggle = document.getElementById('faceLockToggle');
         faceLockHiddenInput = document.getElementById('faceLockImage');
         faceLockAssetIdInput = document.getElementById('faceLockAssetId'); // 🆕
+        faceLockConsent = document.getElementById('faceLockConsent'); // 🆕 F.8b
     }
 
     /**
@@ -70,6 +72,12 @@ const FaceLockPanel = (function () {
         // Close button
         if (closeFaceLockPanelBtn) {
             closeFaceLockPanelBtn.addEventListener('click', close);
+        }
+
+        // 🆕 F.8b — onay kutusu: işaretlenmeden yükleme alanı kilitli kalır
+        if (faceLockConsent) {
+            faceLockConsent.addEventListener('change', updateConsentState);
+            updateConsentState();
         }
 
         // Upload area
@@ -152,9 +160,35 @@ const FaceLockPanel = (function () {
      * Handle upload area click
      */
     function handleUploadAreaClick(e) {
-        if (!e.target.closest('#removeFaceLockPanelImage') && faceLockPanelImage && !isUploading) {
+        if (e.target.closest('#removeFaceLockPanelImage')) return;
+        if (!ensureConsent()) return;
+
+        if (faceLockPanelImage && !isUploading) {
             faceLockPanelImage.click();
         }
+    }
+
+    /**
+     * 🆕 F.8b — onay kutusu durumunu yükleme alanına yansıtır (görsel kilit).
+     */
+    function updateConsentState() {
+        if (!faceLockPanelUploadArea) return;
+        faceLockPanelUploadArea.classList.toggle('is-consent-locked', !hasConsent());
+    }
+
+    function hasConsent() {
+        return !!(faceLockConsent && faceLockConsent.checked);
+    }
+
+    /**
+     * 🆕 F.8b — onay yoksa yüklemeyi engeller ve kullanıcıyı uyarır.
+     */
+    function ensureConsent() {
+        if (hasConsent()) return true;
+
+        showNotification(
+            'Devam etmek için görsel kullanım onayını işaretlemelisin.', 'warning');
+        return false;
     }
 
     /**
@@ -186,6 +220,7 @@ const FaceLockPanel = (function () {
         }
 
         if (isUploading) return;
+        if (!ensureConsent()) return;
 
         const files = e.dataTransfer.files;
         if (files.length > 0) {
@@ -263,17 +298,25 @@ const FaceLockPanel = (function () {
         try {
             const formData = new FormData();
             formData.append('file', file);  // AssetsController.Upload(IFormFile file)
+            formData.append('consent', 'true');  // F.8b — backend de doğrular
 
             const response = await fetch('/Assets/Upload?purpose=FaceLock', {
                 method: 'POST',
                 body: formData
             });
 
+            // F.8b: moderasyon reddi (422) ve onay eksikliği (400) gövdede güvenli bir
+            // mesaj taşır — ham HTTP kodu yerine o mesaj gösterilir.
+            const result = await response.json().catch(function () { return null; });
+
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                throw new Error(
+                    (result && result.message) || 'Görsel yüklenemedi. Lütfen tekrar deneyin.');
             }
 
-            const result = await response.json();
+            if (!result) {
+                throw new Error('Görsel yüklenemedi. Lütfen tekrar deneyin.');
+            }
             const asset = result && result.data ? result.data : null;
             const assetId = asset ? asset.id : null;
             const url = asset ? asset.url : null;

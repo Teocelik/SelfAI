@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SelfAI.Entities.Enums;
 using SelfAI.Services.Interfaces;
@@ -30,10 +30,20 @@ namespace SelfAI.Controllers
         public async Task<IActionResult> Upload(
             IFormFile file,
             [FromQuery] string purpose,
+            [FromForm] bool consent,
             CancellationToken ct)
         {
             if (!TryGetUserId(out var userId))
                 return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
+
+            // F.8b Faz A — kullanım hakkı onayı. Client-side kontrol tek başına yeterli değil;
+            // doğrudan POST atılırsa burada durur.
+            if (!consent)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Devam etmek için görsel kullanım onayını işaretlemelisin."
+                });
 
             // Purpose parse — kullanıcı input, güvenli parse
             if (!Enum.TryParse<AssetPurpose>(purpose, ignoreCase: true, out var purposeEnum))

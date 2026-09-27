@@ -30,6 +30,7 @@
         initImageControls();
         initSeedHandler();
         initCharacterPanel();
+        initCharacterModelLock();
         initGenerateButtonState();
         initFormHandler();
         initSignalR();
@@ -373,6 +374,19 @@
     function initCharacterPanel() {
         if (typeof CharacterPanel !== 'undefined') CharacterPanel.init();
         else console.warn('CharacterPanel module not found');
+    }
+
+    /**
+     * Karakter seçimi ↔ model picker kilidi (modüller arası bağımlılık burada kurulur).
+     * CharacterPanel'in mevcut 'character-selection-changed' event'ini dinler;
+     * karakter varken model butonu kilitlenir, kaldırılınca açılır ve seçim sıfırlanır.
+     */
+    function initCharacterModelLock() {
+        document.addEventListener('character-selection-changed', function (e) {
+            if (typeof ModelPicker === 'undefined' || typeof ModelPicker.setDisabled !== 'function') return;
+            const hasCharacter = !!(e.detail && e.detail.characterId);
+            ModelPicker.setDisabled(hasCharacter);
+        });
     }
 
     function initGenerateButtonState() {

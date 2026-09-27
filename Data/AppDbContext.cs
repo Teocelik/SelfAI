@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SelfAI.Entities;
 
 namespace SelfAI.Data
@@ -19,6 +19,7 @@ namespace SelfAI.Data
         public DbSet<ModelCatalogEntry> ModelCatalogEntries { get; set; }
         public DbSet<UserFavoriteModel> UserFavoriteModels { get; set; }
         public DbSet<Asset> Assets { get; set; }
+        public DbSet<UploadModerationLog> UploadModerationLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
@@ -237,6 +238,21 @@ namespace SelfAI.Data
                 e.HasKey(x => x.Id);
                 e.HasIndex(x => new { x.UserId, x.EndpointId }).IsUnique();
                 e.Property(x => x.EndpointId).IsRequired().HasMaxLength(256);
+            });
+
+            // UploadModerationLog — görsel yükleme moderasyon audit kaydı (F.8b Faz A)
+            mb.Entity<UploadModerationLog>(e =>
+            {
+                e.HasKey(x => x.Id);
+                e.HasIndex(x => new { x.AppUserId, x.CreatedAt });
+
+                e.Property(x => x.ContentHashSha256).IsRequired().HasMaxLength(64);
+                e.Property(x => x.NsfwScore).HasColumnType("decimal(5,4)");
+
+                // Karar/kaynak DB'ye string yazılır — audit kayıtları enum sırası
+                // değişse bile anlamını korur.
+                e.Property(x => x.Decision).HasConversion<string>().HasMaxLength(32);
+                e.Property(x => x.Source).HasConversion<string>().HasMaxLength(32);
             });
         }
     }

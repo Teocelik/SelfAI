@@ -1,4 +1,4 @@
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using SelfAI.DTOs.Characters;
@@ -53,6 +53,15 @@ namespace SelfAI.Controllers
         {
             if (request == null)
                 return BadRequest(new { success = false, message = "Geçersiz istek." });
+
+            // F.8b Faz A — kullanım hakkı onayı. Client-side kontrol tek başına yeterli değil;
+            // doğrudan POST atılırsa burada durur.
+            if (!request.Consent)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Devam etmek için görsel kullanım onayını işaretlemelisin."
+                });
 
             // SignalR routing için Firebase UID + DB/cüzdan için AppUser.Id
             var firebaseUid = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -108,6 +108,25 @@
     z-index: 1;
 }
 
+/* Karakter seçiliyken model otomatik belirlenir → trigger etkileşimi tamamen kapanır.
+   (is-overridden ile birlikte gelir; opacity burada kazanır — sonra tanımlı.) */
+.model-picker-trigger.is-disabled,
+.model-picker-trigger:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* Hover/focus efektlerini iptal et — buton "ölü" görünmeli. */
+.model-picker-trigger.is-disabled:hover,
+.model-picker-trigger:disabled:hover,
+.model-picker-trigger.is-disabled:focus-visible,
+.model-picker-trigger:disabled:focus-visible {
+    border-color: rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: none;
+    outline: none;
+}
+
 /* Badge artık trigger'ın ortasında (bottom değil) — seçilen modeli overlay eder. */
 .model-picker-trigger__override-badge {
     position: absolute;

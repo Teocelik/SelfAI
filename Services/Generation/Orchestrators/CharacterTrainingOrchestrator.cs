@@ -1,4 +1,4 @@
-using System.IO.Compression;
+﻿using System.IO.Compression;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -42,6 +42,8 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
     private readonly AppDbContext _db;
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly LoraTrainingPollingService _pollingService;
+    private readonly IImageModerationService _imageModeration;
+    private readonly IUploadModerationLogService _moderationLog;
     private readonly ILogger<CharacterTrainingOrchestrator> _logger;
 
     public CharacterTrainingOrchestrator(
@@ -51,6 +53,8 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
         AppDbContext db,
         IServiceScopeFactory scopeFactory,
         LoraTrainingPollingService pollingService,
+        IImageModerationService imageModeration,
+        IUploadModerationLogService moderationLog,
         ILogger<CharacterTrainingOrchestrator> logger)
     {
         _creditService = creditService;
@@ -59,6 +63,8 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
         _db = db;
         _scopeFactory = scopeFactory;
         _pollingService = pollingService;
+        _imageModeration = imageModeration;
+        _moderationLog = moderationLog;
         _logger = logger;
     }
 
@@ -106,11 +112,20 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
                 img.ContentType));
         }
 
-        // 3. Kredi hesabı (tier-based markup — hardcode YOK, kural #4)
+        // 3. F.8b Faz A — moderasyon. Kredi düşümünden ve storage'a yazımdan ÖNCE çalışır:
+        // reddedilen istekte kredi hiç düşmediği için iade (refund) gerekmez.
+        // Görseller sıralı kontrol edilir ve ilk redde durulur (fail-fast) — kalan
+        // görseller için gereksiz dedektör maliyeti çıkmaz.
+        var moderationRejection = await ModerateUploadedImagesAsync(
+            uploadedImages, userId, cancellationToken);
+        if (moderationRejection != null)
+            return moderationRejection;
+
+        // 4. Kredi hesabı (tier-based markup — hardcode YOK, kural #4)
         var creditsRequired = _pricingService.CalculateUserCredits(
             _pricingOptions.CharacterTrainingCostUsd, ModelTier.CharacterLora);
 
-        // 4. Kredi düşümü (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
+        // 5. Kredi düşümü (pre-charge — başarısızlıkta refund). TryDeductAsync atomiktir.
         var deductionResult = await _creditService.TryDeductAsync(
             userId, creditsRequired, $"Character training: {request.Name}");
         if (!deductionResult.IsSuccess)
@@ -122,7 +137,7 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
                 deductionResult.Message ?? "Kredi yetersiz.", deductionResult.StatusCode);
         }
 
-        // 5. Character kaydı (Uploading status)
+        // 6. Character kaydı (Uploading status)
         var characterId = Guid.NewGuid();
         var triggerWord = GenerateTriggerWord();
         var isStyle = request.CharacterType == "stylized";
@@ -147,14 +162,63 @@ public class CharacterTrainingOrchestrator : ICharacterTrainingOrchestrator
             "Karakter eğitimi başlatıldı. | CharId: {CharId} | UserId: {UserId} | TriggerWord: {TW} | Credits: {Credits}",
             characterId, userId, triggerWord, creditsRequired);
 
-        // 6. Fire-and-forget — upload + training submit + polling kaydı
+        // 7. Fire-and-forget — upload + training submit + polling kaydı
         _ = Task.Run(() => ExecuteTrainingFlowAsync(
             characterId, userId, firebaseUid, triggerWord, isStyle, uploadedImages, creditsRequired),
             CancellationToken.None);
 
-        // 7. Hemen response — sonuç SignalR ile gelecek
+        // 8. Hemen response — sonuç SignalR ile gelecek
         return ServiceResult<Guid>.Success(characterId,
             "Karakter eğitimi başlatıldı. Yaklaşık 5 dakika sürer.");
+    }
+
+    /// <summary>
+    /// Yüklenen yüz görsellerini sırayla moderasyondan geçirir (F.8b Faz A).
+    /// Reddedilen bir görsel bulunursa TÜM istek reddedilir — dönen değer hata sonucudur.
+    /// Hepsi kabul edilirse null döner ve akış devam eder.
+    ///
+    /// Kabul edilen ve reddedilen her görsel için audit kaydı yazılır.
+    /// </summary>
+    private async Task<ServiceResult<Guid>?> ModerateUploadedImagesAsync(
+        List<UploadedImage> images,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        for (var i = 0; i < images.Count; i++)
+        {
+            var image = images[i];
+
+            var moderationResult = await _imageModeration.ModerateAsync(
+                image.Bytes, image.ContentType, cancellationToken);
+
+            // Fail-closed: dedektör cevap veremediyse istek geçirilmez.
+            if (!moderationResult.IsSuccess)
+            {
+                _logger.LogWarning(
+                    "Karakter eğitimi moderasyon doğrulaması yapılamadı. | UserId: {UserId} | GörselIndex: {Index}",
+                    userId, i);
+
+                return ServiceResult<Guid>.Failure(
+                    moderationResult.Message, moderationResult.StatusCode);
+            }
+
+            var decision = moderationResult.Data!;
+
+            await _moderationLog.LogAsync(
+                userId, image.Bytes, decision, ModerationSource.CharacterTraining, cancellationToken);
+
+            if (!decision.IsAccepted)
+            {
+                _logger.LogWarning(
+                    "Karakter eğitimi reddedildi (görsel moderasyonu). | UserId: {UserId} | GörselIndex: {Index} | Karar: {Decision}",
+                    userId, i, decision.Decision);
+
+                // Biri bile eşiği aşarsa TÜM istek reddedilir; kalan görseller kontrol edilmez.
+                return ServiceResult<Guid>.Failure(decision.UserMessage, 422);
+            }
+        }
+
+        return null;
     }
 
     private async Task ExecuteTrainingFlowAsync(

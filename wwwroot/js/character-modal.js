@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Character Modal Module (F.5c + F.6.2 + F.6.3)
  * Full-screen karakter seçim modal'ını yönetir: aç/kapat, client-side search,
  * mode toggle ve kart seçimi (F.5c). F.6.2 ile sub-modal view swap (grid ↔ create)
@@ -671,11 +671,13 @@
         if (viewName === 'create') {
             const submitBtn = document.getElementById('characterCreateSubmit');
             if (submitBtn) {
-                submitBtn.disabled = false;
                 const spinner = submitBtn.querySelector('.character-create-form__submit-spinner');
                 const label = submitBtn.querySelector('.character-create-form__submit-label');
                 if (spinner) spinner.hidden = true;
                 if (label) label.textContent = 'Oluştur';
+
+                // F.8b — buton koşulsuz aktifleşmez; onay kutusuna bağlı.
+                updateConsentState();
             }
         }
     }
@@ -708,11 +710,40 @@
             fileInput.value = '';  // aynı dosyayı tekrar seçebilmek için sıfırla
         });
 
+        // F.8b — onay kutusu işaretlenmeden "Oluştur" butonu aktif olmaz
+        const consent = document.getElementById('characterConsent');
+        if (consent) {
+            consent.addEventListener('change', updateConsentState);
+        }
+        updateConsentState();
+
         // Form submit
         form.addEventListener('submit', async function (e) {
             e.preventDefault();
             await handleCreateSubmit();
         });
+    }
+
+    /**
+     * F.8b — kullanım hakkı onayı işaretli mi?
+     */
+    function hasConsent() {
+        const consent = document.getElementById('characterConsent');
+        return !!(consent && consent.checked);
+    }
+
+    /**
+     * F.8b — onay durumunu submit butonuna yansıtır. Submit sırasında (spinner açıkken)
+     * butonu tekrar aktifleştirmemek için o durumda dokunmaz.
+     */
+    function updateConsentState() {
+        const submitBtn = document.getElementById('characterCreateSubmit');
+        if (!submitBtn) return;
+
+        const spinner = submitBtn.querySelector('.character-create-form__submit-spinner');
+        if (spinner && !spinner.hidden) return;  // submit devam ediyor
+
+        submitBtn.disabled = !hasConsent();
     }
 
     function addFaceFiles(files) {
@@ -810,6 +841,12 @@
             showToast('error', 'Açıklama en az 10 karakter olmalı.');
             return;
         }
+        // F.8b — buton zaten pasif ama doğrudan submit tetiklenirse burada da durur
+        // (backend ayrıca doğrular).
+        if (!hasConsent()) {
+            showToast('error', 'Devam etmek için görsel kullanım onayını işaretlemelisin.');
+            return;
+        }
 
         // Submit state
         submitBtn.disabled = true;
@@ -823,6 +860,7 @@
             formData.append('Name', name);
             formData.append('Prompt', prompt);
             formData.append('CharacterType', characterType);
+            formData.append('Consent', 'true');  // F.8b — backend de doğrular
             selectedFiles.forEach(function (file) {
                 formData.append('FaceImages', file);
             });
@@ -866,9 +904,12 @@
             console.error('Karakter oluşturma hatası:', err);
             showToast('error', err.message);
         } finally {
-            submitBtn.disabled = false;
             spinner.hidden = true;
             label.textContent = 'Oluştur';
+
+            // F.8b — onay kutusu temizlendiyse (başarılı submit sonrası form reset)
+            // buton pasif kalır.
+            updateConsentState();
         }
     }
 

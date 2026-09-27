@@ -35,6 +35,7 @@ public class MusicGenerationOrchestrator : IMusicGenerationOrchestrator
     private readonly ICreditPricingService _pricingService;
     private readonly ICreditService _creditService;
     private readonly IGenerationLogService _logService;
+    private readonly IContentModerationService _moderationService;
     private readonly IHubContext<GenerationHub> _hubContext;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IServiceScopeFactory _scopeFactory;
@@ -46,6 +47,7 @@ public class MusicGenerationOrchestrator : IMusicGenerationOrchestrator
         ICreditPricingService pricingService,
         ICreditService creditService,
         IGenerationLogService logService,
+        IContentModerationService moderationService,
         IHubContext<GenerationHub> hubContext,
         IHttpClientFactory httpClientFactory,
         IServiceScopeFactory scopeFactory,
@@ -56,6 +58,7 @@ public class MusicGenerationOrchestrator : IMusicGenerationOrchestrator
         _pricingService = pricingService;
         _creditService = creditService;
         _logService = logService;
+        _moderationService = moderationService;
         _hubContext = hubContext;
         _httpClientFactory = httpClientFactory;
         _scopeFactory = scopeFactory;
@@ -71,6 +74,34 @@ public class MusicGenerationOrchestrator : IMusicGenerationOrchestrator
         // 1. Prompt validation (DataAnnotation ötesi güvenlik kapısı)
         if (string.IsNullOrWhiteSpace(request.MusicPrompt) || request.MusicPrompt.Trim().Length < 10)
             return ServiceResult<MusicGenerationStartedDto>.Failure("Müzik prompt'u çok kısa.", 400);
+
+        // F.8 — Content moderation (kombine kredi düşme + generation kaydı ÖNCESİ, fail fast).
+        // Bloklanırsa HİÇBİR side effect yok: kredi harcanmaz, log/history yazılmaz, fal.ai
+        // çağrısı yapılmaz. Prompt ve (varsa) şarkı sözleri AYRI AYRI denetlenir.
+        var promptCheck = _moderationService.CheckPrompt(request.MusicPrompt);
+        if (promptCheck.IsBlocked)
+        {
+            _logger.LogWarning(
+                "Prompt moderasyon reddi. | UserId: {UserId} | Kaynak: {Source} | Kategori: {Category} | Terim: {Term}",
+                userId, "Music/Prompt", promptCheck.Category, promptCheck.MatchedKeyword);
+            return ServiceResult<MusicGenerationStartedDto>.Failure(
+                promptCheck.UserMessage ?? "Bu prompt kullanım şartlarına uymuyor.", 400);
+        }
+
+        if (!string.IsNullOrWhiteSpace(request.Lyrics))
+        {
+            var lyricsCheck = _moderationService.CheckPrompt(request.Lyrics);
+            if (lyricsCheck.IsBlocked)
+            {
+                _logger.LogWarning(
+                    "Prompt moderasyon reddi. | UserId: {UserId} | Kaynak: {Source} | Kategori: {Category} | Terim: {Term}",
+                    userId, "Music/Lyrics", lyricsCheck.Category, lyricsCheck.MatchedKeyword);
+                return ServiceResult<MusicGenerationStartedDto>.Failure(
+                    "Şarkı sözlerinde sorunlu içerik: "
+                        + (lyricsCheck.UserMessage ?? "Bu içerik kullanım şartlarına uymuyor."),
+                    400);
+            }
+        }
 
         // 2. Model seçimi mode'a göre
         string musicEndpoint;

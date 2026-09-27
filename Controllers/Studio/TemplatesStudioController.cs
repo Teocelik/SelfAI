@@ -124,18 +124,10 @@ public class TemplatesStudioController : Controller
             return Unauthorized(new { success = false, message = "Kimlik doğrulanamadı." });
         }
 
-        // F.8 — Content moderation (kredi düşme ÖNCESİ). Prompt her iki akışta da denetlenir.
-        // Preset overlay metinleri (PresetTextValues) orchestrator'a gitmez (post-process),
-        // bu yüzden burada ayrıca denetlenir — aksi halde denetimsiz kalırdı.
-        var promptCheck = _moderationService.CheckPrompt(dto.Prompt);
-        if (promptCheck.IsBlocked)
-        {
-            _logger.LogWarning(
-                "Templates prompt moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
-                appUserId, promptCheck.Category);
-            return BadRequest(new { success = false, message = promptCheck.UserMessage, category = promptCheck.Category });
-        }
-
+        // F.8 — Content moderation. Prompt denetimi GenerationOrchestrator'da (kredi düşme
+        // öncesi, tek katman) yapılır — burada tekrarlanmaz. Ancak preset overlay metinleri
+        // (PresetTextValues) orchestrator'a hiç gitmez (post-process aşamasında render edilir),
+        // bu yüzden yalnızca onlar burada denetlenir.
         if (!string.IsNullOrEmpty(dto.PresetId) && dto.PresetTextValues != null)
         {
             foreach (var (fieldId, textValue) in dto.PresetTextValues)
@@ -144,8 +136,8 @@ public class TemplatesStudioController : Controller
                 if (textCheck.IsBlocked)
                 {
                     _logger.LogWarning(
-                        "Templates preset overlay metni moderation ile bloklandı. | UserId: {UserId} | Field: {Field} | Category: {Category}",
-                        appUserId, fieldId, textCheck.Category);
+                        "Prompt moderasyon reddi. | UserId: {UserId} | Kaynak: {Source} | Kategori: {Category} | Terim: {Term}",
+                        appUserId, $"Templates/OverlayText:{fieldId}", textCheck.Category, textCheck.MatchedKeyword);
                     return BadRequest(new
                     {
                         success = false,

@@ -1,4 +1,4 @@
-using Amazon.Runtime;
+﻿using Amazon.Runtime;
 using Amazon.S3;
 using FirebaseAdmin;
 using Google.Apis.Auth.OAuth2;
@@ -195,6 +195,14 @@ builder.Services.AddHttpClient();
 // Singleton: blacklist JSON (Data/moderation-blacklist.json) startup'ta bir kez yüklenip
 // memory'de tutulur. Her request'te tekrar okumaya gerek yok (read-only, thread-safe).
 builder.Services.AddSingleton<IContentModerationService, ContentModerationService>();
+
+// ═══ F.8b Faz A — Görsel yükleme moderasyonu (NSFW dedektörü) ═══
+// Scoped: IFalAiClient typed HttpClient (scoped) olduğu için bu servis singleton OLAMAZ
+// (captive dependency). Prompt moderasyonu singleton kalır — ayrı sorumluluk, ayrı abstraction.
+builder.Services.Configure<ModerationOptions>(
+    builder.Configuration.GetSection(ModerationOptions.SectionName));
+builder.Services.AddScoped<IImageModerationService, FalAiImageModerationService>();
+builder.Services.AddScoped<IUploadModerationLogService, UploadModerationLogService>();
 
 // ═══ F.M.4 — Character LoRA training katmanı ═══
 // Domain trainer (fal.ai flux-lora-fast-training) + training orchestrator.

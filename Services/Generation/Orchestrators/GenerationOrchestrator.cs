@@ -79,8 +79,8 @@ public class GenerationOrchestrator : IGenerationOrchestrator
         if (moderationResult.IsBlocked)
         {
             _logger.LogWarning(
-                "Image generation moderation ile bloklandı. | UserId: {UserId} | Category: {Category}",
-                userId, moderationResult.Category);
+                "Prompt moderasyon reddi. | UserId: {UserId} | Kaynak: {Source} | Kategori: {Category} | Terim: {Term}",
+                userId, "Image/Prompt", moderationResult.Category, moderationResult.MatchedKeyword);
             return ServiceResult<GenerationStartedResponse>.Failure(
                 moderationResult.UserMessage ?? "Bu prompt kullanım şartlarına uymuyor.", 400);
         }

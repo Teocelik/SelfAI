@@ -1,4 +1,4 @@
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Text.RegularExpressions;
 using SelfAI.DTOs.Moderation;
 using SelfAI.Services.Interfaces;
@@ -100,17 +100,28 @@ public class ContentModerationService : IContentModerationService
 
     private static string NormalizeForMatching(string input)
     {
-        // Lowercase + Türkçe diacritics kaldır.
-        var lower = input.ToLowerInvariant();
+        // Boşluk normalizasyonu: baş/son trim + ardışık boşlukları (tab, newline dahil) tek
+        // boşluğa indir. Aksi halde çok kelimeli keyword'ler ("yasakli   kelime") kaçırılır.
+        var collapsed = Regex.Replace(input, @"\s+", " ").Trim();
+
+        // Lowercase (ToLowerInvariant — ToLower() Türkçe kültürde I→ı çevirip yanlış eşleşme
+        // üretir) + Türkçe diacritics kaldır.
+        var lower = collapsed.ToLowerInvariant();
 
         var sb = new System.Text.StringBuilder(lower.Length);
         foreach (var c in lower)
         {
+            // 'İ' (U+0130) ToLowerInvariant'ta olduğu gibi kalır (bazı platformlarda ise
+            // 'i' + U+0307 birleşik noktasına çevrilir). İkisi de burada 'i'ye indirgenir —
+            // aksi halde eşleşme regex'in kültür bağımlı case-folding'ine kalırdı.
+            if (c == '\u0307') continue;  // combining dot above → at
+
             sb.Append(c switch
             {
                 'ç' => 'c',
                 'ğ' => 'g',
                 'ı' => 'i',
+                'İ' => 'i',
                 'ö' => 'o',
                 'ş' => 's',
                 'ü' => 'u',

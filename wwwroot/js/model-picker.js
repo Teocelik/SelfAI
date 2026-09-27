@@ -327,6 +327,31 @@ const ModelPicker = (function () {
         return selectedEndpointId;
     }
 
+    /**
+     * Trigger butonunu kilitle/aç. Karakter seçiliyken model backend'de otomatik
+     * (LoRA) belirlendiği için kullanıcı seçimi anlamsızdır — buton tıklanamaz olur.
+     * Kilit açıldığında seçim mevcut reset() akışıyla sıfırlanır (önceki seçim
+     * hatırlanmaz). Wiring app.js'te yapılır.
+     * @param {boolean} isDisabled
+     */
+    function setDisabled(isDisabled) {
+        if (!trigger) return;
+
+        if (isDisabled) {
+            trigger.disabled = true;
+            trigger.classList.add('is-disabled');
+            trigger.setAttribute('aria-disabled', 'true');
+            trigger.setAttribute('title', 'Karakter seçiliyken model otomatik belirlenir');
+            closeModal();   // Panel açıksa kapat
+        } else {
+            trigger.disabled = false;
+            trigger.classList.remove('is-disabled');
+            trigger.removeAttribute('aria-disabled');
+            trigger.removeAttribute('title');
+            reset();        // Seçim sıfırlanır → placeholder metne döner
+        }
+    }
+
     function reset() {
         selectedEndpointId = null;
         if (selectedModelInput) selectedModelInput.value = '';
@@ -346,7 +371,7 @@ const ModelPicker = (function () {
     }
 
     // Public API
-    return { init, getSelectedEndpoint, reset };
+    return { init, getSelectedEndpoint, reset, setDisabled };
 })();
 
 // Export for module systems

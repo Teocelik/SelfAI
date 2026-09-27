@@ -246,6 +246,15 @@ const CharacterPanel = (function () {
             detail: { characterId: null }
         }));
 
+        // Override rozeti ("Otomatik: Flux LoRA") temizliği: karakter kalkınca
+        // model-picker.js'in rozeti de kalkmalı. FeatureMutex.setActive(null)
+        // ÇAĞRILMAZ — o, clearCharacter'ı geri çağırıp özyineleme yaratır ve
+        // ayrıca FaceLockPanel.reset() tetikler. Aktif feature'ı FeatureMutex'ten
+        // okuyup event'i doğrudan yayıyoruz (Face aktifse rozet 'face' kalır).
+        document.dispatchEvent(new CustomEvent('feature-mutex-changed', {
+            detail: { active: window.FeatureMutex ? window.FeatureMutex.getActive() : null }
+        }));
+
         console.log('[CharacterPanel] Karakter seçimi kaldırıldı.');
     }
 

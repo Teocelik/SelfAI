@@ -1,0 +1,62 @@
+/* ═══════════════════════════════════════════════════════════════════════════
+   F.8b Faz A — Görsel yükleme onay kutusu
+
+   İki yerde paylaşılır: Face Lock paneli (#faceLockConsent) ve karakter
+   oluşturma formu (#characterConsent). Tek bileşen olduğu için ayrı dosyada
+   tutulur — her iki tarafın kendi stil dosyasına kopyalanmaz.
+
+   Tasarım dili: Studio Dark (flat, tek border, accent #00CED1).
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.upload-consent {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 12px;
+    padding: 10px 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    cursor: pointer;
+    transition: border-color 0.2s ease, background-color 0.2s ease;
+}
+
+.upload-consent:hover {
+    border-color: rgba(0, 206, 209, 0.35);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.upload-consent__checkbox {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    margin-top: 1px;
+    accent-color: #00CED1;
+    cursor: pointer;
+}
+
+.upload-consent__checkbox:focus-visible {
+    outline: 2px solid rgba(0, 206, 209, 0.5);
+    outline-offset: 2px;
+    box-shadow: 0 0 8px rgba(0, 206, 209, 0.4);
+}
+
+.upload-consent__text {
+    font-size: 11px;
+    line-height: 1.45;
+    color: #B8B8B8;
+    user-select: none;
+}
+
+/* Onay verilince metin belirginleşir — kullanıcı durumu tek bakışta görür. */
+.upload-consent__checkbox:checked ~ .upload-consent__text {
+    color: #E8E8E8;
+}
+
+/* ── Onay verilmeden kilitli yükleme alanı (Face Lock) ──
+   pointer-events kapatılmaz: tıklama JS'e ulaşıp uyarı gösterebilsin
+   (sessizce hiçbir şey olmaması kullanıcıyı şaşırtır). */
+.glass-upload.is-consent-locked {
+    opacity: 0.45;
+    cursor: not-allowed;
+}

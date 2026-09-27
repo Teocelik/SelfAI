@@ -1,4 +1,4 @@
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using SelfAI.Data;
 using SelfAI.DTOs.Assets;
 using SelfAI.Entities;
@@ -21,15 +21,21 @@ public class AssetService : IAssetService
 
     private readonly IAssetStorageProvider _storage;
     private readonly AppDbContext _db;
+    private readonly IImageModerationService _imageModeration;
+    private readonly IUploadModerationLogService _moderationLog;
     private readonly ILogger<AssetService> _logger;
 
     public AssetService(
         IAssetStorageProvider storage,
         AppDbContext db,
+        IImageModerationService imageModeration,
+        IUploadModerationLogService moderationLog,
         ILogger<AssetService> logger)
     {
         _storage = storage;
         _db = db;
+        _imageModeration = imageModeration;
+        _moderationLog = moderationLog;
         _logger = logger;
     }
 
@@ -50,11 +56,53 @@ public class AssetService : IAssetService
             return ServiceResult<AssetDto>.Failure(
                 "Sadece JPEG, PNG veya WebP kabul edilir.", 400);
 
-        using var stream = file.OpenReadStream();
+        // F.8b Faz A — moderasyon storage'a YAZMADAN ÖNCE çalışır. Dedektör ham içerik
+        // ister (henüz public URL yok), bu yüzden dosya belleğe okunur (max 10MB).
+        byte[] bytes;
+        using (var buffer = new MemoryStream())
+        {
+            await file.CopyToAsync(buffer, cancellationToken);
+            bytes = buffer.ToArray();
+        }
+
+        var moderationResult = await _imageModeration.ModerateAsync(
+            bytes, file.ContentType, cancellationToken);
+
+        // Fail-closed: dedektör cevap veremediyse yükleme geçirilmez.
+        if (!moderationResult.IsSuccess)
+            return ServiceResult<AssetDto>.Failure(
+                moderationResult.Message, moderationResult.StatusCode);
+
+        var decision = moderationResult.Data!;
+
+        // KABUL EDİLEN ve REDDEDİLEN her yükleme loglanır.
+        await _moderationLog.LogAsync(
+            userId, bytes, decision, MapPurposeToSource(purpose), cancellationToken);
+
+        if (!decision.IsAccepted)
+            return ServiceResult<AssetDto>.Failure(decision.UserMessage, 422);
+
+        using var stream = new MemoryStream(bytes);
         return await UploadAsync(
             stream, file.FileName, file.ContentType, file.Length, userId, purpose, cancellationToken);
     }
 
+    /// <summary>
+    /// Audit kaynağı eşlemesi (F.8b Faz A). Bu overload controller akışlarına hizmet eder;
+    /// karakter eğitimi görselleri kendi akışında (request scope'unda, kredi düşümünden önce)
+    /// moderasyondan geçtiği için buraya CharacterTraining purpose'u ile gelmez.
+    /// </summary>
+    private static ModerationSource MapPurposeToSource(AssetPurpose purpose) =>
+        purpose == AssetPurpose.CharacterTraining
+            ? ModerationSource.CharacterTraining
+            : ModerationSource.FaceLock;
+
+    /// <summary>
+    /// Ham stream overload'ı (background task akışları). Moderasyon BURADA yapılmaz —
+    /// çağıran akış görselleri request scope'unda zaten kontrol etmiştir
+    /// (bkz. CharacterTrainingOrchestrator). Aksi halde aynı görsel için ikinci kez
+    /// fal.ai dedektör maliyeti çıkardı.
+    /// </summary>
     public async Task<ServiceResult<AssetDto>> UploadAsync(
         Stream fileStream,
         string fileName,

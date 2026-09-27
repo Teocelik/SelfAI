@@ -217,7 +217,17 @@
                 <!-- Upload Section -->
                 <div class="px-4 py-3">
                     <p class="text-xs text-white mb-3">Upload reference photo</p>
-                    <div class="glass-upload transition-colors duration-200" id="faceLockPanelUploadArea">
+
+                    @* F.8b Faz A — kullanım hakkı onayı. İşaretlenmeden yükleme alanı aktif olmaz;
+                       backend de ayrıca doğrular (AssetsController.Upload). *@
+                    <label class="upload-consent" for="faceLockConsent">
+                        <input type="checkbox" id="faceLockConsent" class="upload-consent__checkbox" />
+                        <span class="upload-consent__text">
+                            Yalnızca bana ait veya kullanım izni olan görselleri yüklüyorum.
+                        </span>
+                    </label>
+
+                    <div class="glass-upload transition-colors duration-200 is-consent-locked" id="faceLockPanelUploadArea">
                         <input type="file" id="faceLockPanelImage" name="AssetFile" accept="image/*" class="hidden" />
 
                         <!-- Upload Placeholder -->
@@ -672,6 +682,18 @@
                             </div>
                         </div>
 
+                        @* F.8b Faz A — kullanım hakkı onayı. İşaretlenmeden "Oluştur" butonu
+                           pasif kalır; backend de ayrıca doğrular (CharactersController.Create). *@
+                        <div class="character-create-form__field">
+                            <label class="upload-consent" for="characterConsent">
+                                <input type="checkbox" id="characterConsent"
+                                       class="upload-consent__checkbox" />
+                                <span class="upload-consent__text">
+                                    Yalnızca bana ait veya kullanım izni olan görselleri yüklüyorum.
+                                </span>
+                            </label>
+                        </div>
+
                         @* Submit alanı *@
                         <div class="character-create-form__actions">
                             <button type="button" class="character-create-form__cancel"
@@ -751,6 +773,7 @@
     </div>
 
     @section Styles {
+        <link rel="stylesheet" href="~/css/upload-consent.css" />
         <link rel="stylesheet" href="~/css/character-modal.css" />
         <link rel="stylesheet" href="~/css/model-picker.css" />
         <link rel="stylesheet" href="~/css/generated-results.css" />
